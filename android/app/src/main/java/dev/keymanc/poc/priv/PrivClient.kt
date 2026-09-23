@@ -25,7 +25,7 @@ object PrivClient {
         .daemon(false)
         .processNameSuffix("priv")
         .debuggable(BuildConfig.DEBUG)
-        .version(BuildConfig.VERSION_CODE)
+        .version(BuildConfig.PRIV_VERSION)
 
     private var ready = CountDownLatch(1)
 
@@ -127,7 +127,8 @@ object PrivClient {
         return try {
             data.writeInterfaceToken(PrivProtocol.DESCRIPTOR)
             write(data)
-            b.transact(code, data, reply, 0)
+            // An older helper answers unknown codes with `false` and an empty reply.
+            check(b.transact(code, data, reply, 0)) { "privileged helper does not support call $code (outdated?)" }
             reply.readException()
             read(reply)
         } catch (e: Exception) {

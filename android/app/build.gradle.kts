@@ -13,6 +13,9 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "0.0.1-p0"
+        // Shizuku restarts the privileged process only when this changes; bump it per build so
+        // an updated APK never talks to a stale helper from the previous install.
+        buildConfigField("int", "PRIV_VERSION", "${(System.currentTimeMillis() / 1000).toInt()}")
     }
 
     buildFeatures {

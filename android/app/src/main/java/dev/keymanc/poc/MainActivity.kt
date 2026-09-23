@@ -156,7 +156,7 @@ class MainActivity : Activity() {
             },
         )
         buttons(
-            "호스트 시작" to { HostService.start(this); postRefresh() },
+            "호스트 시작" to ::startHost,
             "호스트 중지" to { HostService.stop(this); postRefresh() },
         )
 
@@ -172,6 +172,30 @@ class MainActivity : Activity() {
         }
         root.addView(log)
         return ScrollView(this).apply { addView(root) }
+    }
+
+    /** The host needs a way to capture input: Shizuku, or else the accessibility service. */
+    private fun startHost() {
+        if (PrivClient.hasPermission() || KeymancAccessibilityService.instance != null) {
+            HostService.start(this)
+            postRefresh()
+            return
+        }
+        AppLog.i("호스트: Shizuku가 실행 중이 아니고 접근성 서비스도 꺼져 있음")
+        android.app.AlertDialog.Builder(this)
+            .setTitle("접근성 서비스를 켜 주세요")
+            .setMessage(
+                "Shizuku 없이 호스트를 쓰려면 keymanc 접근성 서비스가 필요합니다.\n\n" +
+                    "설정 → 접근성 → 설치된 앱 → keymanc → 사용\n\n" +
+                    "APK로 설치한 경우 '제한된 설정'이라며 켜지지 않으면: " +
+                    "앱 정보 → 오른쪽 위 ⋮ → '제한된 설정 허용' 후 다시 켜 주세요."
+            )
+            .setPositiveButton("접근성 설정") { _, _ -> startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) }
+            .setNeutralButton("앱 정보") { _, _ ->
+                startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName")))
+            }
+            .setNegativeButton("취소", null)
+            .show()
     }
 
     private fun requestBluetoothPermission() {

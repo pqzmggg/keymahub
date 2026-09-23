@@ -80,7 +80,12 @@ class HostService : Service() {
             return
         }
         sink = s
-        val err = if (PrivClient.hasPermission() && PrivClient.connect()) startShizukuCapture() else startA11yCapture(s)
+        val err = if (PrivClient.hasPermission() && PrivClient.connect()) {
+            startShizukuCapture()
+        } else {
+            AppLog.i("host: Shizuku unavailable (${PrivClient.shizukuState()}), using accessibility")
+            startA11yCapture(s)
+        }
         if (err != null) {
             AppLog.i("host: $err")
             stopSelf()
@@ -105,7 +110,7 @@ class HostService : Service() {
 
     private fun startA11yCapture(s: BtHidSink): String? {
         val service = KeymancAccessibilityService.instance
-            ?: return "입력을 가로챌 방법이 없습니다. 접근성 설정에서 keymanc를 켜거나(Shizuku 불필요) Shizuku를 실행해 주세요."
+            ?: return "keymanc 접근성 서비스가 꺼져 있습니다 (설정 → 접근성 → keymanc 켜기, Shizuku 불필요)"
         val capture = A11yCapture(s, ::onFocus)
         a11y = capture
         service.hostCapture = capture
