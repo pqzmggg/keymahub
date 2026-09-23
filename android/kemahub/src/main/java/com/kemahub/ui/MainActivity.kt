@@ -35,7 +35,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kemahub.HubService
 import com.kemahub.KemaAccessibilityService
 import com.kemahub.Locales
-import com.kemahub.Locations
 import com.kemahub.R
 import com.kemahub.ble.BleHid
 import com.kemahub.core.Hub
@@ -46,12 +45,6 @@ import com.kemahub.core.UiPrefs
 class MainActivity : ComponentActivity() {
     private var tick by mutableIntStateOf(0)
     private val permissions = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { tick++ }
-    private var afterLocation: (() -> Unit)? = null
-    private val locationPermission = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
-        tick++
-        if (Locations.granted(this)) afterLocation?.invoke()
-        afterLocation = null
-    }
 
     override fun attachBaseContext(newBase: Context) = super.attachBaseContext(Locales.wrap(newBase))
 
@@ -64,8 +57,7 @@ class MainActivity : ComponentActivity() {
             KemaTheme(ui) {
                 LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
                     tick++
-                    Locations.lastKnown(this@MainActivity)?.let { Hub.setLocation(this@MainActivity, it) }
-                        ?: Hub.resolve(this@MainActivity)
+                    Hub.resolve(this@MainActivity)
                 }
                 val status by Hub.status.collectAsStateWithLifecycle()
                 val log by Hub.log.collectAsStateWithLifecycle()
@@ -87,10 +79,8 @@ class MainActivity : ComponentActivity() {
             route.startsWith("profile:") -> ProfileScreen(
                 profileId = route.removePrefix("profile:"),
                 status = status,
-                locationGranted = remember(tick) { Locations.granted(this) },
                 onBack = { route = "home" },
                 onEdit = onEdit,
-                onLocation = ::withLocation,
             )
             route == "devices" -> DevicesScreen(
                 status = status,
@@ -153,18 +143,6 @@ class MainActivity : ComponentActivity() {
             onAccessibility = { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },
             onAppInfo = ::openAppInfo,
         )
-    }
-
-    /** Runs [then] once location may be used, asking for it first if needed. */
-    private fun withLocation(then: () -> Unit) {
-        if (Locations.granted(this)) return then()
-        val prefs = getSharedPreferences("kemahub", Context.MODE_PRIVATE)
-        val blocked = prefs.getBoolean("asked:location", false) &&
-            Locations.PERMISSIONS.none { shouldShowRequestPermissionRationale(it) }
-        if (blocked) return openAppInfo()
-        prefs.edit().putBoolean("asked:location", true).apply()
-        afterLocation = then
-        locationPermission.launch(Locations.PERMISSIONS)
     }
 
     /** Opens the user's mail app with the log addressed to the developer; the user presses send there. */

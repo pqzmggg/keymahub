@@ -317,7 +317,7 @@ private fun ProfileRow(
             }
             Column(Modifier.weight(1f)) {
                 Text(profileName(p), style = MaterialTheme.typography.titleMedium)
-                Text(conditionText(p), style = MaterialTheme.typography.bodySmall)
+                Text(conditionText(p, settings), style = MaterialTheme.typography.bodySmall)
                 Text(
                     when {
                         active -> stringResource(R.string.profile_in_use)

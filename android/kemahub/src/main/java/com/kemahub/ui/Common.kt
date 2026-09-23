@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kemahub.R
 import com.kemahub.core.Profile
+import com.kemahub.core.Settings
 import com.kemahub.core.TimeRule
 import java.time.DayOfWeek
 import java.time.format.TextStyle
@@ -127,17 +128,22 @@ fun dayName(day: Int): String {
 
 /** One line describing when [p] applies. */
 @Composable
-fun conditionText(p: Profile): String {
+fun conditionText(p: Profile, settings: Settings): String {
     val parts = mutableListOf<String>()
     p.time?.let { t ->
         val hours = if (t.start == t.end) stringResource(R.string.time_all_day) else "${timeText(t.start)}–${timeText(t.end)}"
         parts += "${daysText(t.days)} $hours"
     }
-    p.place?.let { parts += it.label.ifEmpty { stringResource(R.string.place_unnamed) } + " (" + distanceText(it.radius) + ")" }
+    if (p.whenConnected.isNotEmpty()) parts += connectedText(settings, p.whenConnected)
     return if (parts.isEmpty()) stringResource(R.string.condition_always) else parts.joinToString(" · ")
 }
 
-fun distanceText(m: Int) = if (m >= 1000 && m % 1000 == 0) "${m / 1000} km" else "$m m"
+/** "When Desk PC or Laptop is connected". */
+@Composable
+fun connectedText(settings: Settings, addresses: Set<String>): String {
+    val names = settings.devices.filter { it.address in addresses }.joinToString(", ") { it.name }
+    return stringResource(R.string.condition_devices_on, names)
+}
 
 /** Asks for a name. [onConfirm] gets the trimmed text; the button is off while it is empty. */
 @Composable

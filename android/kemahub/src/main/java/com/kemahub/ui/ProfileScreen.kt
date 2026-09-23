@@ -1,7 +1,6 @@
 package com.kemahub.ui
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,16 +12,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -49,24 +49,19 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.kemahub.KeyLabels
-import com.kemahub.Locations
 import com.kemahub.R
 import com.kemahub.core.HubStatus
-import com.kemahub.core.PlaceRule
 import com.kemahub.core.Profile
 import com.kemahub.core.Settings
 import com.kemahub.core.TimeRule
 
-/** One profile: when it applies (time, place) and which device is on which hotkey. */
+/** One profile: when it applies (time, connected devices) and which device is on which hotkey. */
 @Composable
 fun ProfileScreen(
     profileId: String,
     status: HubStatus,
-    locationGranted: Boolean,
     onBack: () -> Unit,
     onEdit: ((Settings) -> Settings) -> Unit,
-    /** Runs the block once location may be used (asks first). */
-    onLocation: (() -> Unit) -> Unit,
 ) {
     val settings = status.settings
     val profile = settings.profile(profileId)
@@ -74,26 +69,9 @@ fun ProfileScreen(
         LaunchedEffect(profileId) { onBack() }
         return
     }
-    val context = LocalContext.current
     var renaming by remember { mutableStateOf(false) }
     var assignFor by remember { mutableStateOf<Int?>(null) }
     var deleting by remember { mutableStateOf(false) }
-    var locating by remember { mutableStateOf(false) }
-    var locationFailed by remember { mutableStateOf(false) }
-
-    fun useCurrentLocation() = onLocation {
-        locating = true
-        locationFailed = false
-        Locations.current(context) { p ->
-            locating = false
-            if (p == null) {
-                locationFailed = true
-            } else {
-                val old = settings.profile(profileId)?.place
-                onEdit { it.setPlace(profileId, PlaceRule(p.lat, p.lon, old?.radius ?: 200, old?.label.orEmpty())) }
-            }
-        }
-    }
 
     Page {
         TopBar(profileName(profile), onBack) {
@@ -116,15 +94,10 @@ fun ProfileScreen(
 
         SectionTitle(stringResource(R.string.conditions_title), stringResource(R.string.conditions_hint))
         TimeCard(profile.time) { rule -> onEdit { it.setTime(profileId, rule) } }
-        PlaceCard(
-            place = profile.place,
-            granted = locationGranted,
-            locating = locating,
-            failed = locationFailed,
-            onEnable = ::useCurrentLocation,
-            onUpdate = ::useCurrentLocation,
-            onDisable = { onEdit { it.setPlace(profileId, null) } },
-            onChange = { rule -> onEdit { it.setPlace(profileId, rule) } },
+        ConnectedCard(
+            settings = settings,
+            chosen = profile.whenConnected,
+            onChange = { set -> onEdit { it.setWhenConnected(profileId, set) } },
         )
 
         SectionTitle(stringResource(R.string.hotkeys_title), stringResource(R.string.hotkeys_hint))
@@ -183,7 +156,7 @@ private fun TimeCard(time: TimeRule?, onChange: (TimeRule?) -> Unit) {
                 Column(Modifier.weight(1f)) {
                     Text(stringResource(R.string.condition_time), style = MaterialTheme.typography.titleMedium)
                     Text(
-                        time?.let { conditionText(Profile("", "", time = it)) } ?: stringResource(R.string.condition_time_off),
+                        time?.let { conditionText(Profile("", "", time = it), Settings()) } ?: stringResource(R.string.condition_time_off),
                         style = MaterialTheme.typography.bodySmall,
                     )
                 }
@@ -251,77 +224,53 @@ private fun TimeDialog(title: String, minute: Int, onDismiss: () -> Unit, onPick
     )
 }
 
+/** "While one of these devices is connected": a checklist of the paired devices. */
 @Composable
-private fun PlaceCard(
-    place: PlaceRule?,
-    granted: Boolean,
-    locating: Boolean,
-    failed: Boolean,
-    onEnable: () -> Unit,
-    onUpdate: () -> Unit,
-    onDisable: () -> Unit,
-    onChange: (PlaceRule) -> Unit,
-) {
-    var naming by remember { mutableStateOf(false) }
+private fun ConnectedCard(settings: Settings, chosen: Set<String>, onChange: (Set<String>) -> Unit) {
+    var open by remember { mutableStateOf(chosen.isNotEmpty()) }
     Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text(stringResource(R.string.condition_place), style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.condition_devices), style = MaterialTheme.typography.titleMedium)
                     Text(
-                        when {
-                            locating -> stringResource(R.string.place_locating)
-                            place != null -> place.label.ifEmpty { stringResource(R.string.place_unnamed) }
-                            else -> stringResource(R.string.condition_place_off)
-                        },
+                        if (chosen.isEmpty()) stringResource(R.string.condition_devices_off)
+                        else connectedText(settings, chosen),
                         style = MaterialTheme.typography.bodySmall,
                     )
                 }
-                Switch(checked = place != null, enabled = !locating, onCheckedChange = { if (it) onEnable() else onDisable() })
+                Switch(
+                    checked = open || chosen.isNotEmpty(),
+                    onCheckedChange = { on ->
+                        open = on
+                        if (!on) onChange(emptySet())
+                    },
+                )
             }
-            if (failed) {
-                Text(stringResource(R.string.place_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-            }
-            if (place == null && !granted) {
+            if (open || chosen.isNotEmpty()) {
                 Text(
-                    stringResource(R.string.place_permission_hint),
+                    stringResource(R.string.condition_devices_hint),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-            }
-            if (place != null) {
-                Text(
-                    "%.5f, %.5f".format(place.lat, place.lon),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Text(stringResource(R.string.place_radius), style = MaterialTheme.typography.labelLarge)
-                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    for (r in PlaceRule.RADII) {
-                        FilterChip(
-                            selected = place.radius == r,
-                            onClick = { onChange(place.copy(radius = r)) },
-                            label = { Text(distanceText(r)) },
-                        )
+                if (settings.devices.isEmpty()) {
+                    Text(stringResource(R.string.assign_no_devices), style = MaterialTheme.typography.bodyMedium)
+                }
+                for (d in settings.devices) {
+                    val on = d.address in chosen
+                    Row(
+                        Modifier.fillMaxWidth()
+                            .toggleable(on, role = Role.Checkbox) { onChange(if (it) chosen + d.address else chosen - d.address) }
+                            .padding(vertical = 2.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Checkbox(checked = on, onCheckedChange = null)
+                        Spacer(Modifier.width(12.dp))
+                        Text(d.name)
                     }
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(onClick = onUpdate, enabled = !locating) { Text(stringResource(R.string.place_update)) }
-                    OutlinedButton(onClick = { naming = true }) { Text(stringResource(R.string.place_name)) }
-                }
-                if (!granted) {
-                    Text(stringResource(R.string.place_no_permission), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                 }
             }
         }
-    }
-    if (naming && place != null) {
-        NameDialog(
-            title = stringResource(R.string.place_name),
-            initial = place.label,
-            onDismiss = { naming = false },
-            onConfirm = { name -> naming = false; onChange(place.copy(label = name)) },
-        )
     }
 }
 

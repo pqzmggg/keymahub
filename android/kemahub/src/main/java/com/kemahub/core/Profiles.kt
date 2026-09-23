@@ -48,24 +48,25 @@ data class Device(val address: String, val name: String, val lastUsed: Long = 0,
  *
  * Slot 0 is this phone, slots 1..9 are receivers (see [Hotkeys]).
  * An empty [name] is the unnamed default profile (the UI shows a translated name).
- * Conditions: [time] and/or [place]; with both, both must hold; with neither, always.
+ * Conditions: [time] and/or [whenConnected] (any of these devices connected); with both, both
+ * must hold. A profile without conditions is only used when activated by hand.
  */
 data class Profile(
     val id: String,
     val name: String,
     val receivers: Map<Int, String> = emptyMap(),
     val time: TimeRule? = null,
-    val place: PlaceRule? = null,
+    val whenConnected: Set<String> = emptySet(),
 ) {
     fun addressOf(slot: Int): String? = receivers[slot]
 
     fun slotOf(address: String): Int? = receivers.entries.firstOrNull { it.value == address }?.key
 
-    val hasConditions get() = time != null || place != null
+    val hasConditions get() = time != null || whenConnected.isNotEmpty()
 
-    /** [day] ISO 1..7, [minute] of the day, [location] null when unknown (a place then does not match). */
-    fun matches(day: Int, minute: Int, location: GeoPoint?): Boolean =
-        (time?.matches(day, minute) ?: true) && (place?.let { location != null && it.contains(location) } ?: true)
+    /** [day] ISO 1..7, [minute] of the day, [connected] the devices connected right now. */
+    fun matches(day: Int, minute: Int, connected: Set<String>): Boolean =
+        (time?.matches(day, minute) ?: true) && (whenConnected.isEmpty() || whenConnected.any { it in connected })
 
     companion object {
         const val SLOTS = 10
@@ -109,8 +110,8 @@ data class Settings(
     fun profile(id: String) = profiles.firstOrNull { it.id == id }
 
     /** Picks the active profile for this moment. */
-    fun resolve(day: Int, minute: Int, location: GeoPoint?): Settings {
-        val matched = profiles.firstOrNull { it.hasConditions && it.matches(day, minute, location) }?.id
+    fun resolve(day: Int, minute: Int, connected: Set<String>): Settings {
+        val matched = profiles.firstOrNull { it.hasConditions && it.matches(day, minute, connected) }?.id
         val overridden = overriddenId?.takeIf { it == matched }
         val chosen = profile(chosenId)?.id ?: profiles.first().id
         val active = if (matched != null && overridden == null) matched else chosen
@@ -149,7 +150,9 @@ data class Settings(
     /** Forgets the device everywhere. */
     fun forgetDevice(address: String) = copy(
         devices = devices.filter { it.address != address },
-        profiles = profiles.map { p -> p.copy(receivers = p.receivers.filterValues { it != address }) },
+        profiles = profiles.map { p ->
+            p.copy(receivers = p.receivers.filterValues { it != address }, whenConnected = p.whenConnected - address)
+        },
     )
 
     private fun withDevice(address: String, f: (Device) -> Device) =
@@ -184,7 +187,7 @@ data class Settings(
      */
     fun addProfile(name: String): Pair<Settings, String> {
         val n = (profiles.mapNotNull { it.id.removePrefix("p").toIntOrNull() }.maxOrNull() ?: 0) + 1
-        val p = active.copy(id = "p$n", name = clean(name), time = null, place = null)
+        val p = active.copy(id = "p$n", name = clean(name), time = null, whenConnected = emptySet())
         return copy(profiles = listOf(p) + profiles) to p.id
     }
 
@@ -222,10 +225,10 @@ data class Settings(
         return withProfile(p.copy(time = rule))
     }
 
-    fun setPlace(id: String, rule: PlaceRule?): Settings {
+    /** The profile applies while any of [addresses] is connected (empty: no such condition). */
+    fun setWhenConnected(id: String, addresses: Set<String>): Settings {
         val p = profile(id) ?: return this
-        if (rule != null && !rule.isValid) return this
-        return withProfile(p.copy(place = rule?.copy(label = clean(rule.label))))
+        return withProfile(p.copy(whenConnected = addresses.filter { device(it) != null }.toSet()))
     }
 
     private fun withProfile(p: Profile) = copy(profiles = profiles.map { if (it.id == p.id) p else it })
@@ -244,9 +247,10 @@ data class Settings(
         for (p in profiles) {
             val recv = p.receivers.entries.sortedBy { it.key }.joinToString(",") { "${it.key}=${it.value}" }
             val time = p.time?.let { "${it.days},${it.start},${it.end}" }.orEmpty()
-            val place = p.place?.let { "${it.lat},${it.lon},${it.radius},${it.label}" }.orEmpty()
+            val connected = p.whenConnected.joinToString(",")
             // The empty 4th field held per-profile hotkeys in early builds.
-            append("profile\t${p.id}\t${p.name}\t\t$recv\t$time\t$place\n")
+            // Empty 4th and 7th fields: per-profile hotkeys and places of early builds.
+            append("profile\t${p.id}\t${p.name}\t\t$recv\t$time\t\t$connected\n")
         }
     }
 
@@ -274,14 +278,17 @@ data class Settings(
                     "profile" -> if (f.size >= 3 && f[1].isNotEmpty() && profiles.none { it.id == f[1] }) {
                         profiles += Profile(
                             f[1], f[2], receivers = receivers(f.getOrNull(4)),
-                            time = time(f.getOrNull(5)), place = place(f.getOrNull(6)),
+                            time = time(f.getOrNull(5)),
+                            whenConnected = f.getOrNull(7).orEmpty().split(',').filter { it.isNotEmpty() }.toSet(),
                         )
                     }
                 }
             }
             if (profiles.isEmpty()) profiles += Profile("p1", "")
             val known = devices.map { it.address }.toSet()
-            val cleaned = profiles.map { p -> p.copy(receivers = p.receivers.filterValues { it in known }) }
+            val cleaned = profiles.map { p ->
+                p.copy(receivers = p.receivers.filterValues { it in known }, whenConnected = p.whenConnected.filter { it in known }.toSet())
+            }
             fun valid(id: String?) = id?.takeIf { i -> cleaned.any { it.id == i } }
             val activeId = valid(active) ?: cleaned.first().id
             return Settings(devices, cleaned, activeId, valid(chosen) ?: activeId, valid(matched), valid(overridden), mods)
@@ -290,15 +297,6 @@ data class Settings(
         private fun time(text: String?): TimeRule? {
             val v = text.orEmpty().split(',').mapNotNull { it.toIntOrNull() }.takeIf { it.size == 3 } ?: return null
             return TimeRule(v[0], v[1], v[2]).takeIf { it.isValid }
-        }
-
-        private fun place(text: String?): PlaceRule? {
-            val f = text.orEmpty().split(',', limit = 4).takeIf { it.size == 4 } ?: return null
-            val rule = PlaceRule(
-                f[0].toDoubleOrNull() ?: return null, f[1].toDoubleOrNull() ?: return null,
-                f[2].toIntOrNull() ?: return null, f[3],
-            )
-            return rule.takeIf { it.isValid }
         }
 
         private fun receivers(text: String?): Map<Int, String> {

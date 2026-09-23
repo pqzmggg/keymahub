@@ -87,12 +87,10 @@
     <string name="manual_banner">%1$s を手動で有効にしたため、条件が変わるまで %2$s の代わりに使います。</string>
     <string name="manual_off">自動に戻す</string>
     <string name="conditions_title">有効になる条件</string>
-    <string name="conditions_hint">時間、場所、またはその両方を設定できます（両方の場合はどちらも満たす必要あり）。条件がない場合は、手動で有効にしたときだけ使われます。</string>
+    <string name="conditions_hint">時間、接続中のデバイス、またはその両方を設定できます（両方の場合はどちらも満たす必要あり）。条件がない場合は、手動で有効にしたときだけ使われます。</string>
     <string name="condition_always">手動で有効にしたときのみ</string>
     <string name="condition_time">時間</string>
     <string name="condition_time_off">いつでも</string>
-    <string name="condition_place">場所</string>
-    <string name="condition_place_off">どこでも</string>
     <string name="days_every">毎日</string>
     <string name="days_weekdays">平日</string>
     <string name="days_weekend">週末</string>
@@ -101,14 +99,6 @@
     <string name="time_end">終了</string>
     <string name="time_hint">終了が開始より早い場合は、日付をまたいで続きます。</string>
     <string name="time_all_day_hint">開始と終了が同じ場合は終日です。</string>
-    <string name="place_unnamed">保存した場所</string>
-    <string name="place_locating">現在地を取得中…</string>
-    <string name="place_failed">位置情報を取得できませんでした。位置情報がオンか確認して、もう一度お試しください。</string>
-    <string name="place_permission_hint">この条件の確認にのみスマホの位置情報を使い、外部には送信しません。</string>
-    <string name="place_no_permission">位置情報の権限がオフのため、この場所は確認されません。</string>
-    <string name="place_radius">半径</string>
-    <string name="place_update">現在地に設定</string>
-    <string name="place_name">場所の名前</string>
     <string name="hud_profile">プロファイル: %1$s</string>
     <string name="notif_pairing">ペアリングモードがオンです。PC やタブレットでこのスマホを追加してください。</string>
     <string name="devices_paired">ペアリング済みのデバイス</string>
@@ -151,6 +141,10 @@
     <string name="hotkeys_mods_hint">これらのキーを押しながら数字を押します。1 はこのスマホ、2〜9 と 0 はデバイス 1〜9。すべてのプロファイルで共通です。</string>
     <string name="hotkeys_invalid">Ctrl、Alt、Meta のいずれかを含めてください。</string>
     <string name="hotkeys_devices">デバイス 1〜9</string>
+    <string name="condition_devices">接続中のデバイス</string>
+    <string name="condition_devices_off">指定なし</string>
+    <string name="condition_devices_on">%1$s の接続時</string>
+    <string name="condition_devices_hint">チェックしたデバイスのいずれかが接続されている間に適用されます。ホスティング中は、近くのペアリング済みデバイスが自動で再接続します。</string>
     <plurals name="ready_count">
         <item quantity="other">%1$d 台接続中</item>
     </plurals>

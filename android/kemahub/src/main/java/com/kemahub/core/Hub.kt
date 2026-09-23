@@ -61,17 +61,7 @@ object Hub {
         _status.value.settings
     }
 
-    /** Last known position, for profiles with a place. */
-    @Volatile
-    var location: GeoPoint? = null
-        private set
-
-    fun setLocation(context: Context, p: GeoPoint) {
-        location = p
-        resolve(context)
-    }
-
-    /** Re-picks the active profile for the current time and place. */
+    /** Re-picks the active profile for the current time and the devices connected now. */
     fun resolve(context: Context) = edit(context) { it }
 
     /** Changes the settings (then re-picks the active profile), saves and publishes them. */
@@ -81,7 +71,7 @@ object Hub {
         synchronized(this) {
             before = settings(context)
             val now = LocalDateTime.now()
-            after = change(before).resolve(now.dayOfWeek.value, now.hour * 60 + now.minute, location)
+            after = change(before).resolve(now.dayOfWeek.value, now.hour * 60 + now.minute, _status.value.ready)
             if (after == before) return
             context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY_SETTINGS, after.encode()).apply()
             _status.update { it.copy(settings = after) }

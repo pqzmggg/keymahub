@@ -25,7 +25,7 @@ import com.kemahub.ui.MainActivity
 /**
  * Runs KemaHub in the background ("hosting"): the phone advertises as a BLE keyboard + mouse,
  * and the hotkeys (modifiers + 1..9, 0) move the phone's keyboard and mouse between the active profile's receivers and
- * the phone itself. Also re-picks the active profile as time and place change.
+ * the phone itself. Also re-picks the active profile as the time and the connected devices change.
  */
 class HubService : Service(), BleHid.Listener {
     private var started = false
@@ -36,9 +36,7 @@ class HubService : Service(), BleHid.Listener {
     private var pointerCapture: PointerCaptureOverlay? = null
     private var hud: HudOverlay? = null
     private val main = Handler(Looper.getMainLooper())
-    private val tracker by lazy { Locations.Tracker(this) }
     private var pendingPairing = false
-    private var locationType = false
 
     override fun attachBaseContext(base: Context) = super.attachBaseContext(Locales.wrap(base))
 
@@ -113,7 +111,6 @@ class HubService : Service(), BleHid.Listener {
         running = false
         ready = false
         main.removeCallbacksAndMessages(null)
-        tracker.stop()
         Hub.onProfileChanged = null
         BleHid.removeListener(this)
         val c = capture
@@ -146,17 +143,10 @@ class HubService : Service(), BleHid.Listener {
 
     // ---------------------------------------------------------------- automatic profile
 
-    /** Every minute: re-pick the profile (time rules) and track location only while a profile has a place. */
+    /** Every minute: re-pick the profile for time rules (connections re-pick it as they happen). */
     private val minuteTick = object : Runnable {
         override fun run() {
             Hub.resolve(this@HubService)
-            val wantLocation = Hub.settings(this@HubService).profiles.any { it.place != null } && Locations.granted(this@HubService)
-            if (wantLocation && !tracker.running) {
-                if (!locationType) locationType = startInForeground()
-                if (locationType) tracker.start()
-            } else if (!wantLocation && tracker.running) {
-                tracker.stop()
-            }
             val now = System.currentTimeMillis()
             main.postDelayed(this, 60_000 - now % 60_000 + 200)
         }
@@ -211,16 +201,18 @@ class HubService : Service(), BleHid.Listener {
     }
 
     override fun onReady(address: String, name: String) {
-        Hub.edit(this) { it.deviceConnected(address, name).touch(address, System.currentTimeMillis()) }
+        // Ready set first: the edit re-picks the profile, and "when connected" rules look at it.
         Hub.update { it.copy(ready = BleHid.readyTargets()) }
+        Hub.edit(this) { it.deviceConnected(address, name).touch(address, System.currentTimeMillis()) }
         Hub.settings(this).device(address)?.let { showHud(getString(R.string.hud_connected, it.name)) }
         updateNotification()
     }
 
     override fun onGone(address: String) {
         profile.slotOf(address)?.let { capture?.targetLost(it) }
-        if (Hub.settings(this).device(address) != null) Hub.edit(this) { it.touch(address, System.currentTimeMillis()) }
         Hub.update { it.copy(ready = BleHid.readyTargets()) }
+        if (Hub.settings(this).device(address) != null) Hub.edit(this) { it.touch(address, System.currentTimeMillis()) }
+        Hub.resolve(this)
         updateNotification()
     }
 
@@ -257,28 +249,14 @@ class HubService : Service(), BleHid.Listener {
         getSystemService(NotificationManager::class.java)!!.notify(NOTIFICATION_ID, notification())
     }
 
-    /**
-     * Also declares the location type when a profile has a place and location is allowed.
-     * Returns whether the location type is in effect (it can be refused, e.g. when restarted
-     * in the background; then places are not checked until the next start from the app).
-     */
-    private fun startInForeground(): Boolean {
+    private fun startInForeground() {
         getSystemService(NotificationManager::class.java)!!
             .createNotificationChannel(NotificationChannel(CHANNEL, getString(R.string.notif_channel), NotificationManager.IMPORTANCE_LOW))
-        if (Build.VERSION.SDK_INT < 29) {
+        if (Build.VERSION.SDK_INT >= 29) {
+            startForeground(NOTIFICATION_ID, notification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE)
+        } else {
             startForeground(NOTIFICATION_ID, notification())
-            return true
         }
-        val device = ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE
-        val wantLocation = Hub.settings(this).profiles.any { it.place != null } && Locations.granted(this)
-        if (wantLocation) {
-            val ok = runCatching {
-                startForeground(NOTIFICATION_ID, notification(), device or ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION)
-            }.onFailure { Hub.log("foreground location refused: $it") }.isSuccess
-            if (ok) return true
-        }
-        startForeground(NOTIFICATION_ID, notification(), device)
-        return false
     }
 
     companion object {
