@@ -1,21 +1,27 @@
 package com.kemahub.ui
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Menu
@@ -31,6 +37,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -45,7 +52,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.zIndex
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
@@ -56,6 +63,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import com.kemahub.R
 import com.kemahub.core.ActivationMode
 import com.kemahub.core.HubStatus
@@ -112,6 +120,7 @@ fun HomeScreen(
                 Text(stringResource(R.string.profile_new))
             }
         }
+        ModeRow(settings.mode) { m -> onEdit { it.setMode(m) } }
         Text(
             stringResource(
                 when (settings.mode) {
@@ -372,5 +381,73 @@ private fun ProfileRow(
                 Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.profile_edit))
             }
         }
+    }
+}
+
+/** Label and explanation of each activation mode. */
+private val MODES = listOf(
+    Triple(ActivationMode.AUTO, R.string.mode_auto, R.string.mode_auto_hint),
+    Triple(ActivationMode.RULES, R.string.mode_rules, R.string.mode_rules_hint),
+    Triple(ActivationMode.MANUAL, R.string.mode_manual, R.string.mode_manual_hint),
+)
+
+/** "Profile activation: [Fully automatic ▾] (?)" */
+@Composable
+private fun ModeRow(mode: ActivationMode, onMode: (ActivationMode) -> Unit) {
+    var menu by remember { mutableStateOf(false) }
+    var help by remember { mutableStateOf(false) }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(stringResource(R.string.settings_activation), style = MaterialTheme.typography.bodyMedium)
+        Spacer(Modifier.width(8.dp))
+        Box {
+            OutlinedButton(onClick = { menu = true }, contentPadding = PaddingValues(start = 12.dp, end = 4.dp)) {
+                Text(stringResource(MODES.first { it.first == mode }.second))
+                Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+            }
+            DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                for ((m, label, _) in MODES) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(label)) },
+                        leadingIcon = { if (m == mode) Icon(Icons.Default.Check, contentDescription = null) },
+                        onClick = { menu = false; onMode(m) },
+                    )
+                }
+            }
+        }
+        Spacer(Modifier.weight(1f))
+        IconButton(onClick = { help = true }) {
+            Surface(
+                shape = CircleShape,
+                border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.onSurfaceVariant),
+                color = Color.Transparent,
+                modifier = Modifier.size(24.dp),
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text("?", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+    }
+    if (help) {
+        AlertDialog(
+            onDismissRequest = { help = false },
+            title = { Text(stringResource(R.string.settings_activation)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    for ((m, label, hint) in MODES) {
+                        Column {
+                            Text(
+                                stringResource(label),
+                                fontWeight = FontWeight.SemiBold,
+                                color = if (m == mode) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                            )
+                            Text(stringResource(hint), style = MaterialTheme.typography.bodyMedium)
+                        }
+                    }
+                    Text(stringResource(R.string.mode_fallback_note), style = MaterialTheme.typography.bodySmall)
+                }
+            },
+            confirmButton = { TextButton(onClick = { help = false }) { Text(stringResource(R.string.action_close)) } },
+        )
     }
 }

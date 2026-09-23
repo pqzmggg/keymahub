@@ -32,7 +32,6 @@ import androidx.compose.ui.unit.dp
 import com.kemahub.KeyLabels
 import com.kemahub.Locales
 import com.kemahub.R
-import com.kemahub.core.ActivationMode
 import com.kemahub.core.Hotkeys
 import com.kemahub.core.Mods
 import com.kemahub.core.Settings
@@ -43,8 +42,6 @@ import com.kemahub.core.UiPrefs
 @Composable
 fun SettingsScreen(
     ui: UiPrefs,
-    mode: ActivationMode,
-    onMode: (ActivationMode) -> Unit,
     /** Hotkey modifiers ([Mods] bits). */
     mods: Int,
     onMods: (Int) -> Unit,
@@ -60,19 +57,6 @@ fun SettingsScreen(
 
     Page {
         TopBar(stringResource(R.string.settings_title), onBack)
-
-        SectionTitle(stringResource(R.string.settings_activation))
-        Card(Modifier.fillMaxWidth()) {
-            Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                for ((m, label, hint) in listOf(
-                    Triple(ActivationMode.AUTO, R.string.mode_auto, R.string.mode_auto_hint),
-                    Triple(ActivationMode.RULES, R.string.mode_rules, R.string.mode_rules_hint),
-                    Triple(ActivationMode.MANUAL, R.string.mode_manual, R.string.mode_manual_hint),
-                )) {
-                    Choice(stringResource(label), stringResource(hint), selected = mode == m) { onMode(m) }
-                }
-            }
-        }
 
         SectionTitle(stringResource(R.string.settings_hotkeys))
         HotkeyCard(mods, onMods)

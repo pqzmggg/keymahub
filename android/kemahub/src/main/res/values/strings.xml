@@ -147,6 +147,7 @@
     <string name="profile_devices_connected">%1$d of %2$d devices connected</string>
     <string name="profiles_hint_auto">The profile with the most of its devices connected is used; ties go to the higher one. Drag ☰ to reorder. With none connected, the profile you activated last is used.</string>
     <string name="profiles_hint_manual">The profile you activate is used. Drag ☰ to reorder.</string>
+    <string name="mode_fallback_note">In both automatic modes, when nothing matches, the profile you activated last is used. Activating a profile by hand also overrides the automatic choice until the connected devices change.</string>
     <plurals name="ready_count">
         <item quantity="one">%1$d device connected</item>
         <item quantity="other">%1$d devices connected</item>

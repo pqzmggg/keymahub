@@ -146,6 +146,7 @@
     <string name="profile_devices_connected">已连接 %1$d/%2$d 台设备</string>
     <string name="profiles_hint_auto">使用已分配设备连接最多的配置，数量相同时排在上面的优先。拖动 ☰ 可调整顺序。没有设备连接时，使用您最后启用的配置。</string>
     <string name="profiles_hint_manual">使用您手动启用的配置。拖动 ☰ 可调整顺序。</string>
+    <string name="mode_fallback_note">两种自动方式下，没有符合的配置时都会使用您最后启用的配置。手动启用的配置在已连接设备变化前优先于自动选择。</string>
     <plurals name="ready_count">
         <item quantity="other">已连接 %1$d 台设备</item>
     </plurals>
