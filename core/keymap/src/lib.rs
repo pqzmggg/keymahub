@@ -145,10 +145,9 @@ pub fn ascii_to_hid(c: char) -> Option<(u16, bool)> {
         _ => {
             if let Some(i) = UNSHIFTED.chars().position(|u| u == c && u != '\0') {
                 (0x1E + i as u16, false)
-            } else if let Some(i) = SHIFTED.chars().position(|u| u == c && u != '\0') {
-                (0x1E + i as u16, true)
             } else {
-                return None;
+                let i = SHIFTED.chars().position(|u| u == c && u != '\0')?;
+                (0x1E + i as u16, true)
             }
         }
     })

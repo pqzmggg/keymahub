@@ -145,10 +145,15 @@ class InjectSink(private val context: Context) : InputSink {
             HidKeycodes.metaState(modifiers), buttonState, 1f, 1f, 0, 0,
             InputDevice.SOURCE_MOUSE, 0,
         )
-        if (actionButton != 0) ev.actionButton = actionButton
+        if (actionButton != 0) setActionButton?.invoke(ev, actionButton)
         PrivClient.inject(ev)
         ev.recycle()
     }
+}
+
+/** `MotionEvent.setActionButton` is hidden in the public SDK (scrcpy calls it the same way). */
+private val setActionButton: java.lang.reflect.Method? by lazy {
+    runCatching { MotionEvent::class.java.getMethod("setActionButton", Int::class.javaPrimitiveType) }.getOrNull()
 }
 
 /** Real display size in pixels, including system bars. */
