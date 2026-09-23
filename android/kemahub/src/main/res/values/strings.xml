@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">KemaHub</string>
+    <string name="a11y_summary">연결한 키보드·마우스로 다른 기기 조작</string>
+    <string name="a11y_description">KemaHub는 이 기기에 연결된 키보드와 마우스의 입력을 받아, 사용자가 단축키(Ctrl+Alt+1~9)로 고른 블루투스 대상 기기(PC·태블릿)로 전달합니다. 이 폰을 조작할 때(Ctrl+Alt+0)는 입력을 그대로 둡니다. 입력 내용은 저장하거나 인터넷으로 보내지 않으며, 선택한 대상 기기로만 전달됩니다.</string>
+</resources>

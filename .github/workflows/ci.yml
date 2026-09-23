@@ -41,8 +41,14 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: gradle/actions/setup-gradle@v4
-      - run: ./gradlew --no-daemon testDebugUnitTest assembleDebug
+      - run: ./gradlew --no-daemon testDebugUnitTest assembleDebug :kemahub:assembleRelease
       - uses: actions/upload-artifact@v4
         with:
           name: keymanc-p0-apk
           path: android/app/build/outputs/apk/debug/*.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kemahub-apk
+          path: |
+            android/kemahub/build/outputs/apk/debug/*.apk
+            android/kemahub/build/outputs/apk/release/*.apk
