@@ -17,6 +17,7 @@ import dev.keymanc.poc.MainActivity
 import dev.keymanc.poc.a11y.KeymancAccessibilityService
 import dev.keymanc.poc.Prefs
 import dev.keymanc.poc.bt.HidTransport
+import dev.keymanc.poc.bt.BtDiagnostics
 import dev.keymanc.poc.bt.BtHidSink
 import dev.keymanc.poc.priv.PrivClient
 
@@ -69,6 +70,7 @@ class HostService : Service() {
         }
         if (started) return START_STICKY
         started = true
+        BtDiagnostics.register(this)
         startInForeground()
         Thread(::begin, "host-start").start()
         return START_STICKY

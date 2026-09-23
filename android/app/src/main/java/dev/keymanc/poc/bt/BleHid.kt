@@ -97,6 +97,7 @@ object BleHid : HidTransport {
         if (!adapter.isEnabled) return "블루투스를 켜 주세요"
         val adv = adapter.bluetoothLeAdvertiser ?: return "이 기기는 BLE 주변기기(광고) 모드를 지원하지 않습니다"
 
+        AppLog.i("BLE HID: opening GATT server")
         val s = manager.openGattServer(context.applicationContext, callback) ?: return "GATT 서버를 열 수 없습니다"
         server = s
         values.clear()
@@ -108,6 +109,7 @@ object BleHid : HidTransport {
                 return "GATT 서비스 등록 실패 (${svc.uuid})"
             }
         }
+        AppLog.i("BLE HID: services added, starting advertising")
         advertiser = adv
         running = true
         advertise(withName = true)
@@ -345,6 +347,10 @@ object BleHid : HidTransport {
     // ---------------------------------------------------------------- advertising
 
     private val advertiseCallback = object : AdvertiseCallback() {
+        override fun onStartSuccess(settingsInEffect: AdvertiseSettings?) {
+            AppLog.i("BLE HID: advertising")
+        }
+
         override fun onStartFailure(errorCode: Int) {
             when (errorCode) {
                 ADVERTISE_FAILED_ALREADY_STARTED -> {}

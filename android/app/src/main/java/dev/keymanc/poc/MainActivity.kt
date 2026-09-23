@@ -21,6 +21,7 @@ import android.widget.ScrollView
 import android.widget.TextView
 import android.bluetooth.BluetoothAdapter
 import dev.keymanc.poc.a11y.KeymancAccessibilityService
+import dev.keymanc.poc.bt.BtDiagnostics
 import dev.keymanc.poc.bt.HidTransport
 import dev.keymanc.poc.host.HostService
 import dev.keymanc.poc.ime.KeymancIme
@@ -40,6 +41,7 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         prefs = Prefs(this)
+        BtDiagnostics.register(this)
         setContentView(buildUi())
         if (Build.VERSION.SDK_INT >= 33) requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1)
         Shizuku.addRequestPermissionResultListener(permissionListener)

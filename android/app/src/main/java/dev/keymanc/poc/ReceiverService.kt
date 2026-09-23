@@ -51,6 +51,7 @@ class ReceiverService : Service() {
         }
         if (started) return START_STICKY
         started = true
+        dev.keymanc.poc.bt.BtDiagnostics.register(this)
         startInForeground()
         Thread(::serve, "receiver").start()
         return START_STICKY
