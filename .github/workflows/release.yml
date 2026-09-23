@@ -8,7 +8,8 @@ name: release
 #   KEMAHUB_KEYSTORE_BASE64    the keystore file, base64-encoded
 #   KEMAHUB_KEYSTORE_PASSWORD  keystore password
 #   KEMAHUB_KEY_ALIAS          key alias
-#   KEMAHUB_KEY_PASSWORD       key password
+#   KEMAHUB_KEY_PASSWORD       key password (optional: keytool's default PKCS12 keystores use the
+#                              keystore password for the key too)
 
 on:
   release:
@@ -56,11 +57,29 @@ jobs:
           echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/upload.jks"
           echo "KEMAHUB_KEYSTORE=$RUNNER_TEMP/upload.jks" >> "$GITHUB_ENV"
 
+      - name: Check the key and passwords
+        env:
+          STORE_PASSWORD: ${{ secrets.KEMAHUB_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEMAHUB_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEMAHUB_KEY_PASSWORD }}
+        run: |
+          key_password="${KEY_PASSWORD:-$STORE_PASSWORD}"
+          if ! keytool -list -keystore "$KEMAHUB_KEYSTORE" -storepass "$STORE_PASSWORD" -alias "$KEY_ALIAS" > /dev/null 2>&1; then
+            echo "::error::Cannot open the keystore or find alias '$KEY_ALIAS': check KEMAHUB_KEYSTORE_BASE64, KEMAHUB_KEYSTORE_PASSWORD and KEMAHUB_KEY_ALIAS"
+            exit 1
+          fi
+          # Reading the private key needs the key password.
+          if ! keytool -certreq -keystore "$KEMAHUB_KEYSTORE" -storepass "$STORE_PASSWORD" -alias "$KEY_ALIAS" \
+              -keypass "$key_password" -file /dev/null > /dev/null 2>&1; then
+            echo "::error::Wrong key password: set KEMAHUB_KEY_PASSWORD to the key's password (for keytool's default PKCS12 keystores, the same as KEMAHUB_KEYSTORE_PASSWORD), or delete it to use the keystore password"
+            exit 1
+          fi
+          echo "KEMAHUB_KEY_PASSWORD=$key_password" >> "$GITHUB_ENV"
+
       - name: Build
         env:
           KEMAHUB_KEYSTORE_PASSWORD: ${{ secrets.KEMAHUB_KEYSTORE_PASSWORD }}
           KEMAHUB_KEY_ALIAS: ${{ secrets.KEMAHUB_KEY_ALIAS }}
-          KEMAHUB_KEY_PASSWORD: ${{ secrets.KEMAHUB_KEY_PASSWORD }}
         run: >
           ./gradlew --no-daemon :kemahub:testReleaseUnitTest :kemahub:assembleRelease :kemahub:bundleRelease
           -Pkemahub.versionName=${{ steps.version.outputs.name }}

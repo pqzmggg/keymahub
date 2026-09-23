@@ -40,7 +40,7 @@ versionName은 태그, versionCode는 `major*10000 + minor*100 + patch`.
 
 ```sh
 keytool -genkeypair -v -keystore kemahub-upload.jks -alias upload -keyalg RSA -keysize 4096 -validity 10000
-base64 -w0 kemahub-upload.jks   # → KEMAHUB_KEYSTORE_BASE64
+base64 -w0 kemahub-upload.jks   # → KEMAHUB_KEYSTORE_BASE64 (Ubuntu: sudo apt install openjdk-17-jdk-headless)
 ```
 
 | Secret | 값 |
@@ -48,7 +48,7 @@ base64 -w0 kemahub-upload.jks   # → KEMAHUB_KEYSTORE_BASE64
 | `KEMAHUB_KEYSTORE_BASE64` | 위 base64 출력 |
 | `KEMAHUB_KEYSTORE_PASSWORD` | 키스토어 비밀번호 |
 | `KEMAHUB_KEY_ALIAS` | `upload` |
-| `KEMAHUB_KEY_PASSWORD` | 키 비밀번호 |
+| `KEMAHUB_KEY_PASSWORD` | 키 비밀번호 (선택: JDK 9+ keytool 기본 PKCS12 키스토어는 키스토어 비밀번호와 같음 — 비워 두면 그 값을 씀) |
 
 키스토어 파일과 비밀번호는 따로 안전하게 보관한다 (잃어버리면 Play 업로드 키 재설정 절차가 필요).
 secrets가 없으면 워크플로는 디버그 서명본을 올리지 않고 실패한다.
