@@ -33,7 +33,11 @@ class HostRouterTest {
     }
 
     private val log = mutableListOf<String>()
-    private val router = HostRouter(Recorder("local", log), Recorder("remote", log)) { log += "focus remote=$it" }
+    private val router = HostRouter(
+        Recorder("local", log), Recorder("remote", log),
+        onFocus = { log += "focus remote=$it" },
+        onNextTarget = { log += "next target" },
+    )
 
     private fun key(code: Int, down: Boolean) = router.onKey(code, EvdevKeymap.toHid(code), down)
 
@@ -101,6 +105,27 @@ class HostRouterTest {
         assertTrue(router.isRemote)
         router.setRemoteAvailable(false)
         assertFalse(router.isRemote)
+    }
+
+    @Test
+    fun rightAgainWhileRemoteSwitchesTargetAfterReleasingHeldKeys() {
+        router.setRemoteAvailable(true)
+        hotkey(KEY_RIGHT)
+        key(30, true) // A held on the first target
+        log.clear()
+        key(KEY_LEFTCTRL, true); key(KEY_LEFTALT, true); key(KEY_RIGHT, true)
+        assertTrue(router.isRemote)
+        val next = log.indexOf("next target")
+        assertTrue("next target not requested: $log", next >= 0)
+        for (e in listOf("remote key 04 up", "remote key E0 up", "remote key E2 up", "remote releaseAll")) {
+            val i = log.indexOf(e)
+            assertTrue("$e must be sent to the old target before switching: $log", i in 0 until next)
+        }
+        log.clear()
+        key(KEY_RIGHT, false); key(KEY_LEFTALT, false); key(KEY_LEFTCTRL, false); key(30, false)
+        assertEquals(emptyList<String>(), log) // old presses don't leak to the new target
+        key(30, true)
+        assertEquals(listOf("remote key 04 down"), log)
     }
 
     @Test

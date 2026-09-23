@@ -15,7 +15,8 @@ import android.os.Parcel
 import dev.keymanc.poc.AppLog
 import dev.keymanc.poc.MainActivity
 import dev.keymanc.poc.a11y.KeymancAccessibilityService
-import dev.keymanc.poc.bt.BtHid
+import dev.keymanc.poc.Prefs
+import dev.keymanc.poc.bt.HidTransport
 import dev.keymanc.poc.bt.BtHidSink
 import dev.keymanc.poc.priv.PrivClient
 
@@ -34,6 +35,7 @@ class HostService : Service() {
     private var started = false
     @Volatile private var destroyed = false
     @Volatile private var a11y: A11yCapture? = null
+    private val transport: HidTransport by lazy { HidTransport.of(Prefs(this)) }
     private val btListener: (Boolean) -> Unit = { up ->
         a11y?.setRemoteAvailable(up) ?: PrivClient.setRemoteAvailable(up)
         updateNotification()
@@ -41,7 +43,7 @@ class HostService : Service() {
 
     private val callback = object : Binder() {
         override fun onTransact(code: Int, data: Parcel, reply: Parcel?, flags: Int): Boolean {
-            if (code !in HostCallbackProtocol.FOCUS..HostCallbackProtocol.LOG) return super.onTransact(code, data, reply, flags)
+            if (code !in HostCallbackProtocol.FOCUS..HostCallbackProtocol.NEXT_TARGET) return super.onTransact(code, data, reply, flags)
             data.enforceInterface(HostCallbackProtocol.DESCRIPTOR)
             val s = sink ?: return true
             when (code) {
@@ -51,6 +53,7 @@ class HostService : Service() {
                 HostCallbackProtocol.BUTTON -> s.button(data.readInt(), data.readInt() != 0)
                 HostCallbackProtocol.WHEEL -> s.wheel(data.readInt(), data.readInt())
                 HostCallbackProtocol.RELEASE_ALL -> s.releaseAll()
+                HostCallbackProtocol.NEXT_TARGET -> s.switchTarget()
                 HostCallbackProtocol.LOG -> AppLog.i("capture: ${data.readString()}")
             }
             return true
@@ -72,7 +75,7 @@ class HostService : Service() {
     }
 
     private fun begin() {
-        val s = BtHidSink(this)
+        val s = BtHidSink(this, transport)
         if (destroyed) return
         s.start()?.let {
             AppLog.i("host: Bluetooth unavailable: $it")
@@ -95,10 +98,10 @@ class HostService : Service() {
             stopCapture()
             return
         }
-        BtHid.onConnectionChanged(btListener)
-        btListener(BtHid.connected != null)
+        transport.addListener(btListener)
+        btListener(transport.hasTarget())
         running = true
-        AppLog.i("host running — Ctrl+Alt+→ target, Ctrl+Alt+← this phone, Ctrl+Alt+Shift+Esc emergency")
+        AppLog.i("host running — Ctrl+Alt+→ target (again: next target), Ctrl+Alt+← this phone, Ctrl+Alt+Shift+Esc emergency")
         updateNotification()
     }
 
@@ -111,7 +114,7 @@ class HostService : Service() {
     private fun startA11yCapture(s: BtHidSink): String? {
         val service = KeymancAccessibilityService.instance
             ?: return "keymanc 접근성 서비스가 꺼져 있습니다 (설정 → 접근성 → keymanc 켜기, Shizuku 불필요)"
-        val capture = A11yCapture(s, ::onFocus)
+        val capture = A11yCapture(s, ::onFocus, s::switchTarget)
         a11y = capture
         service.hostCapture = capture
         val mouse = if (Build.VERSION.SDK_INT >= 34) "mouse intercepted while the target has focus" else "mouse needs Android 14+"
@@ -141,11 +144,11 @@ class HostService : Service() {
         destroyed = true
         running = false
         remoteFocus = false
-        BtHid.removeListener(btListener)
+        transport.removeListener(btListener)
         Thread {
             stopCapture()
             sink?.stop()
-            BtHid.stop(applicationContext)
+            transport.stop(applicationContext)
             AppLog.i("host stopped")
         }.start()
         super.onDestroy()
@@ -159,7 +162,7 @@ class HostService : Service() {
         return Notification.Builder(this, CHANNEL)
             .setSmallIcon(android.R.drawable.stat_sys_data_bluetooth)
             .setContentTitle(if (remoteFocus) "keymanc 호스트 — 대상 기기 조작 중" else "keymanc 호스트 — 이 폰 조작 중")
-            .setContentText("블루투스: ${BtHid.state()}")
+            .setContentText("블루투스: ${transport.state()}")
             .setContentIntent(open)
             .addAction(Notification.Action.Builder(null, "중지", stop).build())
             .setOngoing(true)

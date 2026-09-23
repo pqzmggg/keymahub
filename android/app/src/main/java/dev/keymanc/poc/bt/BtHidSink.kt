@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit
  * report order is preserved; motion is coalesced to at most one report per [MOTION_MS]
  * because the Bluetooth link cannot keep up with raw 1 kHz mouse rates.
  */
-class BtHidSink(private val context: Context) : InputSink {
+class BtHidSink(private val context: Context, private val transport: HidTransport) : InputSink {
     private val keyboard = KeyboardReport()
     private val mouse = MouseReport()
     private val exec = Executors.newSingleThreadScheduledExecutor { Thread(it, "bt-hid") }
@@ -23,7 +23,20 @@ class BtHidSink(private val context: Context) : InputSink {
     private var motionScheduled = false
     @Volatile private var warnedOffline = false
 
-    override fun start(): String? = BtHid.start(context)
+    override fun start(): String? = transport.start(context)
+
+    /**
+     * Moves to the next connected target, after everything queued before it (in particular
+     * the key releases for the previous target) has been sent.
+     */
+    fun switchTarget() {
+        if (exec.isShutdown) return
+        exec.execute {
+            flushMotion()
+            val name = transport.nextTarget()
+            AppLog.i(if (name != null) "target → $name" else "no other target connected")
+        }
+    }
 
     override fun stop() {
         releaseAll()
@@ -85,7 +98,7 @@ class BtHidSink(private val context: Context) : InputSink {
     }
 
     private fun send(id: Int, report: ByteArray) {
-        if (BtHid.send(id, report)) {
+        if (transport.send(id, report)) {
             warnedOffline = false
         } else if (!warnedOffline) {
             warnedOffline = true

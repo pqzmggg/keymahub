@@ -19,7 +19,7 @@ import dev.keymanc.poc.wire.Wire
  *
  * All calls arrive on the main thread except [setRemoteAvailable]; access is synchronized.
  */
-class A11yCapture(remote: InputSink, private val onFocus: (Boolean) -> Unit) {
+class A11yCapture(remote: InputSink, private val onFocus: (Boolean) -> Unit, onNextTarget: () -> Unit) {
     /** Local side of the router: records "let this event through" instead of emitting it. */
     private class PassThrough : InputSink {
         var pass = false
@@ -33,12 +33,12 @@ class A11yCapture(remote: InputSink, private val onFocus: (Boolean) -> Unit) {
     }
 
     private val local = PassThrough()
-    private val router = HostRouter(local, remote) {
+    private val router = HostRouter(local, remote, onFocus = {
         buttons = 0
         lastX = Float.NaN
         lastY = Float.NaN
         onFocus(it)
-    }
+    }, onNextTarget = onNextTarget)
     private var buttons = 0
     private var lastX = Float.NaN
     private var lastY = Float.NaN

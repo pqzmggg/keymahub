@@ -9,6 +9,12 @@ enum class Backend(val label: String) {
     BT_RELAY("블루투스 중계 (P0-5: 받은 입력을 블루투스 키보드·마우스로 전달)"),
 }
 
+/** How this phone appears as a Bluetooth keyboard/mouse (host mode, Bluetooth relay). */
+enum class BtMode(val label: String) {
+    BLE("BLE (기본) — 폰의 블루투스 키보드·마우스 유지, 여러 대상 즉시 전환"),
+    CLASSIC("클래식 — 호환성 높음, 폰의 블루투스 키보드·마우스는 끊김, 대상 1개"),
+}
+
 /** What the Hangul/English (HID LANG1) key turns into on this device. */
 enum class HangulKey(val label: String) {
     SHIFT_SPACE("Shift+Space (삼성 키보드)"),
@@ -26,6 +32,10 @@ class Prefs(context: Context) {
     var hangulKey: HangulKey
         get() = runCatching { HangulKey.valueOf(sp.getString("hangul", null)!!) }.getOrDefault(HangulKey.SHIFT_SPACE)
         set(v) = sp.edit().putString("hangul", v.name).apply()
+
+    var btMode: BtMode
+        get() = runCatching { BtMode.valueOf(sp.getString("bt_mode", null)!!) }.getOrDefault(BtMode.BLE)
+        set(v) = sp.edit().putString("bt_mode", v.name).apply()
 
     var mouseSpeed: Float
         get() = sp.getFloat("speed", 1.0f)

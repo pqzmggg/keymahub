@@ -7,8 +7,6 @@ import android.bluetooth.BluetoothHidDeviceAppSdpSettings
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
 import android.content.Context
-import android.content.pm.PackageManager
-import android.os.Build
 import dev.keymanc.poc.AppLog
 import dev.keymanc.poc.input.HidDescriptors
 import java.util.concurrent.CopyOnWriteArrayList
@@ -17,12 +15,16 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 /**
- * This phone as a Bluetooth keyboard + mouse (HID Device profile, Android 9+).
+ * This phone as a Bluetooth Classic keyboard + mouse (HID Device profile, Android 9+).
  * The target (e.g. a Windows PC) pairs with the phone in its own Bluetooth settings and
  * needs no keymanc software.
+ *
+ * Caveat: the HID Device role takes the same L2CAP channels (PSM 0x11/0x13) the phone uses
+ * for its own Bluetooth Classic keyboards and mice, so those disconnect while this runs.
+ * [BleHid] does not have that problem and is the default.
  */
 @SuppressLint("MissingPermission") // checked in start()
-object BtHid {
+object BtHid : HidTransport {
     @Volatile private var hid: BluetoothHidDevice? = null
     @Volatile var registered = false
         private set
@@ -33,23 +35,30 @@ object BtHid {
     private val listeners = CopyOnWriteArrayList<(Boolean) -> Unit>()
     private var registeredLatch = CountDownLatch(1)
 
-    fun onConnectionChanged(l: (Boolean) -> Unit) = listeners.add(l)
-    fun removeListener(l: (Boolean) -> Unit) = listeners.remove(l)
-
-    fun state(): String = when {
-        connected != null -> "연결됨: ${runCatching { connected?.name }.getOrNull() ?: connected?.address}"
-        registered -> "등록됨 (PC에서 페어링/연결 대기)"
-        else -> "중지"
+    override fun addListener(l: (Boolean) -> Unit) {
+        listeners.add(l)
     }
 
-    fun hasPermission(context: Context) = Build.VERSION.SDK_INT < 31 ||
-        context.checkSelfPermission(android.Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED
+    override fun removeListener(l: (Boolean) -> Unit) {
+        listeners.remove(l)
+    }
+
+    override fun hasTarget() = connected != null
+
+    /** Classic HID Device holds one connection at a time; switching needs a reconnect. */
+    override fun nextTarget(): String? = null
+
+    override fun state(): String = when {
+        connected != null -> "클래식, 연결됨: ${runCatching { connected?.name }.getOrNull() ?: connected?.address}"
+        registered -> "클래식, 등록됨 (PC에서 페어링/연결 대기)"
+        else -> "클래식, 중지"
+    }
 
     /** Blocking; call off the main thread. Returns null when registered. */
-    fun start(context: Context): String? {
+    override fun start(context: Context): String? {
         if (registered) return null
         appContext = context.applicationContext
-        if (!hasPermission(context)) return "블루투스 권한(근처 기기)이 필요합니다"
+        if (!HidTransport.hasPermission(context)) return "블루투스 권한(근처 기기)이 필요합니다"
         val adapter = context.getSystemService(BluetoothManager::class.java)?.adapter
             ?: return "블루투스를 지원하지 않는 기기"
         if (!adapter.isEnabled) return "블루투스를 켜 주세요"
@@ -85,7 +94,7 @@ object BtHid {
         return null
     }
 
-    fun stop(context: Context) {
+    override fun stop(context: Context) {
         val h = hid ?: return
         runCatching { connected?.let { h.disconnect(it) } }
         runCatching { h.unregisterApp() }
@@ -97,7 +106,7 @@ object BtHid {
     }
 
     /** Sends one report; false when no target is connected. */
-    fun send(reportId: Int, data: ByteArray): Boolean {
+    override fun send(reportId: Int, data: ByteArray): Boolean {
         val d = connected ?: return false
         return hid?.sendReport(d, reportId, data) == true
     }

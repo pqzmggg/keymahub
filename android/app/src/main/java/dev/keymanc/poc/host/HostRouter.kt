@@ -9,7 +9,8 @@ import dev.keymanc.poc.sink.InputSink
  * (the Bluetooth target).
  *
  * A key-up always follows its key-down, so switching never leaves a key stuck on either
- * side. Hotkeys: Ctrl+Alt+→ remote, Ctrl+Alt+← local, Ctrl+Alt+Shift+Esc emergency local.
+ * side. Hotkeys: Ctrl+Alt+→ remote (again: next target), Ctrl+Alt+← local,
+ * Ctrl+Alt+Shift+Esc emergency local.
  *
  * Not thread-safe: callers serialize access.
  */
@@ -17,6 +18,8 @@ class HostRouter(
     private val local: InputSink,
     private val remote: InputSink,
     private val onFocus: (remote: Boolean) -> Unit,
+    /** Ctrl+Alt+→ while already remote: switch to the next target (held keys released first). */
+    private val onNextTarget: () -> Unit = {},
 ) {
     private enum class Dest { LOCAL, REMOTE, SWALLOWED }
 
@@ -56,7 +59,14 @@ class HostRouter(
             }
             if (target != null) {
                 keys[code] = Dest.SWALLOWED to null
-                if (target) goRemote() else goLocal()
+                when {
+                    !target -> goLocal()
+                    isRemote -> {
+                        releaseRemote()
+                        onNextTarget()
+                    }
+                    else -> goRemote()
+                }
                 return
             }
         }
@@ -122,6 +132,13 @@ class HostRouter(
     private fun goLocal() {
         if (!isRemote) return
         isRemote = false
+        releaseRemote()
+        remote.leave()
+        onFocus(false)
+    }
+
+    /** Releases on the target whatever is held there; their physical releases get swallowed. */
+    private fun releaseRemote() {
         for ((code, entry) in keys.entries.toList()) {
             val (dest, usage) = entry
             if (dest == Dest.REMOTE) {
@@ -136,8 +153,6 @@ class HostRouter(
             }
         }
         remote.releaseAll()
-        remote.leave()
-        onFocus(false)
     }
 
     companion object {

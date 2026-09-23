@@ -50,6 +50,7 @@ object HostCallbackProtocol {
     const val WHEEL = 5        // (int v, int h)
     const val RELEASE_ALL = 6  // ()
     const val LOG = 7          // (String)
+    const val NEXT_TARGET = 8  // ()
 }
 
 /** Remote side of [HostRouter] in the privileged process: forwards events to the app. */
@@ -60,6 +61,8 @@ class CallbackSink(private val app: IBinder) : InputSink {
     fun focus(remote: Boolean) = send(HostCallbackProtocol.FOCUS) { it.writeInt(if (remote) 1 else 0) }
 
     fun log(msg: String) = send(HostCallbackProtocol.LOG) { it.writeString(msg) }
+
+    fun nextTarget() = send(HostCallbackProtocol.NEXT_TARGET) {}
 
     override fun key(usage: Int, down: Boolean, repeat: Boolean) = send(HostCallbackProtocol.KEY) {
         it.writeInt(usage)

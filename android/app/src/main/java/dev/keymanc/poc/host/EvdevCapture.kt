@@ -31,7 +31,7 @@ class EvdevCapture(private val app: IBinder) {
         UhidDevice("keymanc Passthrough Keyboard", HidDescriptors.KEYBOARD, 0x1209, 0x4B03),
         UhidDevice("keymanc Passthrough Mouse", HidDescriptors.MOUSE, 0x1209, 0x4B04),
     )
-    private val router = HostRouter(local, remote) { remote.focus(it) }
+    private val router = HostRouter(local, remote, onFocus = { remote.focus(it) }, onNextTarget = remote::nextTarget)
     private val devices = HashMap<String, FileDescriptor>() // node -> fd
     @Volatile private var running = true
 

@@ -21,7 +21,7 @@ import android.widget.ScrollView
 import android.widget.TextView
 import android.bluetooth.BluetoothAdapter
 import dev.keymanc.poc.a11y.KeymancAccessibilityService
-import dev.keymanc.poc.bt.BtHid
+import dev.keymanc.poc.bt.HidTransport
 import dev.keymanc.poc.host.HostService
 import dev.keymanc.poc.ime.KeymancIme
 import dev.keymanc.poc.priv.PrivClient
@@ -68,7 +68,7 @@ class MainActivity : Activity() {
         status.text = buildString {
             appendLine("IP: ${Net.addresses().joinToString().ifEmpty { "(없음)" }}  port ${Wire.DEFAULT_PORT}")
             appendLine("리시버: ${if (ReceiverService.running) "실행 중" else "중지"} / 호스트: ${if (HostService.running) "실행 중" else "중지"}")
-            appendLine("블루투스 HID: ${BtHid.state()} (권한 ${yes(BtHid.hasPermission(this@MainActivity))})")
+            appendLine("블루투스 HID: ${HidTransport.of(prefs).state()} (권한 ${yes(HidTransport.hasPermission(this@MainActivity))})")
             appendLine("Shizuku: ${runCatching { PrivClient.shizukuState() }.getOrDefault("?")}")
             appendLine("오버레이 권한: ${yes(Settings.canDrawOverlays(this@MainActivity))}")
             appendLine("접근성 서비스: ${yes(KeymancAccessibilityService.instance != null)}")
@@ -146,9 +146,10 @@ class MainActivity : Activity() {
         buttons("evdev 열기/grab 테스트 (10초)" to ::runEvdevProbe)
 
         header("P0-5 Android 호스트 → 블루투스 (Shizuku 또는 접근성)")
+        radios(BtMode.entries, { it.label }, prefs.btMode) { prefs.btMode = it }
         buttons(
             "블루투스 권한" to ::requestBluetoothPermission,
-            "페어링 허용 (2분)" to {
+            "페어링 허용 (클래식, 2분)" to {
                 startActivity(
                     Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE)
                         .putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 120)
