@@ -66,6 +66,25 @@ fn target(args: &[String]) -> SocketAddr {
         })
 }
 
+/// Connects, turning the common failures into something actionable.
+fn dial(addr: &SocketAddr) -> io::Result<TcpStream> {
+    TcpStream::connect_timeout(addr, Duration::from_secs(3)).map_err(|e| {
+        let hint = match e.kind() {
+            io::ErrorKind::ConnectionRefused => {
+                "the device is reachable but nothing listens on the port: \
+                 start the receiver in the app (not the host) and check its log for \
+                 'backend … unavailable'"
+            }
+            io::ErrorKind::TimedOut => {
+                "no answer: check the IP, that both are on the same Wi-Fi, \
+                 and that the router does not isolate clients"
+            }
+            _ => return e,
+        };
+        io::Error::new(e.kind(), format!("{addr}: {e} ({hint})"))
+    })
+}
+
 fn hostname() -> String {
     std::env::var("COMPUTERNAME")
         .or_else(|_| std::env::var("HOSTNAME"))
@@ -152,7 +171,7 @@ struct Sender {
 
 impl Sender {
     fn connect(addr: &SocketAddr) -> io::Result<Sender> {
-        let s = TcpStream::connect_timeout(addr, Duration::from_secs(3))?;
+        let s = dial(addr)?;
         s.set_nodelay(true)?;
         let mut sender = Sender {
             w: BufWriter::new(s),
@@ -306,7 +325,7 @@ fn demo(addr: &SocketAddr, only: Option<&str>) -> io::Result<()> {
 // ---------------------------------------------------------------- ping
 
 fn ping(addr: &SocketAddr, count: u32) -> io::Result<()> {
-    let s = TcpStream::connect_timeout(addr, Duration::from_secs(3))?;
+    let s = dial(addr)?;
     s.set_nodelay(true)?;
     s.set_read_timeout(Some(Duration::from_secs(2)))?;
     let mut w = s.try_clone()?;

@@ -77,6 +77,7 @@ class ReceiverService : Service() {
         val err = inner.start()
         if (err != null) {
             AppLog.i("backend ${backend.name} unavailable: $err")
+            toast("리시버를 시작하지 못했습니다: $err")
             stopSelf()
             return
         }
@@ -118,6 +119,10 @@ class ReceiverService : Service() {
             runCatching { s.stop() }
             sink = null
         }
+    }
+
+    private fun toast(msg: String) = android.os.Handler(mainLooper).post {
+        android.widget.Toast.makeText(applicationContext, msg, android.widget.Toast.LENGTH_LONG).show()
     }
 
     private fun handle(sock: Socket, sink: InputSink) {
