@@ -117,7 +117,10 @@ class HubService : Service(), BleHid.Listener {
         Hub.onProfileChanged = null
         BleHid.removeListener(this)
         val c = capture
-        KemaAccessibilityService.instance?.let { if (it.capture === c) it.capture = null }
+        KemaAccessibilityService.instance?.let {
+            it.softKeyboardDespiteHardKeyboard(false)
+            if (it.capture === c) it.capture = null
+        }
         c?.stop()
         pointerCapture?.stop()
         hud?.remove()
@@ -185,11 +188,13 @@ class HubService : Service(), BleHid.Listener {
             sender?.select(null)
             pointerCapture?.stop()
             a11y?.interceptMouse(false)
+            a11y?.softKeyboardDespiteHardKeyboard(false)
             showHud(getString(R.string.hud_phone))
         } else {
             val address = profile.addressOf(slot)
             sender?.select(address)
             pointerCapture?.start()
+            a11y?.softKeyboardDespiteHardKeyboard(Hub.ui.value.touchKeyboard)
             showHud(getString(R.string.hud_target, receiverName(slot).orEmpty()))
             if (address != null) Hub.edit(this) { it.touch(address, System.currentTimeMillis()) }
         }

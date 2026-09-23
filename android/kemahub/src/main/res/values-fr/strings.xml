@@ -154,6 +154,8 @@
     <string name="report_message">Ce journal aide le développeur à analyser les problèmes. Il contient les événements de l\'appli et les noms des appareils, jamais ce que vous tapez. L\'envoi ouvre votre appli de messagerie adressée au développeur.</string>
     <string name="report_send">Envoyer par e-mail</string>
     <string name="report_no_app">Aucune appli de messagerie trouvée.</string>
+    <string name="touch_keyboard">Clavier à l\'écran pendant le contrôle</string>
+    <string name="touch_keyboard_hint">Android masque le clavier à l\'écran quand un clavier physique est connecté. Cette option le réaffiche pendant que le clavier physique contrôle un autre appareil, pour pouvoir encore saisir sur ce téléphone.</string>
     <plurals name="ready_count">
         <item quantity="one">%1$d appareil connecté</item>
         <item quantity="many">%1$d appareils connectés</item>

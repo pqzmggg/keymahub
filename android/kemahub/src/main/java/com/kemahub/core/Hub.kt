@@ -28,7 +28,13 @@ data class HubStatus(
 enum class ThemeMode { SYSTEM, LIGHT, DARK }
 
 /** Personalization (Settings screen). The language lives in [com.kemahub.Locales]. */
-data class UiPrefs(val theme: ThemeMode = ThemeMode.SYSTEM, val dynamicColor: Boolean = true, val showHud: Boolean = true)
+data class UiPrefs(
+    val theme: ThemeMode = ThemeMode.SYSTEM,
+    val dynamicColor: Boolean = true,
+    val showHud: Boolean = true,
+    /** Show the on-screen keyboard while the physical one controls another device (Android 10+). */
+    val touchKeyboard: Boolean = true,
+)
 
 object Hub {
     private val _status = MutableStateFlow(HubStatus())
@@ -100,6 +106,7 @@ object Hub {
                 theme = ThemeMode.entries.firstOrNull { it.name == p.getString("theme", null) } ?: ThemeMode.SYSTEM,
                 dynamicColor = p.getBoolean("dynamic_color", true),
                 showHud = p.getBoolean("show_hud", true),
+                touchKeyboard = p.getBoolean("touch_keyboard", true),
             )
             uiLoaded = true
         }
@@ -112,6 +119,7 @@ object Hub {
             .putString("theme", u.theme.name)
             .putBoolean("dynamic_color", u.dynamicColor)
             .putBoolean("show_hud", u.showHud)
+            .putBoolean("touch_keyboard", u.touchKeyboard)
             .apply()
         _ui.value = u
     }

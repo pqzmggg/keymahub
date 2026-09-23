@@ -154,6 +154,8 @@
     <string name="report_message">問題の調査に使うログです。アプリの動作記録とデバイス名が含まれ、入力した内容は含まれません。送信すると、開発者宛てのメールアプリが開きます。</string>
     <string name="report_send">メールで送信</string>
     <string name="report_no_app">メールアプリが見つかりません。</string>
+    <string name="touch_keyboard">他のデバイス操作中の画面キーボード</string>
+    <string name="touch_keyboard_hint">物理キーボードが接続されていると、Android は画面キーボードを表示しません。物理キーボードで他のデバイスを操作している間は画面キーボードを表示し、このスマホでも入力できるようにします。</string>
     <plurals name="ready_count">
         <item quantity="other">%1$d 台接続中</item>
     </plurals>

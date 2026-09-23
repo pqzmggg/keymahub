@@ -34,6 +34,7 @@ class KemaAccessibilityService : AccessibilityService() {
     }
 
     private fun detach() {
+        softKeyboardDespiteHardKeyboard(false)
         if (instance === this) instance = null
         if (capture != null) {
             Hub.log("accessibility service turned off while running")
@@ -66,6 +67,17 @@ class KemaAccessibilityService : AccessibilityService() {
         val info = serviceInfo ?: return
         info.motionEventSources = if (on) InputDevice.SOURCE_MOUSE else 0
         serviceInfo = info
+    }
+
+    /**
+     * Android hides the on-screen keyboard while a physical keyboard is connected. While that
+     * keyboard controls another device, [on] lets the phone's own on-screen keyboard show again.
+     */
+    fun softKeyboardDespiteHardKeyboard(on: Boolean) {
+        if (Build.VERSION.SDK_INT < 29) return
+        val mode = if (on) AccessibilityService.SHOW_MODE_IGNORE_HARD_KEYBOARD else AccessibilityService.SHOW_MODE_AUTO
+        runCatching { softKeyboardController.setShowMode(mode) }
+            .onFailure { Hub.log("on-screen keyboard mode failed: $it") }
     }
 
     companion object {

@@ -74,6 +74,12 @@ fun SettingsScreen(
             Toggle(stringResource(R.string.show_hud), stringResource(R.string.show_hud_hint), ui.showHud) { on ->
                 onUi { it.copy(showHud = on) }
             }
+            if (Build.VERSION.SDK_INT >= 29) {
+                HorizontalDivider()
+                Toggle(stringResource(R.string.touch_keyboard), stringResource(R.string.touch_keyboard_hint), ui.touchKeyboard) { on ->
+                    onUi { it.copy(touchKeyboard = on) }
+                }
+            }
         }
 
         Text(
