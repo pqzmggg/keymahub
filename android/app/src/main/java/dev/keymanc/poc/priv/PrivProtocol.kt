@@ -19,6 +19,13 @@ object PrivProtocol {
     const val INJECT = 5
     /** (int seconds) -> String report — P0-4 evdev open/grab/read probe. */
     const val EVDEV_PROBE = 6
+    /** (IBinder callback) -> String? — Android host: grab keyboards/mice, route via HostRouter. */
+    const val CAPTURE_START = 7
+    /** () -> Unit */
+    const val CAPTURE_STOP = 8
+    /** oneway (int available) — whether a Bluetooth target is connected. */
+    const val SET_REMOTE_AVAILABLE = 9
+    const val LAST = SET_REMOTE_AVAILABLE
 
     const val DEVICE_KEYBOARD = 0
     const val DEVICE_MOUSE = 1

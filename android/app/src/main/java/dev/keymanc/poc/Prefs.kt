@@ -6,6 +6,7 @@ enum class Backend(val label: String) {
     UHID("UHID (Shizuku) — 실제 HID 장치"),
     INJECT("Inject (Shizuku) — InputManager 주입"),
     ACCESSIBILITY("접근성 + IME (권한 앱 불필요)"),
+    BT_RELAY("블루투스 중계 (P0-5: 받은 입력을 블루투스 키보드·마우스로 전달)"),
 }
 
 /** What the Hangul/English (HID LANG1) key turns into on this device. */

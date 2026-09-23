@@ -41,6 +41,22 @@ object HidDescriptors {
         0xC0, 0xC0,
     )
 
+    const val REPORT_ID_KEYBOARD = 1
+    const val REPORT_ID_MOUSE = 2
+
+    /**
+     * Keyboard + mouse in one device, as a Bluetooth HID combo peripheral needs.
+     * Same reports as above, distinguished by report ID (sent separately, not in the payload).
+     */
+    val COMBO = withReportId(KEYBOARD, REPORT_ID_KEYBOARD) + withReportId(MOUSE, REPORT_ID_MOUSE)
+
+    /** Inserts `Report ID (id)` right after the top-level `Collection (Application)`. */
+    private fun withReportId(desc: ByteArray, id: Int): ByteArray {
+        // Both descriptors start with: Usage Page (Desktop), Usage (x), Collection (Application).
+        check(desc[4] == 0xA1.toByte() && desc[5] == 0x01.toByte())
+        return desc.copyOfRange(0, 6) + bytes(0x85, id) + desc.copyOfRange(6, desc.size)
+    }
+
     private fun bytes(vararg v: Int) = ByteArray(v.size) { v[it].toByte() }
 }
 

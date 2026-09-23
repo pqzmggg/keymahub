@@ -12,6 +12,7 @@ import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.IBinder
 import android.os.SystemClock
+import dev.keymanc.poc.bt.BtHidSink
 import dev.keymanc.poc.sink.AccessibilitySink
 import dev.keymanc.poc.sink.InjectSink
 import dev.keymanc.poc.sink.InputSink
@@ -71,6 +72,7 @@ class ReceiverService : Service() {
             Backend.UHID -> UhidSink()
             Backend.INJECT -> InjectSink(this)
             Backend.ACCESSIBILITY -> AccessibilitySink()
+            Backend.BT_RELAY -> BtHidSink(this)
         }
         val err = inner.start()
         if (err != null) {

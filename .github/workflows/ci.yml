@@ -12,6 +12,8 @@ jobs:
       - run: cargo fmt --all --check
       - run: cargo clippy --workspace --all-targets -- -D warnings
       - run: cargo test --workspace
+      - name: Android keymap is up to date with core/keymap
+        run: python3 tools/gen_android_keymap.py && git diff --exit-code
 
   windows:
     runs-on: windows-latest

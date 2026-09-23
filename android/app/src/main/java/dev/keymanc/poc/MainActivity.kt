@@ -19,7 +19,10 @@ import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.ScrollView
 import android.widget.TextView
+import android.bluetooth.BluetoothAdapter
 import dev.keymanc.poc.a11y.KeymancAccessibilityService
+import dev.keymanc.poc.bt.BtHid
+import dev.keymanc.poc.host.HostService
 import dev.keymanc.poc.ime.KeymancIme
 import dev.keymanc.poc.priv.PrivClient
 import dev.keymanc.poc.wire.Wire
@@ -64,7 +67,8 @@ class MainActivity : Activity() {
             .enabledInputMethodList.any { it.packageName == packageName }
         status.text = buildString {
             appendLine("IP: ${Net.addresses().joinToString().ifEmpty { "(없음)" }}  port ${Wire.DEFAULT_PORT}")
-            appendLine("리시버: ${if (ReceiverService.running) "실행 중" else "중지"}")
+            appendLine("리시버: ${if (ReceiverService.running) "실행 중" else "중지"} / 호스트: ${if (HostService.running) "실행 중" else "중지"}")
+            appendLine("블루투스 HID: ${BtHid.state()} (권한 ${yes(BtHid.hasPermission(this@MainActivity))})")
             appendLine("Shizuku: ${runCatching { PrivClient.shizukuState() }.getOrDefault("?")}")
             appendLine("오버레이 권한: ${yes(Settings.canDrawOverlays(this@MainActivity))}")
             appendLine("접근성 서비스: ${yes(KeymancAccessibilityService.instance != null)}")
@@ -141,6 +145,21 @@ class MainActivity : Activity() {
         header("P0-4 호스트 프로브 (Shizuku 필요)")
         buttons("evdev 열기/grab 테스트 (10초)" to ::runEvdevProbe)
 
+        header("P0-5 Android 호스트 → 블루투스 (Shizuku 필요)")
+        buttons(
+            "블루투스 권한" to ::requestBluetoothPermission,
+            "페어링 허용 (2분)" to {
+                startActivity(
+                    Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE)
+                        .putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 120)
+                )
+            },
+        )
+        buttons(
+            "호스트 시작" to { HostService.start(this); postRefresh() },
+            "호스트 중지" to { HostService.stop(this); postRefresh() },
+        )
+
         header("입력 테스트 칸")
         testField = EditText(this).apply { hint = "여기에 원격 입력이 들어오는지 확인" }
         root.addView(testField, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
@@ -153,6 +172,20 @@ class MainActivity : Activity() {
         }
         root.addView(log)
         return ScrollView(this).apply { addView(root) }
+    }
+
+    private fun requestBluetoothPermission() {
+        if (Build.VERSION.SDK_INT >= 31) {
+            requestPermissions(
+                arrayOf(Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_ADVERTISE), 2,
+            )
+        } else {
+            AppLog.i("Android 11 이하: 블루투스 권한은 설치 시 허용됨")
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        refresh()
     }
 
     private fun postRefresh() = status.postDelayed({ refresh() }, 500)

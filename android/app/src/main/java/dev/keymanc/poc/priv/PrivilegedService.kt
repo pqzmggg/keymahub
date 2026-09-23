@@ -5,17 +5,21 @@ import android.os.Build
 import android.os.Parcel
 import android.os.Process
 import android.view.InputEvent
+import dev.keymanc.poc.host.EvdevCapture
 import dev.keymanc.poc.input.HidDescriptors
 import java.lang.reflect.Method
 import kotlin.system.exitProcess
 
 /**
  * Runs in a separate process as the shell user (uid 2000), started by Shizuku.
- * Only thin wrappers live here; all input logic stays in the app process.
+ * Receiver mode: thin wrappers (UHID writes, event injection); the logic stays in the app.
+ * Host mode: [EvdevCapture] grabs and routes physical input here, because every local
+ * event has to be passed through without an extra hop.
  */
 class PrivilegedService : Binder() {
     private var keyboard: UhidDevice? = null
     private var mouse: UhidDevice? = null
+    private var capture: EvdevCapture? = null
 
     private val inject: Method? by lazy {
         runCatching {
@@ -32,10 +36,11 @@ class PrivilegedService : Binder() {
 
     override fun onTransact(code: Int, data: Parcel, reply: Parcel?, flags: Int): Boolean {
         if (code == PrivProtocol.SHIZUKU_DESTROY) {
+            capture?.stop()
             destroyUhid()
             exitProcess(0)
         }
-        if (code !in PrivProtocol.INFO..PrivProtocol.EVDEV_PROBE) return super.onTransact(code, data, reply, flags)
+        if (code !in PrivProtocol.INFO..PrivProtocol.LAST) return super.onTransact(code, data, reply, flags)
         data.enforceInterface(PrivProtocol.DESCRIPTOR)
         when (code) {
             PrivProtocol.INFO -> {
@@ -68,6 +73,21 @@ class PrivilegedService : Binder() {
                 val event = InputEvent.CREATOR.createFromParcel(data)
                 runCatching { inject?.invoke(injectTarget, event, 0 /* INJECT_INPUT_EVENT_MODE_ASYNC */) }
             }
+            PrivProtocol.CAPTURE_START -> {
+                val callback = data.readStrongBinder()
+                val err = runCatching {
+                    capture?.stop()
+                    capture = EvdevCapture(callback).also { it.start() }
+                }.exceptionOrNull()
+                reply?.writeNoException()
+                reply?.writeString(err?.toString())
+            }
+            PrivProtocol.CAPTURE_STOP -> {
+                capture?.stop()
+                capture = null
+                reply?.writeNoException()
+            }
+            PrivProtocol.SET_REMOTE_AVAILABLE -> capture?.setRemoteAvailable(data.readInt() != 0)
             PrivProtocol.EVDEV_PROBE -> {
                 val seconds = data.readInt().coerceIn(1, 60)
                 val report = runCatching { EvdevProbe.run(seconds) }.getOrElse { "probe failed: $it" }

@@ -100,6 +100,24 @@ object PrivClient {
 
     fun inject(event: InputEvent) = oneway(PrivProtocol.INJECT) { event.writeToParcel(it, 0) }
 
+    /** Android host: start grabbing keyboards/mice; events for the target arrive on [callback]. */
+    fun captureStart(callback: IBinder): String? {
+        if (binder == null) return "privileged service not connected"
+        var answered = false
+        val err = call(PrivProtocol.CAPTURE_START, { it.writeStrongBinder(callback) }) {
+            answered = true
+            it.readString()
+        }
+        return if (answered) err else "CAPTURE_START call failed"
+    }
+
+    fun captureStop() {
+        call(PrivProtocol.CAPTURE_STOP) { }
+    }
+
+    fun setRemoteAvailable(available: Boolean) =
+        oneway(PrivProtocol.SET_REMOTE_AVAILABLE) { it.writeInt(if (available) 1 else 0) }
+
     fun evdevProbe(seconds: Int): String? = call(PrivProtocol.EVDEV_PROBE, { it.writeInt(seconds) }) { it.readString() }
 
     private fun <T> call(code: Int, write: (Parcel) -> Unit = {}, read: (Parcel) -> T): T? {

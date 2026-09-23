@@ -3,6 +3,7 @@ package dev.keymanc.poc.priv
 import android.os.Process
 import android.system.Os
 import android.system.OsConstants
+import dev.keymanc.poc.host.EvdevCapture
 import java.io.File
 import java.io.FileDescriptor
 import java.io.FileInputStream
@@ -20,7 +21,6 @@ import java.util.concurrent.atomic.AtomicInteger
 object EvdevProbe {
     private const val EV_KEY = 0x01
     private const val EV_REL = 0x02
-    private const val EVIOCGRAB = 0x40044590 // _IOW('E', 0x90, int)
 
     private data class Dev(val name: String, val node: String, val ev: Long)
 
@@ -35,22 +35,6 @@ object EvdevProbe {
         val candidates = devices.filter { it.ev and (1L shl EV_KEY) != 0L || it.ev and (1L shl EV_REL) != 0L }
         out.appendLine("input devices: ${devices.size}, key/rel capable: ${candidates.size}")
 
-        // Os.ioctlInt is (fd, cmd) on recent releases and (fd, cmd, Int32Ref/MutableInt) on
-        // older ones. Either way the kernel receives a pointer as the ioctl argument, and for
-        // EVIOCGRAB any non-null argument means "grab". Closing the fd releases the grab.
-        val ioctlInt = Os::class.java.methods.firstOrNull { it.name == "ioctlInt" }
-        val grabFd: ((FileDescriptor) -> Unit)? = ioctlInt?.let { m ->
-            { fd ->
-                if (m.parameterTypes.size == 2) {
-                    m.invoke(null, fd, EVIOCGRAB)
-                } else {
-                    val ref = m.parameterTypes[2].getConstructor(Int::class.javaPrimitiveType).newInstance(1)
-                    m.invoke(null, fd, EVIOCGRAB, ref)
-                }
-            }
-        }
-        if (grabFd == null) out.appendLine("Os.ioctlInt unavailable (grab not testable)")
-
         class Open(val dev: Dev, val fd: FileDescriptor, val grabbed: Boolean, val count: AtomicInteger, val sample: StringBuffer)
         val opened = ArrayList<Open>()
         for (d in candidates) {
@@ -61,8 +45,8 @@ object EvdevProbe {
                 continue
             }
             val grab = try {
-                grabFd?.invoke(fd)
-                grabFd != null
+                EvdevCapture.grab(fd)
+                true
             } catch (e: Exception) {
                 out.appendLine("  ${d.node} \"${d.name}\": grab FAILED (${e.cause ?: e})")
                 false

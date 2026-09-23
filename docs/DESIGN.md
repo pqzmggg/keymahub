@@ -58,7 +58,7 @@
 │                                    │        플랫폼 어댑터 (§7)                     │ │
 │                                    │  Windows: LL Hook + Raw Input / SendInput      │ │
 │                                    │  Linux  : evdev(grab) / uinput                 │ │
-│                                    │  Android: 특권 헬퍼(Shizuku) / 접근성+IME       │ │
+│                                    │  Android: Shizuku(UHID·evdev) / 블루투스 HID    │ │
 │                                    └────────────────────────────────────────────────┘ │
 └───────────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -336,17 +336,33 @@ enum Msg {
 - 배터리 최적화 예외 요청, 부팅 시 자동 시작(`BOOT_COMPLETED`, 설정 시).
 - 화면 회전/해상도 변경 시 `Caps` 재전송.
 
-### 7.3 Android — 호스트
+### 7.3 Android — 호스트 (D8)
 
-Android에 연결된 BT/USB 키보드·마우스를 다른 기기와 공유하는 시나리오.
+Android에 연결된 BT/USB **실제 키보드·마우스**를 다른 기기와 공유한다. 대상 기기에는 **블루투스 HID로 전달**한다.
 
-- **특권 모드 필수**: Shizuku UserService(shell 사용자, `input` 그룹)에서 `/dev/input/event*` 를 읽고
-  `EVIOCGRAB` 로 로컬 전달 차단. (기기별 동작 차이 → **P0 PoC 필요**)
-  - `Os.ioctlInt(fd, EVIOCGRAB)` 는 인자로 포인터(널 아님)를 넘기므로 grab으로 동작하고, fd를 닫으면 해제된다 → NDK 불필요.
-- 접근성만으로는 키 이벤트 필터링(`FLAG_REQUEST_FILTER_KEY_EVENTS`)은 가능하나 **마우스 캡처 불가** → 키보드 전용 제한 모드.
-- 트리거: MVP는 단축키만. 경계 모드는 연구 항목
-  (후보: 화면 가장자리 1~2px 오버레이 창의 `ACTION_HOVER_ENTER` 감지 — 가장자리 터치 제스처 충돌 검토 필요).
-- 대안 입력: 화면을 **가상 터치패드/키보드**로 쓰는 "리모컨 모드" (앱이 포그라운드일 때만, 권한 불필요) — 저비용 부가 기능.
+```
+실제 키보드·마우스 ──evdev(항상 grab)──▶ [특권 프로세스: HostRouter]
+                                             ├─ 로컬 차례 ─▶ UHID 패스스루 장치 ─▶ 이 폰
+                                             └─ 원격 차례 ─▶ (Binder) 앱 ─▶ BluetoothHidDevice ─▶ Windows 등
+```
+
+- **캡처 (Shizuku 필요)**: 특권 프로세스가 `/dev/input/event*` 중 키보드(문자키+스페이스 보유)와
+  마우스(REL_X/Y + BTN_LEFT)만 골라 `EVIOCGRAB` 한다. 전원·볼륨 버튼(gpio-keys)과 keymanc 자신의 UHID 장치는 제외.
+  - `Os.ioctlInt(fd, EVIOCGRAB)` 는 포인터(널 아님)를 인자로 넘기므로 grab으로 동작한다. 단 **풀기(ungrab)는 불가**하고 fd를 닫아야 풀린다.
+  - 그래서 **항상 grab + 로컬은 UHID 패스스루**로 설계했다. 전환 시점에 눌려 있던 키의 뗌이
+    누른 쪽으로 정확히 가므로(Windows 라우터와 같은 규칙) 어느 쪽에도 키가 눌린 채 남지 않는다.
+  - 새로 연결된 장치는 2초마다 다시 스캔해서 잡는다. 특권 프로세스가 죽으면 커널이 grab을 풀어 장치는 정상으로 돌아온다.
+- **전달 (Shizuku 불필요)**: 앱이 `BluetoothHidDevice`(Android 9+)로 키보드+마우스 복합 장치를 등록한다.
+  디스크립터는 UHID와 같은 것에 Report ID(1=키보드, 2=마우스)만 붙였다.
+  - 대상은 OS의 블루투스 설정에서 페어링만 하면 되고 **keymanc 앱이 필요 없다** (Windows·Mac·iPad·다른 Android).
+  - 암호화는 블루투스 페어링이 담당한다 → 이 경로에는 Noise 불필요.
+  - 마우스 이동은 8ms 단위로 합쳐서 보낸다 (블루투스 대역폭).
+- **제약**
+  - 대상 전환은 블루투스 재연결이 필요해 1~3초 걸린다 (한 번에 한 대상).
+  - 대상의 커서 위치를 알 수 없으므로 **단축키 전환만** 지원한다.
+  - 일부 제조사는 HID Device 프로파일을 꺼 두었다 → 시작 시 감지해서 안내.
+  - 키보드 페이지(0x07)에 없는 키(미디어 키 등)는 P0에서 로컬 패스스루되지 않는다.
+- 대안 입력(Shizuku 없이): 화면을 가상 터치패드/키보드로 쓰는 "리모컨 모드" — 부가 기능으로 보류.
 
 ### 7.4 Linux (P3)
 
@@ -405,9 +421,9 @@ Idle ─▶ Advertising(mDNS 광고, 리스닝)
 
 | 단계 | 범위 | 완료 기준 |
 |---|---|---|
-| **P0 — PoC** | ① Windows LL훅 캡처+차단 ② Android Shizuku 마우스/키 주입 ③ Android 접근성 주입 ④ Android evdev grab 가능성 | 각각 단독 데모, 지연 측정 |
+| **P0 — PoC** | ① Windows LL훅 캡처+차단 ② Android Shizuku 마우스/키 주입 ③ Android 접근성 주입 ④ Android evdev grab 가능성 ⑤ Android 호스트 → 블루투스 HID | 각각 단독 데모, 지연 측정 |
 | **P1 — MVP** | Windows 호스트 → Android 리시버, 단축키 전환, mDNS, 페어링(SPAKE2), Noise 세션, 트레이·Foreground Service | 한 대의 PC로 Android 폰 조작, 한/영 포함 타이핑 |
-| **P2** | Android 호스트 → Windows 리시버, Windows ↔ Windows, 화면 경계 모드 + 레이아웃 편집기 | 경계로 자연스럽게 이동/복귀 |
+| **P2** | Android 호스트 → 블루투스 대상(Windows 등), Windows ↔ Windows, 화면 경계 모드 + 레이아웃 편집기 | 경계로 자연스럽게 이동/복귀 |
 | **P3** | Linux 호스트/리시버 (X11, Wayland 포털) | 3개 OS 상호 조합 동작 |
 | **P4** | 클립보드 텍스트 공유, 멀티 리시버 레이아웃 고도화, 접근성 모드 한글 IME | — |
 
@@ -424,6 +440,7 @@ Idle ─▶ Advertising(mDNS 광고, 리스닝)
 | D5 | 리시버의 다중 호스트 동시 연결 | 1개만 활성, 나머지 `Busy` |
 | D6 | "같은 네트워크" 판정 수준 | 사설대역 + 동일 서브넷 기본, TTL=1 엄격모드는 옵션 |
 | D7 | 기본 단축키 | `Ctrl+Alt+←/→` 순환, `Ctrl+Alt+숫자` 지정, `Ctrl+Alt+Shift+Esc` 비상복귀 |
+| D8 | Android의 역할별 방식 | **호스트**: Shizuku로 실제 키보드·마우스 캡처 → 블루투스 HID로 전달 (대상은 앱 불필요). **리시버**: Wi-Fi + Shizuku UHID |
 
 ## 12. 리스크
 
