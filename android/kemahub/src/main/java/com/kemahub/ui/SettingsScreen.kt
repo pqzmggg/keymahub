@@ -2,6 +2,7 @@ package com.kemahub.ui
 
 import android.os.Build
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -172,8 +173,8 @@ private fun HotkeyCard(mods: Int, onMods: (Int) -> Unit) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(stringResource(R.string.hotkeys_mods_hint), style = MaterialTheme.typography.bodyMedium)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                for ((bit, label) in listOf(Mods.CTRL to "Ctrl", Mods.ALT to "Alt", Mods.SHIFT to "Shift", Mods.META to KeyLabels.META)) {
+            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                for ((bit, label) in listOf(Mods.CTRL to KeyLabels.CTRL, Mods.ALT to KeyLabels.ALT, Mods.SHIFT to "Shift", Mods.META to KeyLabels.META)) {
                     FilterChip(
                         selected = pending and bit != 0,
                         onClick = {
