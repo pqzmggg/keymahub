@@ -133,7 +133,7 @@ fun HomeScreen(
             }
         }
 
-        ProfileList(settings, onEdit, onOpenProfile)
+        ProfileList(settings, status.running, onEdit, onOpenProfile)
     }
 
     if (creating) {
@@ -215,7 +215,7 @@ private fun HostingCard(status: HubStatus, onHosting: (Boolean) -> Unit) {
  * room as it passes them, and the new order is saved on release.
  */
 @Composable
-private fun ProfileList(settings: Settings, onEdit: ((Settings) -> Settings) -> Unit, onOpen: (String) -> Unit) {
+private fun ProfileList(settings: Settings, running: Boolean, onEdit: ((Settings) -> Settings) -> Unit, onOpen: (String) -> Unit) {
     val profiles = settings.profiles
     val heights = remember { mutableStateMapOf<String, Int>() }
     var dragId by remember { mutableStateOf<String?>(null) }
@@ -253,6 +253,7 @@ private fun ProfileList(settings: Settings, onEdit: ((Settings) -> Settings) -> 
         ProfileRow(
             p = p,
             settings = settings,
+            running = running,
             dragging = dragging,
             modifier = Modifier
                 .onSizeChanged { heights[p.id] = it.height }
@@ -290,6 +291,8 @@ private fun ProfileList(settings: Settings, onEdit: ((Settings) -> Settings) -> 
 private fun ProfileRow(
     p: Profile,
     settings: Settings,
+    /** While hosting is off, nothing is really in use: the mark is dimmed and Activate is off. */
+    running: Boolean,
     dragging: Boolean,
     modifier: Modifier,
     handle: Modifier,
@@ -297,9 +300,11 @@ private fun ProfileRow(
     onOpen: () -> Unit,
 ) {
     val active = p.id == settings.activeId
+    val lit = active && running
+    val dim = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
     Card(
         modifier.fillMaxWidth(),
-        colors = if (active) CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer) else CardDefaults.cardColors(),
+        colors = if (lit) CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer) else CardDefaults.cardColors(),
         elevation = CardDefaults.cardElevation(defaultElevation = if (dragging) 8.dp else 1.dp),
     ) {
         Row(Modifier.padding(end = 4.dp, top = 8.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -320,18 +325,22 @@ private fun ProfileRow(
                         else -> pluralStringResource(R.plurals.receiver_count, p.receivers.size, p.receivers.size)
                     },
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = when {
+                        lit -> MaterialTheme.colorScheme.primary
+                        active -> dim
+                        else -> MaterialTheme.colorScheme.onSurfaceVariant
+                    },
                 )
             }
             if (active) {
                 Icon(
                     Icons.Default.CheckCircle,
                     contentDescription = stringResource(R.string.profile_in_use),
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = if (running) MaterialTheme.colorScheme.primary else dim,
                     modifier = Modifier.padding(horizontal = 12.dp),
                 )
             } else {
-                FilledTonalButton(onClick = onActivate, contentPadding = PaddingValues(horizontal = 12.dp)) {
+                FilledTonalButton(onClick = onActivate, enabled = running, contentPadding = PaddingValues(horizontal = 12.dp)) {
                     Text(stringResource(R.string.profile_activate), maxLines = 1)
                 }
             }
