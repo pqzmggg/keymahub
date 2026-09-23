@@ -129,7 +129,7 @@
     <string name="profile_fallback">Utilisé quand aucune condition n\'est remplie</string>
     <string name="settings_hotkeys">Raccourcis</string>
     <string name="hotkeys_mods_hint">Maintenez ces touches et appuyez sur un chiffre : 1 pour ce téléphone, 2–9 et 0 pour les appareils 1–9. Identique dans tous les profils.</string>
-    <string name="hotkeys_invalid">Incluez Ctrl, Alt ou Meta.</string>
+    <string name="hotkeys_invalid">Incluez Ctrl, Alt ou Win/⌘.</string>
     <string name="hotkeys_devices">Appareils 1–9</string>
     <string name="condition_devices">Appareils connectés</string>
     <string name="condition_devices_off">Peu importe</string>

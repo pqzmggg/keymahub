@@ -8,11 +8,14 @@ import com.kemahub.hid.HidKeycodes
 
 /** Display names for hotkeys ("Ctrl+Alt+2"). Key names are the same in every language. */
 object KeyLabels {
+    /** The Meta modifier: the Windows key on PC keyboards, Command on Mac ones. */
+    const val META = "Win/⌘"
+
     fun hotkey(h: Hotkey): String = buildList {
         if (h.mods and Mods.CTRL != 0) add("Ctrl")
         if (h.mods and Mods.ALT != 0) add("Alt")
         if (h.mods and Mods.SHIFT != 0) add("Shift")
-        if (h.mods and Mods.META != 0) add("Meta")
+        if (h.mods and Mods.META != 0) add(META)
         add(key(h.code))
     }.joinToString("+")
 
