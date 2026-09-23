@@ -1,7 +1,9 @@
 name: ci
 
 on:
+  # Branches only: a release's tag push would repeat what the release workflow builds.
   push:
+    branches: ['**']
   pull_request:
 
 jobs:
