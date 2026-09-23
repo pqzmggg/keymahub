@@ -90,18 +90,14 @@
     <string name="hosting_off_hint">开启后，用本手机的键盘和鼠标控制您的设备。</string>
     <string name="settings_title">设置</string>
     <string name="profiles_title">配置</string>
-    <string name="profiles_hint">使用条件匹配的配置中排在最上面的一个。点按可编辑。</string>
-    <string name="profile_use_now">立即使用</string>
-    <string name="profile_move_up">上移</string>
-    <string name="profile_move_down">下移</string>
+    <string name="profiles_hint">有条件的配置在条件满足时自动启用；多个满足时，排在上面的优先。拖动 ☰ 可调整顺序。都不满足时，使用您最后启用的配置。</string>
     <string name="profile_in_use">使用中</string>
-    <string name="profile_in_use_manual">使用中（手动）</string>
     <string name="profile_not_in_use">未使用</string>
-    <string name="manual_banner">正在手动使用 %1$s</string>
+    <string name="manual_banner">您手动启用了 %1$s，在条件变化前将代替 %2$s 使用。</string>
     <string name="manual_off">恢复自动</string>
     <string name="conditions_title">启用条件</string>
-    <string name="conditions_hint">可设置时间、地点或两者（两者都设时须同时满足）。没有条件时始终适用。</string>
-    <string name="condition_always">始终</string>
+    <string name="conditions_hint">可设置时间、地点或两者（两者都设时须同时满足）。没有条件的配置只在手动启用时使用。</string>
+    <string name="condition_always">仅在手动启用时</string>
     <string name="condition_time">时间</string>
     <string name="condition_time_off">任何时间</string>
     <string name="condition_place">地点</string>
@@ -156,6 +152,10 @@
     <string name="report_no_app">未找到邮件应用。</string>
     <string name="touch_keyboard">控制其他设备时的屏幕键盘</string>
     <string name="touch_keyboard_hint">连接实体键盘时，Android 会隐藏屏幕键盘。实体键盘控制其他设备期间，会重新显示屏幕键盘，方便您在本手机上输入。</string>
+    <string name="profile_activate">启用</string>
+    <string name="profile_edit">编辑</string>
+    <string name="drag_handle">拖动以更改优先级</string>
+    <string name="profile_fallback">没有配置符合条件时使用</string>
     <plurals name="ready_count">
         <item quantity="other">已连接 %1$d 台设备</item>
     </plurals>

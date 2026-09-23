@@ -84,7 +84,8 @@ class SettingsTest {
         assertEquals(listOf(home, first), s.profiles.map { it.id })
         assertEquals("A", s.profile(home)!!.addressOf(1)) // copied receivers
         assertNull(s.profile(home)!!.time) // but not the conditions
-        assertEquals(home, s.resolve(1, 12 * 60, null).activeId) // no conditions = always, and on top
+        assertEquals(first, s.resolve(1, 12 * 60, null).activeId) // no conditions: not used until activated
+        assertEquals(home, s.resolve(1, 12 * 60, null).activate(home).resolve(1, 12 * 60, null).activeId) // overrides the match
     }
 
     @Test
@@ -92,11 +93,12 @@ class SettingsTest {
         var s = Settings()
         val first = s.activeId
         val home = s.addProfile("Home").second
-        s = s.addProfile("Home").first.renameProfile(home, "  Home\tPC ").pin(home).deleteProfile(first)
+        s = s.addProfile("Home").first.renameProfile(home, "  Home\tPC ").activate(home).deleteProfile(first)
         assertEquals(listOf("Home PC"), s.profiles.map { it.name })
         assertEquals(s, s.deleteProfile(home)) // the last one stays
-        s = s.addProfile("x").first.pin(home).deleteProfile(home)
-        assertNull(s.manualId) // a deleted pin is dropped
+        val (more, x) = s.addProfile("x")
+        s = more.activate(x).deleteProfile(x)
+        assertEquals(home, s.chosenId) // a deleted choice falls back to what is left
     }
 
     @Test
@@ -104,16 +106,16 @@ class SettingsTest {
         var s = Settings()
         val first = s.activeId
         val (next, office) = s.addProfile("Office")
-        s = next.pin(office).deviceConnected("B", "Office PC")
+        s = next.activate(office).deviceConnected("B", "Office PC")
         assertEquals(1, s.profile(office)!!.slotOf("B"))
         assertNull(s.profile(first)!!.slotOf("B"))
     }
 
     @Test
-    fun priorityDecidesWhenConditionsOverlap() {
+    fun conditionsByPriorityElseTheLastActivated() {
         val office = PlaceRule(37.5665, 126.9780, 200, "Office")
         var s = Settings()
-        val home = s.activeId // no conditions: fallback
+        val home = s.activeId // no conditions
         var work = ""
         var late = ""
         s = s.addProfile("Work").let { (n, id) -> work = id; n }
@@ -125,7 +127,7 @@ class SettingsTest {
         val atOffice = GeoPoint(37.5666, 126.9781, 20f)
         val elsewhere = GeoPoint(37.60, 127.00, 20f)
         assertEquals(work, s.resolve(1, 10 * 60, atOffice).activeId) // Monday 10:00 at the office
-        assertEquals(home, s.resolve(1, 10 * 60, elsewhere).activeId) // wrong place
+        assertEquals(home, s.resolve(1, 10 * 60, elsewhere).activeId) // wrong place: last activated
         assertEquals(home, s.resolve(1, 10 * 60, null).activeId) // place unknown
         assertEquals(home, s.resolve(6, 10 * 60, atOffice).activeId) // Saturday
         assertEquals(late, s.resolve(1, 17 * 60 + 10, atOffice).activeId) // both match: higher wins
@@ -133,18 +135,34 @@ class SettingsTest {
         assertEquals(work, s.resolve(1, 17 * 60 + 10, atOffice).activeId)
         assertEquals(listOf(work, late, home), s.profiles.map { it.id })
         assertEquals(s, s.moveProfile(work, -1)) // already on top
-        // pinned wins over everything until released
-        s = s.pin(home)
-        assertEquals(home, s.resolve(1, 10 * 60, atOffice).activeId)
-        assertEquals(work, s.pin(null).resolve(1, 10 * 60, atOffice).activeId)
+
+        // The fallback is whatever was activated last, conditions or not.
+        s = s.activate(late).resolve(6, 10 * 60, null)
+        assertEquals(late, s.activeId)
     }
 
     @Test
-    fun nothingMatchesKeepsTheCurrentProfile() {
+    fun activatingOverridesTheMatchUntilItChanges() {
         var s = Settings()
-        val only = s.activeId
-        s = s.setTime(only, TimeRule(TimeRule.WEEKEND))
-        assertEquals(only, s.resolve(1, 0, null).activeId)
+        val home = s.activeId
+        var work = ""
+        s = s.addProfile("Work").let { (n, id) -> work = id; n }.setTime(work, TimeRule(TimeRule.ALL, 9 * 60, 18 * 60))
+        s = s.resolve(1, 10 * 60, null)
+        assertEquals(work, s.activeId)
+
+        s = s.activate(home).resolve(1, 11 * 60, null) // chosen by hand while Work matches
+        assertEquals(home, s.activeId)
+        assertEquals(work, s.overriddenId)
+        assertEquals(work, s.automatic().resolve(1, 11 * 60, null).activeId) // "automatic" gives it back
+
+        s = s.resolve(1, 19 * 60, null) // Work stops matching: the override ends
+        assertEquals(home, s.activeId)
+        assertNull(s.overriddenId)
+        assertEquals(work, s.resolve(2, 10 * 60, null).activeId) // next morning Work applies again
+
+        // Activating the matching profile itself is no override.
+        val t = Settings().let { base -> base.setTime(base.activeId, TimeRule(TimeRule.ALL, 0, 0)) }.resolve(1, 0, null)
+        assertNull(t.activate(t.activeId).overriddenId)
     }
 
     @Test
@@ -201,7 +219,7 @@ class SettingsTest {
         s = next.assign(office, 1, null)
             .setTime(office, TimeRule(0b0000101, 22 * 60, 6 * 60))
             .setPlace(office, PlaceRule(37.123456789, -122.5, 500, "HQ, 3rd floor"))
-            .pin(office)
+            .activate(office)
         val back = Settings.decode(s.encode())
         assertEquals(s, back)
         assertEquals(listOf(Device("AA:BB", "My Desk", 1_700_000_000_000L), Device("CC:DD", "Tab", 0, true)), back.devices)

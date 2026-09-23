@@ -71,14 +71,21 @@ data class Profile(
 /**
  * Everything the user configures. Immutable: every change returns a new value.
  *
- * [profiles] are in priority order (first = highest). The active profile is the one the user
- * pinned ([manualId]), else the first whose conditions match; if none match, it stays as is.
+ * Which profile is active:
+ * - [profiles] with conditions are checked in priority order (first = highest); the first
+ *   whose conditions hold right now wins ([matchedId]).
+ * - If none holds, the profile the user activated last ([chosenId]) is used. Profiles without
+ *   conditions are only ever used this way.
+ * - Activating a profile by hand also overrides the profile matching at that moment
+ *   ([overriddenId]) until the matching changes (another profile matches, or none does).
  */
 data class Settings(
     val devices: List<Device> = emptyList(),
     val profiles: List<Profile> = listOf(Profile("p1", "")),
     val activeId: String = profiles.first().id,
-    val manualId: String? = null,
+    val chosenId: String = profiles.first().id,
+    val matchedId: String? = null,
+    val overriddenId: String? = null,
 ) {
     val active: Profile get() = profiles.firstOrNull { it.id == activeId } ?: profiles.first()
 
@@ -88,17 +95,21 @@ data class Settings(
 
     /** Picks the active profile for this moment. */
     fun resolve(day: Int, minute: Int, location: GeoPoint?): Settings {
-        val id = manualId?.takeIf { profile(it) != null }
-            ?: profiles.firstOrNull { it.matches(day, minute, location) }?.id
-            ?: activeId
-        return if (id == activeId) this else copy(activeId = id)
+        val matched = profiles.firstOrNull { it.hasConditions && it.matches(day, minute, location) }?.id
+        val overridden = overriddenId?.takeIf { it == matched }
+        val chosen = profile(chosenId)?.id ?: profiles.first().id
+        val active = if (matched != null && overridden == null) matched else chosen
+        return copy(activeId = active, chosenId = chosen, matchedId = matched, overriddenId = overridden)
     }
 
-    /** Uses [id] regardless of conditions (null: back to automatic). */
-    fun pin(id: String?): Settings {
-        val p = id?.let { profile(it) } ?: return copy(manualId = null)
-        return copy(manualId = p.id, activeId = p.id)
+    /** The user activated [id]: it is used now, and whenever no conditions match. */
+    fun activate(id: String): Settings {
+        if (profile(id) == null) return this
+        return copy(chosenId = id, activeId = id, overriddenId = matchedId?.takeIf { it != id })
     }
+
+    /** Ends a manual override: the matching profile takes over again (applied by the next [resolve]). */
+    fun automatic() = copy(overriddenId = null)
 
     // ---------------------------------------------------------------- devices
 
@@ -191,7 +202,9 @@ data class Settings(
         return copy(
             profiles = rest,
             activeId = if (activeId == id) rest.first().id else activeId,
-            manualId = manualId?.takeIf { it != id },
+            chosenId = if (chosenId == id) rest.first().id else chosenId,
+            matchedId = matchedId?.takeIf { it != id },
+            overriddenId = overriddenId?.takeIf { it != id },
         )
     }
 
@@ -225,7 +238,9 @@ data class Settings(
     fun encode(): String = buildString {
         append("kemahub-settings\t1\n")
         append("active\t").append(activeId).append('\n')
-        manualId?.let { append("manual\t").append(it).append('\n') }
+        append("chosen\t").append(chosenId).append('\n')
+        matchedId?.let { append("matched\t").append(it).append('\n') }
+        overriddenId?.let { append("overridden\t").append(it).append('\n') }
         for (d in devices) append("device\t${d.address}\t${d.name}\t${d.lastUsed}\t${if (d.blocked) 1 else 0}\n")
         for (p in profiles) {
             val keys = p.hotkeys.joinToString(",") { "${it.mods}:${it.code}" }
@@ -240,14 +255,18 @@ data class Settings(
         /** Tolerates junk: bad lines are skipped, and missing parts fall back to defaults. */
         fun decode(text: String?): Settings {
             var active = ""
-            var manual: String? = null
+            var chosen = ""
+            var matched: String? = null
+            var overridden: String? = null
             val devices = mutableListOf<Device>()
             val profiles = mutableListOf<Profile>()
             for (line in text.orEmpty().lines()) {
                 val f = line.split('\t')
                 when (f[0]) {
                     "active" -> active = f.getOrElse(1) { "" }
-                    "manual" -> manual = f.getOrNull(1)
+                    "chosen" -> chosen = f.getOrElse(1) { "" }
+                    "matched" -> matched = f.getOrNull(1)
+                    "overridden" -> overridden = f.getOrNull(1)
                     "device" -> if (f.size >= 3 && f[1].isNotEmpty() && devices.none { it.address == f[1] }) {
                         devices += Device(f[1], f[2], f.getOrNull(3)?.toLongOrNull() ?: 0, f.getOrNull(4) == "1")
                     }
@@ -262,11 +281,9 @@ data class Settings(
             if (profiles.isEmpty()) profiles += Profile("p1", "")
             val known = devices.map { it.address }.toSet()
             val cleaned = profiles.map { p -> p.copy(receivers = p.receivers.filterValues { it in known }) }
-            return Settings(
-                devices, cleaned,
-                cleaned.firstOrNull { it.id == active }?.id ?: cleaned.first().id,
-                manual?.takeIf { m -> cleaned.any { it.id == m } },
-            )
+            fun valid(id: String?) = id?.takeIf { i -> cleaned.any { it.id == i } }
+            val activeId = valid(active) ?: cleaned.first().id
+            return Settings(devices, cleaned, activeId, valid(chosen) ?: activeId, valid(matched), valid(overridden))
         }
 
         private fun time(text: String?): TimeRule? {

@@ -90,18 +90,14 @@
     <string name="hosting_off_hint">켜면 이 폰의 키보드·마우스로 기기들을 조작합니다.</string>
     <string name="settings_title">설정</string>
     <string name="profiles_title">프로필</string>
-    <string name="profiles_hint">조건이 맞는 프로필 중 위에 있는 것이 사용됩니다. 눌러서 편집하세요.</string>
-    <string name="profile_use_now">지금 사용</string>
-    <string name="profile_move_up">위로</string>
-    <string name="profile_move_down">아래로</string>
+    <string name="profiles_hint">조건이 있는 프로필은 조건이 맞으면 저절로 켜지고, 여러 개가 맞으면 위에 있는 것이 우선입니다. ☰를 끌어서 순서를 바꾸세요. 맞는 프로필이 없으면 마지막으로 활성화한 프로필을 사용합니다.</string>
     <string name="profile_in_use">사용 중</string>
-    <string name="profile_in_use_manual">사용 중 (수동)</string>
     <string name="profile_not_in_use">사용 안 함</string>
-    <string name="manual_banner">%1$s 프로필을 수동으로 사용 중</string>
-    <string name="manual_off">자동으로</string>
+    <string name="manual_banner">%1$s 을(를) 직접 활성화해서, 조건이 바뀔 때까지 %2$s 대신 사용합니다.</string>
+    <string name="manual_off">자동으로 돌아가기</string>
     <string name="conditions_title">활성화 조건</string>
-    <string name="conditions_hint">시간, 장소 또는 둘 다 설정할 수 있습니다(둘 다면 모두 맞아야 함). 조건이 없으면 항상 적용됩니다.</string>
-    <string name="condition_always">항상</string>
+    <string name="conditions_hint">시간, 장소 또는 둘 다 설정할 수 있습니다(둘 다면 모두 맞아야 함). 조건이 없으면 직접 활성화할 때만 사용됩니다.</string>
+    <string name="condition_always">직접 활성화할 때만</string>
     <string name="condition_time">시간</string>
     <string name="condition_time_off">언제나</string>
     <string name="condition_place">장소</string>
@@ -156,6 +152,10 @@
     <string name="report_no_app">이메일 앱이 없습니다.</string>
     <string name="touch_keyboard">다른 기기 조작 중 화면 키보드</string>
     <string name="touch_keyboard_hint">물리 키보드가 연결돼 있으면 Android는 화면 키보드를 숨깁니다. 물리 키보드가 다른 기기를 조작하는 동안에는 화면 키보드를 다시 보여 줘서 이 폰에서도 입력할 수 있게 합니다.</string>
+    <string name="profile_activate">활성화</string>
+    <string name="profile_edit">편집</string>
+    <string name="drag_handle">끌어서 우선순위 변경</string>
+    <string name="profile_fallback">조건이 맞는 프로필이 없을 때 사용</string>
     <plurals name="ready_count">
         <item quantity="other">연결된 기기 %1$d개</item>
     </plurals>

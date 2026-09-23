@@ -107,8 +107,8 @@ fun ProfileScreen(
         Text(
             stringResource(
                 when {
-                    settings.manualId == profile.id -> R.string.profile_in_use_manual
                     active -> R.string.profile_in_use
+                    settings.chosenId == profile.id -> R.string.profile_fallback
                     else -> R.string.profile_not_in_use
                 },
             ),

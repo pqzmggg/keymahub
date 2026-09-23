@@ -90,18 +90,14 @@
     <string name="hosting_off_hint">オンにすると、このスマホのキーボードとマウスでデバイスを操作します。</string>
     <string name="settings_title">設定</string>
     <string name="profiles_title">プロファイル</string>
-    <string name="profiles_hint">条件に合うプロファイルのうち、上にあるものが使われます。タップして編集。</string>
-    <string name="profile_use_now">今すぐ使う</string>
-    <string name="profile_move_up">上へ</string>
-    <string name="profile_move_down">下へ</string>
+    <string name="profiles_hint">条件付きのプロファイルは条件に合うと自動で有効になり、複数合う場合は上にあるものが優先されます。☰ をドラッグして並べ替えます。どれも合わない場合は、最後に有効にしたプロファイルを使います。</string>
     <string name="profile_in_use">使用中</string>
-    <string name="profile_in_use_manual">使用中（手動）</string>
     <string name="profile_not_in_use">未使用</string>
-    <string name="manual_banner">%1$s を手動で使用中</string>
+    <string name="manual_banner">%1$s を手動で有効にしたため、条件が変わるまで %2$s の代わりに使います。</string>
     <string name="manual_off">自動に戻す</string>
     <string name="conditions_title">有効になる条件</string>
-    <string name="conditions_hint">時間、場所、またはその両方を設定できます（両方の場合はどちらも満たす必要あり）。条件がなければ常に有効です。</string>
-    <string name="condition_always">常に</string>
+    <string name="conditions_hint">時間、場所、またはその両方を設定できます（両方の場合はどちらも満たす必要あり）。条件がない場合は、手動で有効にしたときだけ使われます。</string>
+    <string name="condition_always">手動で有効にしたときのみ</string>
     <string name="condition_time">時間</string>
     <string name="condition_time_off">いつでも</string>
     <string name="condition_place">場所</string>
@@ -156,6 +152,10 @@
     <string name="report_no_app">メールアプリが見つかりません。</string>
     <string name="touch_keyboard">他のデバイス操作中の画面キーボード</string>
     <string name="touch_keyboard_hint">物理キーボードが接続されていると、Android は画面キーボードを表示しません。物理キーボードで他のデバイスを操作している間は画面キーボードを表示し、このスマホでも入力できるようにします。</string>
+    <string name="profile_activate">有効にする</string>
+    <string name="profile_edit">編集</string>
+    <string name="drag_handle">ドラッグして優先順位を変更</string>
+    <string name="profile_fallback">条件に合うプロファイルがないときに使用</string>
     <plurals name="ready_count">
         <item quantity="other">%1$d 台接続中</item>
     </plurals>

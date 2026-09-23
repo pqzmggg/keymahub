@@ -1,6 +1,8 @@
 package com.kemahub.ui
 
-import androidx.compose.foundation.clickable
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,6 +16,9 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -21,6 +26,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -31,11 +37,19 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.zIndex
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
@@ -64,7 +78,6 @@ fun HomeScreen(
     var menu by remember { mutableStateOf(false) }
     var showLog by remember { mutableStateOf(false) }
     var creating by remember { mutableStateOf(false) }
-    var deleting by remember { mutableStateOf<Profile?>(null) }
 
     Page {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -104,32 +117,23 @@ fun HomeScreen(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
-        settings.manualId?.let { id ->
-            val p = settings.profile(id)
-            if (p != null) {
+        settings.overriddenId?.let { id ->
+            settings.profile(id)?.let { matched ->
                 Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)) {
                     Row(Modifier.padding(start = 16.dp, end = 8.dp, top = 4.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            stringResource(R.string.manual_banner, profileName(p)),
+                            stringResource(R.string.manual_banner, profileName(settings.active), profileName(matched)),
                             Modifier.weight(1f),
                             color = MaterialTheme.colorScheme.onTertiaryContainer,
+                            style = MaterialTheme.typography.bodyMedium,
                         )
-                        TextButton(onClick = { onEdit { it.pin(null) } }) { Text(stringResource(R.string.manual_off)) }
+                        TextButton(onClick = { onEdit { it.automatic() } }) { Text(stringResource(R.string.manual_off)) }
                     }
                 }
             }
         }
 
-        settings.profiles.forEachIndexed { index, p ->
-            ProfileRow(
-                p = p,
-                index = index,
-                settings = settings,
-                onOpen = { onOpenProfile(p.id) },
-                onEdit = onEdit,
-                onDelete = { deleting = p },
-            )
-        }
+        ProfileList(settings, onEdit, onOpenProfile)
     }
 
     if (creating) {
@@ -144,14 +148,6 @@ fun HomeScreen(
                 onEdit { s -> s.addProfile(name).let { (next, newId) -> id = newId; next } }
                 if (id.isNotEmpty()) onOpenProfile(id)
             },
-        )
-    }
-    deleting?.let { p ->
-        ConfirmDialog(
-            title = stringResource(R.string.profile_delete_confirm, profileName(p)),
-            confirm = stringResource(R.string.action_delete),
-            onDismiss = { deleting = null },
-            onConfirm = { deleting = null; onEdit { it.deleteProfile(p.id) } },
         )
     }
     if (showLog) {
@@ -214,68 +210,133 @@ private fun HostingCard(status: HubStatus, onHosting: (Boolean) -> Unit) {
     }
 }
 
+/**
+ * The profiles in priority order. Dragging a row by its handle moves it; the other rows make
+ * room as it passes them, and the new order is saved on release.
+ */
+@Composable
+private fun ProfileList(settings: Settings, onEdit: ((Settings) -> Settings) -> Unit, onOpen: (String) -> Unit) {
+    val profiles = settings.profiles
+    val heights = remember { mutableStateMapOf<String, Int>() }
+    var dragId by remember { mutableStateOf<String?>(null) }
+    var dragOffset by remember { mutableFloatStateOf(0f) }
+    val gap = with(LocalDensity.current) { 12.dp.toPx() } // Page's spacing between rows
+
+    fun height(i: Int) = (heights[profiles[i].id] ?: 0).toFloat()
+
+    /** Where the dragged row would land now (-1: nothing dragged). Reads live state only. */
+    fun target(): Int {
+        val from = profiles.indexOfFirst { it.id == dragId }
+        if (from < 0) return -1
+        val tops = FloatArray(profiles.size)
+        var y = 0f
+        for (i in profiles.indices) {
+            tops[i] = y
+            y += height(i) + gap
+        }
+        val center = tops[from] + dragOffset + height(from) / 2
+        return profiles.indices.count { it != from && tops[it] + height(it) / 2 < center }
+    }
+
+    val from = profiles.indexOfFirst { it.id == dragId }
+    val target = target()
+
+    profiles.forEachIndexed { index, p -> key(p.id) {
+        val dragging = index == from
+        val shift = when {
+            from < 0 || dragging -> 0f
+            index in (from + 1)..target -> -(height(from) + gap)
+            index in target until from -> height(from) + gap
+            else -> 0f
+        }
+        val animatedShift by animateFloatAsState(shift, label = "shift")
+        ProfileRow(
+            p = p,
+            settings = settings,
+            dragging = dragging,
+            modifier = Modifier
+                .onSizeChanged { heights[p.id] = it.height }
+                .zIndex(if (dragging) 1f else 0f)
+                .graphicsLayer { translationY = if (dragging) dragOffset else animatedShift },
+            handle = Modifier.pointerInput(p.id, profiles) {
+                detectDragGestures(
+                    onDragStart = {
+                        dragId = p.id
+                        dragOffset = 0f
+                    },
+                    onDragEnd = {
+                        val to = target()
+                        val at = profiles.indexOfFirst { it.id == p.id }
+                        if (to >= 0 && to != at) onEdit { it.moveProfile(p.id, to - at) }
+                        dragId = null
+                        dragOffset = 0f
+                    },
+                    onDragCancel = {
+                        dragId = null
+                        dragOffset = 0f
+                    },
+                ) { change, amount ->
+                    change.consume()
+                    dragOffset += amount.y
+                }
+            },
+            onActivate = { onEdit { it.activate(p.id) } },
+            onOpen = { onOpen(p.id) },
+        )
+    } }
+}
+
 @Composable
 private fun ProfileRow(
     p: Profile,
-    index: Int,
     settings: Settings,
+    dragging: Boolean,
+    modifier: Modifier,
+    handle: Modifier,
+    onActivate: () -> Unit,
     onOpen: () -> Unit,
-    onEdit: ((Settings) -> Settings) -> Unit,
-    onDelete: () -> Unit,
 ) {
     val active = p.id == settings.activeId
-    var menu by remember { mutableStateOf(false) }
     Card(
-        Modifier.fillMaxWidth().clickable(onClick = onOpen),
+        modifier.fillMaxWidth(),
         colors = if (active) CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer) else CardDefaults.cardColors(),
+        elevation = CardDefaults.cardElevation(defaultElevation = if (dragging) 8.dp else 1.dp),
     ) {
-        Row(Modifier.padding(start = 12.dp, end = 4.dp, top = 12.dp, bottom = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Badge("${index + 1}", highlighted = active)
-            Spacer(Modifier.width(12.dp))
-            Column(Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(profileName(p), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f, fill = false))
-                    if (active) {
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            stringResource(if (settings.manualId == p.id) R.string.profile_in_use_manual else R.string.profile_in_use),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                        )
-                    }
-                }
-                Text(conditionText(p), style = MaterialTheme.typography.bodySmall)
-                Text(
-                    pluralStringResource(R.plurals.receiver_count, p.receivers.size, p.receivers.size),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+        Row(Modifier.padding(end = 4.dp, top = 8.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(handle.padding(horizontal = 8.dp, vertical = 12.dp)) {
+                Icon(
+                    Icons.Default.Menu,
+                    contentDescription = stringResource(R.string.drag_handle),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            Box {
-                IconButton(onClick = { menu = true }) { Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.menu)) }
-                DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.profile_use_now)) },
-                        enabled = settings.manualId != p.id,
-                        onClick = { menu = false; onEdit { it.pin(p.id) } },
-                    )
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.profile_move_up)) },
-                        enabled = index > 0,
-                        onClick = { menu = false; onEdit { it.moveProfile(p.id, -1) } },
-                    )
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.profile_move_down)) },
-                        enabled = index < settings.profiles.size - 1,
-                        onClick = { menu = false; onEdit { it.moveProfile(p.id, 1) } },
-                    )
-                    HorizontalDivider()
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.profile_delete)) },
-                        enabled = settings.profiles.size > 1,
-                        onClick = { menu = false; onDelete() },
-                    )
+            Column(Modifier.weight(1f)) {
+                Text(profileName(p), style = MaterialTheme.typography.titleMedium)
+                Text(conditionText(p), style = MaterialTheme.typography.bodySmall)
+                Text(
+                    when {
+                        active -> stringResource(R.string.profile_in_use)
+                        p.id == settings.chosenId -> stringResource(R.string.profile_fallback)
+                        else -> pluralStringResource(R.plurals.receiver_count, p.receivers.size, p.receivers.size)
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            if (active) {
+                Icon(
+                    Icons.Default.CheckCircle,
+                    contentDescription = stringResource(R.string.profile_in_use),
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(horizontal = 12.dp),
+                )
+            } else {
+                FilledTonalButton(onClick = onActivate, contentPadding = PaddingValues(horizontal = 12.dp)) {
+                    Text(stringResource(R.string.profile_activate), maxLines = 1)
                 }
+            }
+            IconButton(onClick = onOpen) {
+                Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.profile_edit))
             }
         }
     }
