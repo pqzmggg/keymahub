@@ -108,7 +108,11 @@ fun daysText(days: Int): String = when (days) {
     TimeRule.ALL -> stringResource(R.string.days_every)
     TimeRule.WEEKDAYS -> stringResource(R.string.days_weekdays)
     TimeRule.WEEKEND -> stringResource(R.string.days_weekend)
-    else -> (1..7).filter { days and (1 shl (it - 1)) != 0 }.joinToString(", ") { dayName(it) }
+    else -> {
+        val locale = LocalConfiguration.current.locales[0]
+        (1..7).filter { days and (1 shl (it - 1)) != 0 }
+            .joinToString(", ") { DayOfWeek.of(it).getDisplayName(TextStyle.SHORT, locale) }
+    }
 }
 
 /** Short localized name of ISO day [day] (1 = Monday). */
