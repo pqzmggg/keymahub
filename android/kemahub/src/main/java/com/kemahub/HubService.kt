@@ -60,7 +60,7 @@ class HubService : Service(), BleHid.Listener {
         if (destroyed) return BleHid.stop()
 
         val s = HidSender()
-        val c = A11yCapture(s, ::hotkeyTarget, ::isAvailable, ::onSelect, ::onUnavailable)
+        val c = A11yCapture(s, ::hotkeyTarget, ::isAvailable, ::onSelect, ::onUnavailable) { pointerCapture?.reclaim() }
         sender = s
         capture = c
         hud = HudOverlay(a11y)

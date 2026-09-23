@@ -28,6 +28,8 @@ class A11yCapture(
     isAvailable: (Int) -> Boolean,
     onSelect: (Int) -> Unit,
     onUnavailable: (Int) -> Unit,
+    /** The mouse reached [onMotionEvent] while a target has focus: pointer capture was lost. */
+    private val onUncapturedMouse: () -> Unit = {},
 ) {
     /** Local side of the router: records "let this event through" instead of emitting it. */
     private class PassThrough : InputSink {
@@ -82,6 +84,7 @@ class A11yCapture(
     /** Mouse events intercepted by the accessibility service while remote (Android 14+ fallback). */
     fun onMotionEvent(e: MotionEvent) = synchronized(router) {
         if (!router.isRemote) return@synchronized
+        onUncapturedMouse()
         var dx = e.getAxisValue(MotionEvent.AXIS_RELATIVE_X)
         var dy = e.getAxisValue(MotionEvent.AXIS_RELATIVE_Y)
         if (dx == 0f && dy == 0f && !lastX.isNaN()) {
