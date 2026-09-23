@@ -61,6 +61,7 @@ object BleHid {
 
     private lateinit var keyboardIn: BluetoothGattCharacteristic
     private lateinit var mouseIn: BluetoothGattCharacteristic
+    private lateinit var consumerIn: BluetoothGattCharacteristic
     private lateinit var batteryLevel: BluetoothGattCharacteristic
 
     private val lock = Any()
@@ -218,7 +219,11 @@ object BleHid {
         }
         while ((inFlight[address] ?: 0) < WINDOW) {
             val item = q.poll() ?: break
-            val ch = if (item.reportId == HidDescriptors.REPORT_ID_MOUSE) mouseIn else keyboardIn
+            val ch = when (item.reportId) {
+                HidDescriptors.REPORT_ID_MOUSE -> mouseIn
+                HidDescriptors.REPORT_ID_CONSUMER -> consumerIn
+                else -> keyboardIn
+            }
             if (!notify(device, ch, item.data)) {
                 q.unpoll(item) // stack busy: retry on the next confirmation or report
                 break
@@ -264,7 +269,14 @@ object BleHid {
         val ref = descriptor(REPORT_REFERENCE, ENC_READ)
         values[ref] = byteArrayOf(id.toByte(), type.toByte())
         c.addDescriptor(ref)
-        values[c] = ByteArray(if (id == HidDescriptors.REPORT_ID_MOUSE) 7 else if (type == OUTPUT) 1 else 8)
+        values[c] = ByteArray(
+            when {
+                id == HidDescriptors.REPORT_ID_MOUSE -> 7
+                id == HidDescriptors.REPORT_ID_CONSUMER -> 2
+                type == OUTPUT -> 1
+                else -> 8
+            },
+        )
         return c
     }
 
@@ -283,6 +295,7 @@ object BleHid {
         ).also { values[it] = byteArrayOf(1) }) // Protocol Mode = report
         keyboardIn = report(HidDescriptors.REPORT_ID_KEYBOARD, INPUT).also(::addCharacteristic)
         mouseIn = report(HidDescriptors.REPORT_ID_MOUSE, INPUT).also(::addCharacteristic)
+        consumerIn = report(HidDescriptors.REPORT_ID_CONSUMER, INPUT).also(::addCharacteristic)
         addCharacteristic(report(HidDescriptors.REPORT_ID_KEYBOARD, OUTPUT)) // keyboard LEDs
     }
 

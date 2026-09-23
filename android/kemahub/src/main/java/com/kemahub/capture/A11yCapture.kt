@@ -7,6 +7,8 @@ import com.kemahub.core.Buttons
 import com.kemahub.core.Hotkey
 import com.kemahub.core.InputSink
 import com.kemahub.core.SlotRouter
+import com.kemahub.core.Hub
+import com.kemahub.hid.ConsumerKeys
 import com.kemahub.hid.EvdevKeymap
 import com.kemahub.hid.HidKeycodes
 
@@ -73,8 +75,14 @@ class A11yCapture(
                 return !router.isHeldLocally(code)
             }
             if (e.action != KeyEvent.ACTION_DOWN && e.action != KeyEvent.ACTION_UP) return false
-            val hid = EvdevKeymap.toHid(code) ?: HidKeycodes.fromKeycode(e.keyCode)
-                ?: return router.isRemote // unmapped (e.g. media keys): leave local use alone
+            val hid = ConsumerKeys.fromKeycode(e.keyCode) ?: EvdevKeymap.toHid(code) ?: HidKeycodes.fromKeycode(e.keyCode)
+            if (hid == null) {
+                // Not sendable: leave local use alone; on a target, drop it (and say so for diagnosis).
+                if (router.isRemote && e.action == KeyEvent.ACTION_DOWN) {
+                    Hub.log("key not sent: scan $code ${KeyEvent.keyCodeToString(e.keyCode)}")
+                }
+                return router.isRemote
+            }
             local.pass = false
             router.onKey(code, hid, e.action == KeyEvent.ACTION_DOWN)
             return !local.pass

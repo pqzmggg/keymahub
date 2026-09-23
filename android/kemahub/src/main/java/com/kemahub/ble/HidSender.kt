@@ -1,6 +1,8 @@
 package com.kemahub.ble
 
 import com.kemahub.core.InputSink
+import com.kemahub.hid.ConsumerKeys
+import com.kemahub.hid.ConsumerReport
 import com.kemahub.hid.HidDescriptors
 import com.kemahub.hid.KeyboardReport
 import com.kemahub.hid.MouseReport
@@ -15,6 +17,7 @@ import java.util.concurrent.TimeUnit
 class HidSender : InputSink {
     private val keyboard = KeyboardReport()
     private val mouse = MouseReport()
+    private val media = ConsumerReport()
     private val exec = Executors.newSingleThreadScheduledExecutor { Thread(it, "hid-sender") }
     private var accX = 0
     private var accY = 0
@@ -33,7 +36,11 @@ class HidSender : InputSink {
 
     override fun key(usage: Int, down: Boolean) = run {
         flushMotion()
-        keyboard.update(usage, down)?.let { BleHid.send(HidDescriptors.REPORT_ID_KEYBOARD, it) }
+        if (usage and ConsumerKeys.FLAG != 0) {
+            media.update(usage and 0xFFFF, down)?.let { BleHid.send(HidDescriptors.REPORT_ID_CONSUMER, it) }
+        } else {
+            keyboard.update(usage, down)?.let { BleHid.send(HidDescriptors.REPORT_ID_KEYBOARD, it) }
+        }
     }
 
     override fun move(dx: Int, dy: Int) = run {
@@ -60,6 +67,7 @@ class HidSender : InputSink {
         accY = 0
         BleHid.send(HidDescriptors.REPORT_ID_KEYBOARD, keyboard.clear())
         BleHid.send(HidDescriptors.REPORT_ID_MOUSE, mouse.clear())
+        BleHid.send(HidDescriptors.REPORT_ID_CONSUMER, media.clear())
     }
 
     private fun run(block: () -> Unit) {

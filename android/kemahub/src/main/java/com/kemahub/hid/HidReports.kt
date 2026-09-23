@@ -40,18 +40,29 @@ object HidDescriptors {
         0xC0, 0xC0,
     )
 
+    /** Media keys (volume, play/pause, brightness...): one 16-bit Consumer usage at a time. */
+    val CONSUMER = bytes(
+        0x05, 0x0C, 0x09, 0x01, 0xA1, 0x01,             // Usage Page (Consumer), Usage (Consumer Control), Collection (App)
+        0x19, 0x00, 0x2A, 0xFF, 0x03,                   //   Usage 0..0x3FF
+        0x15, 0x00, 0x26, 0xFF, 0x03,                   //   Logical 0..0x3FF
+        0x75, 0x10, 0x95, 0x01, 0x81, 0x00,             //   1 x 16 bit, Input (Data, Array)
+        0xC0,
+    )
+
     const val REPORT_ID_KEYBOARD = 1
     const val REPORT_ID_MOUSE = 2
+    const val REPORT_ID_CONSUMER = 3
 
     /**
-     * Keyboard + mouse in one device, as a Bluetooth HID combo peripheral needs.
+     * Keyboard + mouse + media keys in one device, as a Bluetooth HID combo peripheral needs.
      * Same reports as above, distinguished by report ID (sent separately, not in the payload).
      */
-    val COMBO = withReportId(KEYBOARD, REPORT_ID_KEYBOARD) + withReportId(MOUSE, REPORT_ID_MOUSE)
+    val COMBO = withReportId(KEYBOARD, REPORT_ID_KEYBOARD) + withReportId(MOUSE, REPORT_ID_MOUSE) +
+        withReportId(CONSUMER, REPORT_ID_CONSUMER)
 
     /** Inserts `Report ID (id)` right after the top-level `Collection (Application)`. */
     private fun withReportId(desc: ByteArray, id: Int): ByteArray {
-        // Both descriptors start with: Usage Page (Desktop), Usage (x), Collection (Application).
+        // All descriptors start with: Usage Page (x), Usage (y), Collection (Application).
         check(desc[4] == 0xA1.toByte() && desc[5] == 0x01.toByte())
         return desc.copyOfRange(0, 6) + bytes(0x85, id) + desc.copyOfRange(6, desc.size)
     }
@@ -155,4 +166,57 @@ class MouseReport {
         wheel.toByte(),
         pan.toByte(),
     )
+}
+
+/**
+ * Media keys as HID Consumer usages. Routed like keys, with [FLAG] set so they stay apart
+ * from keyboard usages.
+ */
+object ConsumerKeys {
+    const val FLAG = 0x10000
+
+    private val byKeycode = mapOf(
+        android.view.KeyEvent.KEYCODE_VOLUME_UP to 0xE9,
+        android.view.KeyEvent.KEYCODE_VOLUME_DOWN to 0xEA,
+        android.view.KeyEvent.KEYCODE_VOLUME_MUTE to 0xE2,
+        android.view.KeyEvent.KEYCODE_MUTE to 0xE2,
+        android.view.KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE to 0xCD,
+        android.view.KeyEvent.KEYCODE_MEDIA_PLAY to 0xB0,
+        android.view.KeyEvent.KEYCODE_MEDIA_PAUSE to 0xB1,
+        android.view.KeyEvent.KEYCODE_MEDIA_NEXT to 0xB5,
+        android.view.KeyEvent.KEYCODE_MEDIA_PREVIOUS to 0xB6,
+        android.view.KeyEvent.KEYCODE_MEDIA_STOP to 0xB7,
+        android.view.KeyEvent.KEYCODE_MEDIA_FAST_FORWARD to 0xB3,
+        android.view.KeyEvent.KEYCODE_MEDIA_REWIND to 0xB4,
+        android.view.KeyEvent.KEYCODE_BRIGHTNESS_UP to 0x6F,
+        android.view.KeyEvent.KEYCODE_BRIGHTNESS_DOWN to 0x70,
+        android.view.KeyEvent.KEYCODE_EXPLORER to 0x196,
+        android.view.KeyEvent.KEYCODE_ENVELOPE to 0x18A,
+        android.view.KeyEvent.KEYCODE_CALCULATOR to 0x192,
+        android.view.KeyEvent.KEYCODE_SEARCH to 0x221,
+        android.view.KeyEvent.KEYCODE_BOOKMARK to 0x22A,
+    )
+
+    /** The flagged Consumer usage for Android [keycode], or null. */
+    fun fromKeycode(keycode: Int): Int? = byKeycode[keycode]?.let { it or FLAG }
+}
+
+/** The one media key held down, as a 2-byte little-endian Consumer report. */
+class ConsumerReport {
+    private var held = 0
+
+    /** [usage] without [ConsumerKeys.FLAG]. Returns the new report, or null if nothing changed. */
+    fun update(usage: Int, down: Boolean): ByteArray? {
+        val next = if (down) usage else if (held == usage) 0 else return null
+        if (next == held) return null
+        held = next
+        return report()
+    }
+
+    fun clear(): ByteArray {
+        held = 0
+        return report()
+    }
+
+    private fun report() = byteArrayOf((held and 0xFF).toByte(), (held shr 8).toByte())
 }
