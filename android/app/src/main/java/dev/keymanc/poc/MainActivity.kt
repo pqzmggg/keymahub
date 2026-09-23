@@ -145,7 +145,7 @@ class MainActivity : Activity() {
         header("P0-4 호스트 프로브 (Shizuku 필요)")
         buttons("evdev 열기/grab 테스트 (10초)" to ::runEvdevProbe)
 
-        header("P0-5 Android 호스트 → 블루투스 (Shizuku 필요)")
+        header("P0-5 Android 호스트 → 블루투스 (Shizuku 또는 접근성)")
         buttons(
             "블루투스 권한" to ::requestBluetoothPermission,
             "페어링 허용 (2분)" to {

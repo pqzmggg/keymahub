@@ -1,0 +1,109 @@
+package dev.keymanc.poc.host
+
+import android.view.InputDevice
+import android.view.KeyEvent
+import android.view.MotionEvent
+import dev.keymanc.poc.input.EvdevKeymap
+import dev.keymanc.poc.input.HidKeycodes
+import dev.keymanc.poc.sink.InputSink
+import dev.keymanc.poc.wire.Wire
+
+/**
+ * Android host capture without Shizuku, through the accessibility service.
+ *
+ * - Keyboard: key filtering sees every hardware key before apps do. "Local" simply means
+ *   not consuming the event, so no passthrough device is needed.
+ * - Mouse (Android 14+): [KeymancAccessibilityService] intercepts SOURCE_MOUSE motion
+ *   events only while focus is remote, so local mouse use is untouched. Known limitation:
+ *   the phone's own pointer still moves while the target is being controlled.
+ *
+ * All calls arrive on the main thread except [setRemoteAvailable]; access is synchronized.
+ */
+class A11yCapture(remote: InputSink, private val onFocus: (Boolean) -> Unit) {
+    /** Local side of the router: records "let this event through" instead of emitting it. */
+    private class PassThrough : InputSink {
+        var pass = false
+        override fun start(): String? = null
+        override fun stop() {}
+        override fun key(usage: Int, down: Boolean, repeat: Boolean) { pass = true }
+        override fun move(dx: Int, dy: Int) { pass = true }
+        override fun button(button: Int, down: Boolean) { pass = true }
+        override fun wheel(v: Int, h: Int) { pass = true }
+        override fun releaseAll() {}
+    }
+
+    private val local = PassThrough()
+    private val router = HostRouter(local, remote) {
+        buttons = 0
+        lastX = Float.NaN
+        lastY = Float.NaN
+        onFocus(it)
+    }
+    private var buttons = 0
+    private var lastX = Float.NaN
+    private var lastY = Float.NaN
+
+    val isRemote get() = synchronized(router) { router.isRemote }
+
+    fun setRemoteAvailable(available: Boolean) = synchronized(router) { router.setRemoteAvailable(available) }
+
+    fun stop() = synchronized(router) { router.releaseAll() }
+
+    /** Returns true to consume the key (it went to the target or was a hotkey). */
+    fun onKeyEvent(e: KeyEvent): Boolean {
+        val dev = e.device ?: return false
+        // Only physical full keyboards; leave volume/power buttons and virtual keys alone.
+        if (dev.isVirtual || dev.keyboardType != InputDevice.KEYBOARD_TYPE_ALPHABETIC) return false
+        val code = e.scanCode.takeIf { it != 0 } ?: return false
+        synchronized(router) {
+            if (e.action == KeyEvent.ACTION_DOWN && e.repeatCount > 0) {
+                return !router.isHeldLocally(code)
+            }
+            if (e.action != KeyEvent.ACTION_DOWN && e.action != KeyEvent.ACTION_UP) return false
+            val hid = EvdevKeymap.toHid(code) ?: HidKeycodes.fromKeycode(e.keyCode)
+                ?: return router.isRemote // unmapped (e.g. media keys): leave local use alone
+            local.pass = false
+            router.onKey(code, hid, e.action == KeyEvent.ACTION_DOWN)
+            return !local.pass
+        }
+    }
+
+    /** Mouse events intercepted while remote (Android 14+). */
+    fun onMotionEvent(e: MotionEvent) = synchronized(router) {
+        if (!router.isRemote) return@synchronized
+        var dx = e.getAxisValue(MotionEvent.AXIS_RELATIVE_X)
+        var dy = e.getAxisValue(MotionEvent.AXIS_RELATIVE_Y)
+        if (dx == 0f && dy == 0f && !lastX.isNaN()) {
+            // Some devices do not report relative axes; fall back to absolute deltas.
+            dx = e.x - lastX
+            dy = e.y - lastY
+        }
+        lastX = e.x
+        lastY = e.y
+        router.onMove(dx.toInt(), dy.toInt())
+
+        val state = e.buttonState
+        for ((bit, button) in BUTTONS) {
+            val now = state and bit != 0
+            if (now != (buttons and bit != 0)) router.onButton(button, now)
+        }
+        buttons = state
+
+        if (e.actionMasked == MotionEvent.ACTION_SCROLL) {
+            router.onWheel(
+                (e.getAxisValue(MotionEvent.AXIS_VSCROLL) * Wire.WHEEL_NOTCH).toInt(),
+                (e.getAxisValue(MotionEvent.AXIS_HSCROLL) * Wire.WHEEL_NOTCH).toInt(),
+            )
+        }
+    }
+
+    private companion object {
+        val BUTTONS = listOf(
+            MotionEvent.BUTTON_PRIMARY to Wire.BUTTON_LEFT,
+            MotionEvent.BUTTON_SECONDARY to Wire.BUTTON_RIGHT,
+            MotionEvent.BUTTON_TERTIARY to Wire.BUTTON_MIDDLE,
+            MotionEvent.BUTTON_BACK to Wire.BUTTON_BACK,
+            MotionEvent.BUTTON_FORWARD to Wire.BUTTON_FORWARD,
+        )
+    }
+}

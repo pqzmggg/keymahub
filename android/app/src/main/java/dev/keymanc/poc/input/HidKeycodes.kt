@@ -83,6 +83,10 @@ object HidKeycodes {
 
     fun toKeycode(usage: Int): Int? = table[usage]
 
+    private val reverse: Map<Int, Int> by lazy { table.entries.associate { (usage, code) -> code to usage } }
+
+    fun fromKeycode(keycode: Int): Int? = reverse[keycode]
+
     fun isModifier(usage: Int) = usage in 0xE0..0xE7
 
     /** Android meta state for a HID modifier byte (bit 0 = LCtrl … bit 7 = RGUI). */

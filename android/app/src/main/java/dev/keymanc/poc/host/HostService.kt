@@ -14,6 +14,7 @@ import android.os.IBinder
 import android.os.Parcel
 import dev.keymanc.poc.AppLog
 import dev.keymanc.poc.MainActivity
+import dev.keymanc.poc.a11y.KeymancAccessibilityService
 import dev.keymanc.poc.bt.BtHid
 import dev.keymanc.poc.bt.BtHidSink
 import dev.keymanc.poc.priv.PrivClient
@@ -21,15 +22,20 @@ import dev.keymanc.poc.priv.PrivClient
 /**
  * Android host (P0-5): physical keyboard/mouse on this phone → Bluetooth HID target.
  *
- * The privileged process grabs the devices and runs [HostRouter]; events meant for the
- * target come back through [callback] and are sent as Bluetooth HID reports.
+ * Capture, in order of preference:
+ * - Shizuku: the privileged process grabs the devices and runs [HostRouter]; events meant
+ *   for the target come back through [callback].
+ * - Accessibility (no Shizuku): [A11yCapture] filters keys, and on Android 14+ intercepts
+ *   the mouse while the target has focus.
+ * Either way the target receives Bluetooth HID reports; Bluetooth itself needs no Shizuku.
  */
 class HostService : Service() {
     private var sink: BtHidSink? = null
     private var started = false
     @Volatile private var destroyed = false
+    @Volatile private var a11y: A11yCapture? = null
     private val btListener: (Boolean) -> Unit = { up ->
-        PrivClient.setRemoteAvailable(up)
+        a11y?.setRemoteAvailable(up) ?: PrivClient.setRemoteAvailable(up)
         updateNotification()
     }
 
@@ -39,11 +45,7 @@ class HostService : Service() {
             data.enforceInterface(HostCallbackProtocol.DESCRIPTOR)
             val s = sink ?: return true
             when (code) {
-                HostCallbackProtocol.FOCUS -> {
-                    remoteFocus = data.readInt() != 0
-                    AppLog.i(if (remoteFocus) "focus → Bluetooth target" else "focus → this phone")
-                    updateNotification()
-                }
+                HostCallbackProtocol.FOCUS -> onFocus(data.readInt() != 0)
                 HostCallbackProtocol.KEY -> s.key(data.readInt(), data.readInt() != 0, false)
                 HostCallbackProtocol.MOVE -> s.move(data.readInt(), data.readInt())
                 HostCallbackProtocol.BUTTON -> s.button(data.readInt(), data.readInt() != 0)
@@ -78,24 +80,55 @@ class HostService : Service() {
             return
         }
         sink = s
-        if (!PrivClient.connect()) {
-            AppLog.i("host: Shizuku ${PrivClient.shizukuState()}")
-            stopSelf()
-            return
-        }
-        PrivClient.captureStart(callback)?.let {
-            AppLog.i("host: capture failed: $it")
+        val err = if (PrivClient.hasPermission() && PrivClient.connect()) startShizukuCapture() else startA11yCapture(s)
+        if (err != null) {
+            AppLog.i("host: $err")
             stopSelf()
             return
         }
         if (destroyed) {
-            PrivClient.captureStop()
+            stopCapture()
             return
         }
         BtHid.onConnectionChanged(btListener)
-        PrivClient.setRemoteAvailable(BtHid.connected != null)
+        btListener(BtHid.connected != null)
         running = true
         AppLog.i("host running — Ctrl+Alt+→ target, Ctrl+Alt+← this phone, Ctrl+Alt+Shift+Esc emergency")
+        updateNotification()
+    }
+
+    private fun startShizukuCapture(): String? {
+        PrivClient.captureStart(callback)?.let { return "Shizuku capture failed: $it" }
+        AppLog.i("host capture: Shizuku (keyboard + mouse grabbed)")
+        return null
+    }
+
+    private fun startA11yCapture(s: BtHidSink): String? {
+        val service = KeymancAccessibilityService.instance
+            ?: return "입력을 가로챌 방법이 없습니다. 접근성 설정에서 keymanc를 켜거나(Shizuku 불필요) Shizuku를 실행해 주세요."
+        val capture = A11yCapture(s, ::onFocus)
+        a11y = capture
+        service.hostCapture = capture
+        val mouse = if (Build.VERSION.SDK_INT >= 34) "mouse intercepted while the target has focus" else "mouse needs Android 14+"
+        AppLog.i("host capture: accessibility (keyboard; $mouse)")
+        return null
+    }
+
+    private fun stopCapture() {
+        val capture = a11y
+        if (capture != null) {
+            KeymancAccessibilityService.instance?.let { if (it.hostCapture === capture) it.hostCapture = null }
+            capture.stop()
+            a11y = null
+        } else {
+            PrivClient.captureStop()
+        }
+    }
+
+    private fun onFocus(remote: Boolean) {
+        remoteFocus = remote
+        a11y?.let { KeymancAccessibilityService.instance?.interceptMouse(remote) }
+        AppLog.i(if (remote) "focus → Bluetooth target" else "focus → this phone")
         updateNotification()
     }
 
@@ -105,7 +138,7 @@ class HostService : Service() {
         remoteFocus = false
         BtHid.removeListener(btListener)
         Thread {
-            PrivClient.captureStop()
+            stopCapture()
             sink?.stop()
             BtHid.stop(applicationContext)
             AppLog.i("host stopped")

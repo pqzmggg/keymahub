@@ -4,8 +4,9 @@ import dev.keymanc.poc.sink.InputSink
 
 /**
  * Android host routing, same rules as the Windows router (poc/win-capture/src/router.rs):
- * physical keyboards/mice are always grabbed; every event goes either to [local] (UHID
- * passthrough back into this phone) or to [remote] (the Bluetooth target).
+ * every event from the phone's physical keyboards/mice goes either to [local] (this phone:
+ * UHID passthrough with Shizuku, or "don't consume" with accessibility) or to [remote]
+ * (the Bluetooth target).
  *
  * A key-up always follows its key-down, so switching never leaves a key stuck on either
  * side. Hotkeys: Ctrl+Alt+→ remote, Ctrl+Alt+← local, Ctrl+Alt+Shift+Esc emergency local.
@@ -67,6 +68,9 @@ class HostRouter(
         }
         keys[code] = dest to hid
     }
+
+    /** Whether the currently held key [code] went to the local side (its auto-repeat should too). */
+    fun isHeldLocally(code: Int) = keys[code]?.first == Dest.LOCAL
 
     /** [button] is a `Wire.BUTTON_*` value. */
     fun onButton(button: Int, down: Boolean) {
