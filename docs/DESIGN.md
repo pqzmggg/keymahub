@@ -439,6 +439,8 @@ Idle ─▶ Advertising(mDNS 광고, 리스닝)
 
 ---
 
+> P0 이후 Android 제품 범위·일정은 [ANDROID_PRODUCT.md](ANDROID_PRODUCT.md), 결정 경위는 [HISTORY.md](HISTORY.md).
+
 ## 11. 결정 사항 (P0 시작 시 확정)
 
 | ID | 질문 | 결정 |

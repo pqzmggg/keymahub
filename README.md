@@ -9,9 +9,11 @@
 
 ## 문서
 - 설계: [docs/DESIGN.md](docs/DESIGN.md)
-- P0 기술 검증 가이드: [docs/P0.md](docs/P0.md)
+- 진행 기록 (결정·발견 로그): [docs/HISTORY.md](docs/HISTORY.md)
+- P0 기술 검증 가이드·결과: [docs/P0.md](docs/P0.md)
+- Android 제품 기획: [docs/ANDROID_PRODUCT.md](docs/ANDROID_PRODUCT.md)
 
-## 현재 단계: P0 (기술 검증)
+## 현재 단계: P0 완료 → Android 제품 기획
 
 | 경로 | 내용 |
 |---|---|
