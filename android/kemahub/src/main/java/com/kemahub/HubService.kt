@@ -24,7 +24,7 @@ import com.kemahub.ui.MainActivity
 
 /**
  * Runs KemaHub in the background ("hosting"): the phone advertises as a BLE keyboard + mouse,
- * and the active profile's hotkeys move the phone's keyboard and mouse between receivers and
+ * and the hotkeys (modifiers + 1..9, 0) move the phone's keyboard and mouse between the active profile's receivers and
  * the phone itself. Also re-picks the active profile as time and place change.
  */
 class HubService : Service(), BleHid.Listener {
@@ -164,7 +164,7 @@ class HubService : Service(), BleHid.Listener {
 
     // ---------------------------------------------------------------- routing callbacks
 
-    private fun hotkeyTarget(h: Hotkey): Int? = if (Hub.recordingHotkey) null else profile.slotFor(h)
+    private fun hotkeyTarget(h: Hotkey): Int? = Hub.settings(this).slotFor(h)
 
     private fun isAvailable(slot: Int): Boolean {
         val address = profile.addressOf(slot) ?: return false
@@ -174,7 +174,7 @@ class HubService : Service(), BleHid.Listener {
     private fun receiverName(slot: Int): String? =
         profile.addressOf(slot)?.let { Hub.settings(this).device(it)?.name }
 
-    private fun hotkeyLabel(slot: Int) = KeyLabels.hotkey(profile.hotkeys[slot])
+    private fun hotkeyLabel(slot: Int) = KeyLabels.hotkey(Hub.settings(this).hotkey(slot))
 
     private fun profileLabel() = profile.name.ifEmpty { getString(R.string.profile_default) }
 

@@ -3,6 +3,7 @@ package com.kemahub
 import com.kemahub.core.Device
 import com.kemahub.core.GeoPoint
 import com.kemahub.core.Hotkey
+import com.kemahub.core.Hotkeys
 import com.kemahub.core.Mods
 import com.kemahub.core.PlaceRule
 import com.kemahub.core.Profile
@@ -18,13 +19,27 @@ class SettingsTest {
     private val ctrlAlt = Mods.CTRL or Mods.ALT
 
     @Test
-    fun defaultsAreCtrlAlt1ForThePhoneAnd2To0ForReceivers() {
-        val p = Settings().active
-        assertEquals(Hotkey(ctrlAlt, 2), p.hotkeys[0]) // evdev KEY_1
-        assertEquals(Hotkey(ctrlAlt, 3), p.hotkeys[1]) // KEY_2
-        assertEquals(Hotkey(ctrlAlt, 11), p.hotkeys[9]) // KEY_0
-        assertEquals(0, p.slotFor(Hotkey(ctrlAlt, 2)))
-        assertNull(p.slotFor(Hotkey(Mods.CTRL, 2)))
+    fun hotkeysAreShiftAltPlusFixedNumbers() {
+        val s = Settings()
+        val shiftAlt = Mods.SHIFT or Mods.ALT
+        assertEquals(Hotkey(shiftAlt, 2), s.hotkey(0)) // evdev KEY_1: this phone
+        assertEquals(Hotkey(shiftAlt, 3), s.hotkey(1)) // KEY_2: receiver 1
+        assertEquals(Hotkey(shiftAlt, 11), s.hotkey(9)) // KEY_0: receiver 9
+        assertEquals(0, s.slotFor(Hotkey(shiftAlt, 2)))
+        assertEquals(9, s.slotFor(Hotkey(shiftAlt, 11)))
+        assertNull(s.slotFor(Hotkey(Mods.SHIFT, 2)))
+        assertNull(s.slotFor(Hotkey(shiftAlt, 30))) // not a number key
+    }
+
+    @Test
+    fun onlyTheModifiersChange() {
+        var s = Settings()
+        s = s.setMods(Mods.CTRL or Mods.META)
+        assertEquals(Hotkey(Mods.CTRL or Mods.META, 4), s.hotkey(2))
+        assertEquals(s, s.setMods(Mods.SHIFT)) // Shift alone would steal typing
+        assertEquals(s, s.setMods(0))
+        assertEquals(s, s.setMods(0x10))
+        assertTrue(Hotkeys.validMods(Mods.ALT))
     }
 
     @Test
@@ -57,21 +72,6 @@ class SettingsTest {
         s = s.assign(id, 5, "B") // 5 was empty: B just moves
         assertEquals("B", s.active.addressOf(5))
         assertNull(s.active.addressOf(1))
-    }
-
-    @Test
-    fun setHotkeySwapsOnConflictAndRejectsInvalidChords() {
-        var s = Settings()
-        val id = s.activeId
-        s = s.setHotkey(id, 1, Hotkey(ctrlAlt, 2)) // the phone's chord: swap
-        assertEquals(Hotkey(ctrlAlt, 2), s.active.hotkeys[1])
-        assertEquals(Hotkey(ctrlAlt, 3), s.active.hotkeys[0])
-        assertEquals(s, s.setHotkey(id, 3, Hotkey(Mods.SHIFT, 30))) // Shift alone
-        assertEquals(s, s.setHotkey(id, 3, Hotkey(Mods.CTRL, 29))) // modifier as key
-        assertFalse(Hotkey(0, 30).isValid)
-        s = s.setHotkey(id, 3, Hotkey(Mods.META, 59))
-        assertEquals(3, s.active.slotFor(Hotkey(Mods.META, 59)))
-        assertEquals(Profile.DEFAULT_HOTKEYS, s.resetHotkeys(id).active.hotkeys)
     }
 
     @Test
@@ -214,7 +214,7 @@ class SettingsTest {
         var s = Settings().deviceConnected("AA:BB", "My\tDesk\n").deviceConnected("CC:DD", "Tab")
         s = s.renameDevice("CC:DD", "  ") // blank names are ignored
         s = s.touch("AA:BB", 1_700_000_000_000L).setBlocked("CC:DD", true)
-        s = s.setHotkey(s.activeId, 2, Hotkey(Mods.META or Mods.SHIFT, 59))
+        s = s.setMods(Mods.META or Mods.SHIFT)
         val (next, office) = s.addProfile("Office")
         s = next.assign(office, 1, null)
             .setTime(office, TimeRule(0b0000101, 22 * 60, 6 * 60))
@@ -235,7 +235,7 @@ class SettingsTest {
             "active\tnope\ndevice\tA\tDesk\nprofile\tp1\tWork\t1:2,oops\t1=A,2=GONE,12=A\n",
         )
         assertEquals("p1", s.activeId)
-        assertEquals(Profile.DEFAULT_HOTKEYS, s.active.hotkeys)
+        assertEquals(Hotkeys.DEFAULT_MODS, s.mods)
         assertEquals(mapOf(1 to "A"), s.active.receivers)
     }
 }

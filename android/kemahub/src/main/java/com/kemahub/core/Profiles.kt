@@ -18,9 +18,22 @@ object Mods {
 }
 
 /** A key chord: exactly these modifiers ([Mods] bits) held, then evdev key [code]. */
-data class Hotkey(val mods: Int, val code: Int) {
-    /** Needs Ctrl, Alt or Meta (Shift alone would steal typing) and a non-modifier key. */
-    val isValid get() = mods and (Mods.CTRL or Mods.ALT or Mods.META) != 0 && Mods.of(code) == 0 && code > 0
+data class Hotkey(val mods: Int, val code: Int)
+
+/**
+ * The hotkeys: one modifier combination for the whole app, plus a fixed number key per slot:
+ * 1 = this phone, 2..9 and 0 = receivers 1..9.
+ */
+object Hotkeys {
+    const val DEFAULT_MODS = Mods.SHIFT or Mods.ALT
+
+    /** evdev KEY_1..KEY_9 = 2..10, KEY_0 = 11: slot i uses code 2 + i. */
+    fun code(slot: Int) = 2 + slot
+
+    fun slotOf(code: Int): Int? = (code - 2).takeIf { it in 0 until Profile.SLOTS }
+
+    /** Needs Ctrl, Alt or Meta: Shift alone (or nothing) would steal typing. */
+    fun validMods(mods: Int) = mods and (Mods.CTRL or Mods.ALT or Mods.META) != 0 && mods and 0xF.inv() == 0
 }
 
 /**
@@ -31,24 +44,19 @@ data class Hotkey(val mods: Int, val code: Int) {
 data class Device(val address: String, val name: String, val lastUsed: Long = 0, val blocked: Boolean = false)
 
 /**
- * A hosting setup: which receiver sits on which hotkey, the hotkeys themselves, and when the
- * profile applies.
+ * A hosting setup: which receiver sits on which hotkey slot, and when the profile applies.
  *
- * Slot 0 is this phone, slots 1..9 are receivers. [hotkeys] has one entry per slot
- * (default Ctrl+Alt+1 = phone, Ctrl+Alt+2..9, 0 = receivers 1..9).
+ * Slot 0 is this phone, slots 1..9 are receivers (see [Hotkeys]).
  * An empty [name] is the unnamed default profile (the UI shows a translated name).
  * Conditions: [time] and/or [place]; with both, both must hold; with neither, always.
  */
 data class Profile(
     val id: String,
     val name: String,
-    val hotkeys: List<Hotkey> = DEFAULT_HOTKEYS,
     val receivers: Map<Int, String> = emptyMap(),
     val time: TimeRule? = null,
     val place: PlaceRule? = null,
 ) {
-    fun slotFor(hotkey: Hotkey): Int? = hotkeys.indexOf(hotkey).takeIf { it >= 0 }
-
     fun addressOf(slot: Int): String? = receivers[slot]
 
     fun slotOf(address: String): Int? = receivers.entries.firstOrNull { it.value == address }?.key
@@ -62,9 +70,6 @@ data class Profile(
     companion object {
         const val SLOTS = 10
         const val PHONE = 0
-
-        /** evdev KEY_1..KEY_9 = 2..10, KEY_0 = 11. */
-        val DEFAULT_HOTKEYS: List<Hotkey> = (2..11).map { Hotkey(Mods.CTRL or Mods.ALT, it) }
     }
 }
 
@@ -86,7 +91,17 @@ data class Settings(
     val chosenId: String = profiles.first().id,
     val matchedId: String? = null,
     val overriddenId: String? = null,
+    /** Modifiers held with the number keys ([Hotkeys]); the same in every profile. */
+    val mods: Int = Hotkeys.DEFAULT_MODS,
 ) {
+    fun hotkey(slot: Int) = Hotkey(mods, Hotkeys.code(slot))
+
+    /** The slot [h] selects, or null if it is not a hotkey. */
+    fun slotFor(h: Hotkey): Int? = if (h.mods == mods) Hotkeys.slotOf(h.code) else null
+
+    /** Ignored unless valid ([Hotkeys.validMods]). */
+    fun setMods(m: Int) = if (Hotkeys.validMods(m)) copy(mods = m) else this
+
     val active: Profile get() = profiles.firstOrNull { it.id == activeId } ?: profiles.first()
 
     fun device(address: String) = devices.firstOrNull { it.address == address }
@@ -161,28 +176,11 @@ data class Settings(
         return withProfile(p.copy(receivers = r))
     }
 
-    /** Sets the hotkey of [slot]; if another slot used that chord, the two swap. Invalid chords are ignored. */
-    fun setHotkey(id: String, slot: Int, hotkey: Hotkey): Settings {
-        require(slot in 0 until Profile.SLOTS)
-        val p = profile(id) ?: return this
-        if (!hotkey.isValid) return this
-        val keys = p.hotkeys.toMutableList()
-        val other = p.slotFor(hotkey)
-        if (other != null) keys[other] = keys[slot]
-        keys[slot] = hotkey
-        return withProfile(p.copy(hotkeys = keys))
-    }
-
-    fun resetHotkeys(id: String): Settings {
-        val p = profile(id) ?: return this
-        return withProfile(p.copy(hotkeys = Profile.DEFAULT_HOTKEYS))
-    }
-
     // ---------------------------------------------------------------- profiles
 
     /**
      * Adds a profile named [name] at the top (highest priority), with the active profile's
-     * receivers and hotkeys but no conditions. Returns the settings and the new id.
+     * receivers but no conditions. Returns the settings and the new id.
      */
     fun addProfile(name: String): Pair<Settings, String> {
         val n = (profiles.mapNotNull { it.id.removePrefix("p").toIntOrNull() }.maxOrNull() ?: 0) + 1
@@ -241,13 +239,14 @@ data class Settings(
         append("chosen\t").append(chosenId).append('\n')
         matchedId?.let { append("matched\t").append(it).append('\n') }
         overriddenId?.let { append("overridden\t").append(it).append('\n') }
+        append("mods\t").append(mods).append('\n')
         for (d in devices) append("device\t${d.address}\t${d.name}\t${d.lastUsed}\t${if (d.blocked) 1 else 0}\n")
         for (p in profiles) {
-            val keys = p.hotkeys.joinToString(",") { "${it.mods}:${it.code}" }
             val recv = p.receivers.entries.sortedBy { it.key }.joinToString(",") { "${it.key}=${it.value}" }
             val time = p.time?.let { "${it.days},${it.start},${it.end}" }.orEmpty()
             val place = p.place?.let { "${it.lat},${it.lon},${it.radius},${it.label}" }.orEmpty()
-            append("profile\t${p.id}\t${p.name}\t$keys\t$recv\t$time\t$place\n")
+            // The empty 4th field held per-profile hotkeys in early builds.
+            append("profile\t${p.id}\t${p.name}\t\t$recv\t$time\t$place\n")
         }
     }
 
@@ -258,6 +257,7 @@ data class Settings(
             var chosen = ""
             var matched: String? = null
             var overridden: String? = null
+            var mods = Hotkeys.DEFAULT_MODS
             val devices = mutableListOf<Device>()
             val profiles = mutableListOf<Profile>()
             for (line in text.orEmpty().lines()) {
@@ -267,13 +267,14 @@ data class Settings(
                     "chosen" -> chosen = f.getOrElse(1) { "" }
                     "matched" -> matched = f.getOrNull(1)
                     "overridden" -> overridden = f.getOrNull(1)
+                    "mods" -> mods = f.getOrNull(1)?.toIntOrNull()?.takeIf(Hotkeys::validMods) ?: mods
                     "device" -> if (f.size >= 3 && f[1].isNotEmpty() && devices.none { it.address == f[1] }) {
                         devices += Device(f[1], f[2], f.getOrNull(3)?.toLongOrNull() ?: 0, f.getOrNull(4) == "1")
                     }
                     "profile" -> if (f.size >= 3 && f[1].isNotEmpty() && profiles.none { it.id == f[1] }) {
                         profiles += Profile(
-                            f[1], f[2], hotkeys(f.getOrNull(3)), receivers(f.getOrNull(4)),
-                            time(f.getOrNull(5)), place(f.getOrNull(6)),
+                            f[1], f[2], receivers = receivers(f.getOrNull(4)),
+                            time = time(f.getOrNull(5)), place = place(f.getOrNull(6)),
                         )
                     }
                 }
@@ -283,7 +284,7 @@ data class Settings(
             val cleaned = profiles.map { p -> p.copy(receivers = p.receivers.filterValues { it in known }) }
             fun valid(id: String?) = id?.takeIf { i -> cleaned.any { it.id == i } }
             val activeId = valid(active) ?: cleaned.first().id
-            return Settings(devices, cleaned, activeId, valid(chosen) ?: activeId, valid(matched), valid(overridden))
+            return Settings(devices, cleaned, activeId, valid(chosen) ?: activeId, valid(matched), valid(overridden), mods)
         }
 
         private fun time(text: String?): TimeRule? {
@@ -298,15 +299,6 @@ data class Settings(
                 f[2].toIntOrNull() ?: return null, f[3],
             )
             return rule.takeIf { it.isValid }
-        }
-
-        private fun hotkeys(text: String?): List<Hotkey> {
-            val keys = text.orEmpty().split(',').map { item ->
-                val (m, c) = item.split(':').takeIf { it.size == 2 } ?: return Profile.DEFAULT_HOTKEYS
-                Hotkey(m.toIntOrNull() ?: return Profile.DEFAULT_HOTKEYS, c.toIntOrNull() ?: return Profile.DEFAULT_HOTKEYS)
-            }
-            val ok = keys.size == Profile.SLOTS && keys.all { it.isValid } && keys.toSet().size == keys.size
-            return if (ok) keys else Profile.DEFAULT_HOTKEYS
         }
 
         private fun receivers(text: String?): Map<Int, String> {

@@ -52,6 +52,13 @@ class SlotRouter(
         val target = if (mods != 0 && Mods.of(code) == 0) hotkey(Hotkey(mods, code)) else null
         if (target != null) {
             keys[code] = Dest.SWALLOWED to null
+            // The modifiers already went to the target and will be released there with no other
+            // key in between, which some systems act on (Windows: Alt+Shift switches the input
+            // language, a lone Alt opens the menu bar). Tapping an unused key prevents that.
+            if (keys.values.any { it.first == Dest.REMOTE }) {
+                remote.key(MASK_KEY, true)
+                remote.key(MASK_KEY, false)
+            }
             select(target)
             return
         }
@@ -145,5 +152,10 @@ class SlotRouter(
             }
         }
         remote.releaseAll()
+    }
+
+    companion object {
+        /** HID F24: present on no keyboard and bound to nothing by default. */
+        const val MASK_KEY = 0x73
     }
 }

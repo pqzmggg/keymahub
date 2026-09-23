@@ -42,10 +42,6 @@ object Hub {
 
     fun update(f: (HubStatus) -> HubStatus) = _status.update(f)
 
-    /** While the UI records a new hotkey, chords pass through instead of switching. */
-    @Volatile
-    var recordingHotkey = false
-
     /** Called (on the editing thread) after the active profile changed. */
     @Volatile
     var onProfileChanged: (() -> Unit)? = null

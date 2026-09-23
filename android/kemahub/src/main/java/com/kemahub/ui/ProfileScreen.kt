@@ -76,9 +76,7 @@ fun ProfileScreen(
     }
     val context = LocalContext.current
     var renaming by remember { mutableStateOf(false) }
-    var hotkeyFor by remember { mutableStateOf<Int?>(null) }
     var assignFor by remember { mutableStateOf<Int?>(null) }
-    var resetting by remember { mutableStateOf(false) }
     var deleting by remember { mutableStateOf(false) }
     var locating by remember { mutableStateOf(false) }
     var locationFailed by remember { mutableStateOf(false) }
@@ -135,19 +133,14 @@ fun ProfileScreen(
                 if (slot > 0) HorizontalDivider()
                 SlotRow(
                     slot, profile, status,
-                    onHotkey = { hotkeyFor = slot },
                     onAssign = { assignFor = slot },
                     onClear = { onEdit { it.assign(profileId, slot, null) } },
                 )
             }
         }
-        Row {
-            TextButton(onClick = { resetting = true }) { Text(stringResource(R.string.hotkeys_reset)) }
-            Spacer(Modifier.weight(1f))
-            if (settings.profiles.size > 1) {
-                TextButton(onClick = { deleting = true }) {
-                    Text(stringResource(R.string.profile_delete), color = MaterialTheme.colorScheme.error)
-                }
+        if (settings.profiles.size > 1) {
+            TextButton(onClick = { deleting = true }, modifier = Modifier.align(Alignment.End)) {
+                Text(stringResource(R.string.profile_delete), color = MaterialTheme.colorScheme.error)
             }
         }
     }
@@ -166,23 +159,6 @@ fun ProfileScreen(
             confirm = stringResource(R.string.action_delete),
             onDismiss = { deleting = false },
             onConfirm = { deleting = false; onEdit { it.deleteProfile(profileId) }; onBack() },
-        )
-    }
-    if (resetting) {
-        ConfirmDialog(
-            title = stringResource(R.string.hotkeys_reset_confirm),
-            confirm = stringResource(R.string.hotkeys_reset),
-            onDismiss = { resetting = false },
-            onConfirm = { resetting = false; onEdit { it.resetHotkeys(profileId) } },
-        )
-    }
-    hotkeyFor?.let { slot ->
-        HotkeyDialog(
-            slot = slot,
-            profile = profile,
-            status = status,
-            onDismiss = { hotkeyFor = null },
-            onSave = { h -> hotkeyFor = null; onEdit { it.setHotkey(profileId, slot, h) } },
         )
     }
     assignFor?.let { slot ->
@@ -353,9 +329,9 @@ private fun PlaceCard(
 
 /** One hotkey of [profile]: slot 0 is this phone, 1..9 a receiver. */
 @Composable
-private fun SlotRow(slot: Int, profile: Profile, status: HubStatus, onHotkey: () -> Unit, onAssign: () -> Unit, onClear: () -> Unit) {
+private fun SlotRow(slot: Int, profile: Profile, status: HubStatus, onAssign: () -> Unit, onClear: () -> Unit) {
     val settings = status.settings
-    val hotkey = profile.hotkeys[slot]
+    val hotkey = settings.hotkey(slot)
     val address = profile.addressOf(slot)
     val active = status.running && settings.activeId == profile.id && status.slot == slot
     val connected = address != null && address in status.ready
@@ -375,7 +351,7 @@ private fun SlotRow(slot: Int, profile: Profile, status: HubStatus, onHotkey: ()
     Box {
         Row(
             Modifier.fillMaxWidth()
-                .clickable { if (slot == 0) onHotkey() else menu = true }
+                .clickable(enabled = slot != 0) { menu = true }
                 .padding(horizontal = 16.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -396,7 +372,6 @@ private fun SlotRow(slot: Int, profile: Profile, status: HubStatus, onHotkey: ()
         }
         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
             DropdownMenuItem(text = { Text(stringResource(R.string.assign_device)) }, onClick = { menu = false; onAssign() })
-            DropdownMenuItem(text = { Text(stringResource(R.string.change_hotkey)) }, onClick = { menu = false; onHotkey() })
             if (address != null) {
                 DropdownMenuItem(text = { Text(stringResource(R.string.unassign)) }, onClick = { menu = false; onClear() })
             }
@@ -409,7 +384,7 @@ private fun AssignDialog(slot: Int, profile: Profile, settings: Settings, onDism
     val current = profile.addressOf(slot)
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.assign_title, KeyLabels.hotkey(profile.hotkeys[slot]))) },
+        title = { Text(stringResource(R.string.assign_title, KeyLabels.hotkey(settings.hotkey(slot)))) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState())) {
                 if (settings.devices.isEmpty()) Text(stringResource(R.string.assign_no_devices))
@@ -417,7 +392,7 @@ private fun AssignDialog(slot: Int, profile: Profile, settings: Settings, onDism
                     val other = profile.slotOf(d.address)?.takeIf { it != slot }
                     Choice(
                         label = d.name,
-                        detail = other?.let { stringResource(R.string.assign_now_on, KeyLabels.hotkey(profile.hotkeys[it])) },
+                        detail = other?.let { stringResource(R.string.assign_now_on, KeyLabels.hotkey(settings.hotkey(it))) },
                         selected = d.address == current,
                         onClick = { onPick(d.address) },
                     )

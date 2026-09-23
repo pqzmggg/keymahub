@@ -2,6 +2,7 @@ package com.kemahub.ui
 
 import android.os.Build
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,6 +11,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -17,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -25,15 +28,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.kemahub.KeyLabels
 import com.kemahub.Locales
 import com.kemahub.R
+import com.kemahub.core.Hotkeys
+import com.kemahub.core.Mods
+import com.kemahub.core.Settings
 import com.kemahub.core.ThemeMode
 import com.kemahub.core.UiPrefs
 
-/** Personalization: language, theme, colors, switch popup. */
+/** App-wide settings: hotkey modifiers, language, theme, colors, switch popup. */
 @Composable
 fun SettingsScreen(
     ui: UiPrefs,
+    /** Hotkey modifiers ([Mods] bits). */
+    mods: Int,
+    onMods: (Int) -> Unit,
     language: String,
     onBack: () -> Unit,
     onUi: ((UiPrefs) -> UiPrefs) -> Unit,
@@ -46,6 +56,9 @@ fun SettingsScreen(
 
     Page {
         TopBar(stringResource(R.string.settings_title), onBack)
+
+        SectionTitle(stringResource(R.string.settings_hotkeys))
+        HotkeyCard(mods, onMods)
 
         SectionTitle(stringResource(R.string.settings_appearance))
         Card(Modifier.fillMaxWidth()) {
@@ -132,5 +145,39 @@ private fun Toggle(title: String, hint: String, on: Boolean, onChange: (Boolean)
             Text(hint, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Switch(checked = on, onCheckedChange = onChange)
+    }
+}
+
+/** The modifier keys held with a number; the numbers themselves are fixed. */
+@Composable
+private fun HotkeyCard(mods: Int, onMods: (Int) -> Unit) {
+    var pending by remember(mods) { mutableIntStateOf(mods) }
+    val valid = Hotkeys.validMods(pending)
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(stringResource(R.string.hotkeys_mods_hint), style = MaterialTheme.typography.bodyMedium)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                for ((bit, label) in listOf(Mods.CTRL to "Ctrl", Mods.ALT to "Alt", Mods.SHIFT to "Shift", Mods.META to "Meta")) {
+                    FilterChip(
+                        selected = pending and bit != 0,
+                        onClick = {
+                            pending = pending xor bit
+                            if (Hotkeys.validMods(pending)) onMods(pending)
+                        },
+                        label = { Text(label) },
+                    )
+                }
+            }
+            if (valid) {
+                val one = Settings(mods = pending)
+                Text("${KeyLabels.hotkey(one.hotkey(0))}   ${stringResource(R.string.this_phone)}", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    "${KeyLabels.hotkey(one.hotkey(1))} … ${KeyLabels.key(Hotkeys.code(9))}   ${stringResource(R.string.hotkeys_devices)}",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            } else {
+                Text(stringResource(R.string.hotkeys_invalid), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+            }
+        }
     }
 }
