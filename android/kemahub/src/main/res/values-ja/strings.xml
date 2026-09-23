@@ -81,7 +81,7 @@
     <string name="hosting_off_hint">オンにすると、このスマホのキーボードとマウスでデバイスを操作します。</string>
     <string name="settings_title">設定</string>
     <string name="profiles_title">プロファイル</string>
-    <string name="profiles_hint">条件付きのプロファイルは条件に合うと自動で有効になり、複数合う場合は上にあるものが優先されます。☰ をドラッグして並べ替えます。どれも合わない場合は、最後に有効にしたプロファイルを使います。</string>
+    <string name="profiles_hint">条件に合うプロファイルは自動で有効になり、複数合う場合は上にあるものが優先されます。☰ をドラッグして並べ替えます。どれも合わない場合は、最後に有効にしたプロファイルを使います。</string>
     <string name="profile_in_use">使用中</string>
     <string name="profile_not_in_use">未使用</string>
     <string name="manual_banner">%1$s を手動で有効にしたため、条件が変わるまで %2$s の代わりに使います。</string>
@@ -145,6 +145,17 @@
     <string name="condition_devices_off">指定なし</string>
     <string name="condition_devices_on">%1$s の接続時</string>
     <string name="condition_devices_hint">チェックしたデバイスのいずれかが接続されている間に適用されます。ホスティング中は、近くのペアリング済みデバイスが自動で再接続します。</string>
+    <string name="settings_activation">プロファイルの切り替え</string>
+    <string name="mode_auto">完全自動</string>
+    <string name="mode_auto_hint">割り当てたデバイスが最も多く接続されているプロファイルを使います。同数なら上のプロファイルが優先です。</string>
+    <string name="mode_rules">ルールに基づく自動</string>
+    <string name="mode_rules_hint">条件（時間・接続中のデバイス）に合う最も上のプロファイルを使います。</string>
+    <string name="mode_manual">オフ</string>
+    <string name="mode_manual_hint">手動で有効にしたプロファイルだけを使います。</string>
+    <string name="conditions_rules_only">これらの条件は、プロファイルの切り替えが「ルールに基づく自動」のときだけ使われます（設定）。</string>
+    <string name="profile_devices_connected">%2$d 台中 %1$d 台接続</string>
+    <string name="profiles_hint_auto">割り当てたデバイスが最も多く接続されているプロファイルを使い、同数なら上のものが優先です。☰ をドラッグして並べ替えます。接続がなければ、最後に有効にしたプロファイルを使います。</string>
+    <string name="profiles_hint_manual">手動で有効にしたプロファイルを使います。☰ をドラッグして並べ替えられます。</string>
     <plurals name="ready_count">
         <item quantity="other">%1$d 台接続中</item>
     </plurals>

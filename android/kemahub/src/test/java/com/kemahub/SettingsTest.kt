@@ -1,5 +1,6 @@
 package com.kemahub
 
+import com.kemahub.core.ActivationMode
 import com.kemahub.core.Device
 import com.kemahub.core.Hotkey
 import com.kemahub.core.Hotkeys
@@ -75,7 +76,7 @@ class SettingsTest {
 
     @Test
     fun newProfilesGoOnTopAsACopyWithoutConditions() {
-        var s = Settings().deviceConnected("A", "Desk")
+        var s = Settings(mode = ActivationMode.RULES).deviceConnected("A", "Desk")
         val first = s.activeId
         s = s.setTime(first, TimeRule())
         val (next, home) = s.addProfile("Home")
@@ -112,7 +113,7 @@ class SettingsTest {
 
     @Test
     fun conditionsByPriorityElseTheLastActivated() {
-        var s = Settings().deviceConnected("OFFICE", "Office PC").deviceConnected("HOME", "Home PC")
+        var s = Settings(mode = ActivationMode.RULES).deviceConnected("OFFICE", "Office PC").deviceConnected("HOME", "Home PC")
         val home = s.activeId // no conditions
         var work = ""
         var late = ""
@@ -151,8 +152,40 @@ class SettingsTest {
     }
 
     @Test
+    fun fullyAutomaticPicksTheProfileWithTheMostConnectedDevices() {
+        var s = Settings().deviceConnected("A", "Desk").deviceConnected("B", "Laptop").deviceConnected("C", "iPad")
+        assertEquals(ActivationMode.AUTO, s.mode) // the default
+        val home = s.activeId // A=1, B=2, C=3
+        var office = ""
+        s = s.addProfile("Office").let { (n, id) -> office = id; n }
+            .assign(office, 3, null) // Office: A, B (and it is on top)
+        s = s.resolve(1, 0, setOf("A", "B"))
+        assertEquals(office, s.activeId) // tie 2-2: the higher profile wins
+        assertEquals(home, s.resolve(1, 0, setOf("A", "B", "C")).activeId) // 3 beats 2
+        assertEquals(office, s.resolve(1, 0, setOf("A")).activeId) // tie 1-1
+        // Nothing connected: the last activated one.
+        assertEquals(home, s.activate(home).resolve(1, 0, none).activeId)
+        // Conditions do not matter in this mode.
+        val timed = s.setTime(office, TimeRule(TimeRule.WEEKEND)).resolve(1, 0, setOf("A", "B"))
+        assertEquals(office, timed.activeId)
+    }
+
+    @Test
+    fun manualIgnoresEverythingButTheChoice() {
+        var s = Settings(mode = ActivationMode.MANUAL).deviceConnected("A", "Desk")
+        val first = s.activeId
+        val (next, other) = s.addProfile("Other")
+        s = next.setWhenConnected(other, setOf("A")).setTime(other, TimeRule(TimeRule.ALL, 0, 0))
+        assertEquals(first, s.resolve(1, 0, setOf("A")).activeId)
+        assertEquals(other, s.activate(other).resolve(1, 0, none).activeId)
+        // Switching modes drops a pending override and re-picks.
+        val auto = s.activate(first).setMode(ActivationMode.RULES).resolve(1, 0, setOf("A"))
+        assertEquals(other, auto.activeId)
+    }
+
+    @Test
     fun activatingOverridesTheMatchUntilItChanges() {
-        var s = Settings()
+        var s = Settings(mode = ActivationMode.RULES)
         val home = s.activeId
         var work = ""
         s = s.addProfile("Work").let { (n, id) -> work = id; n }.setTime(work, TimeRule(TimeRule.ALL, 9 * 60, 18 * 60))
@@ -170,7 +203,7 @@ class SettingsTest {
         assertEquals(work, s.resolve(2, 10 * 60, none).activeId) // next morning Work applies again
 
         // Activating the matching profile itself is no override.
-        val t = Settings().let { base -> base.setTime(base.activeId, TimeRule(TimeRule.ALL, 0, 0)) }.resolve(1, 0, none)
+        val t = Settings(mode = ActivationMode.RULES).let { base -> base.setTime(base.activeId, TimeRule(TimeRule.ALL, 0, 0)) }.resolve(1, 0, none)
         assertNull(t.activate(t.activeId).overriddenId)
     }
 
@@ -216,7 +249,7 @@ class SettingsTest {
         s = s.touch("AA:BB", 1_700_000_000_000L).setBlocked("CC:DD", true)
         s = s.setMods(Mods.META or Mods.SHIFT)
         val (next, office) = s.addProfile("Office")
-        s = next.assign(office, 1, null)
+        s = next.setMode(ActivationMode.RULES).assign(office, 1, null)
             .setTime(office, TimeRule(0b0000101, 22 * 60, 6 * 60))
             .setWhenConnected(office, setOf("AA:BB", "CC:DD"))
             .activate(office)

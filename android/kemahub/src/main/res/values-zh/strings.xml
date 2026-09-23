@@ -81,7 +81,7 @@
     <string name="hosting_off_hint">开启后，用本手机的键盘和鼠标控制您的设备。</string>
     <string name="settings_title">设置</string>
     <string name="profiles_title">配置</string>
-    <string name="profiles_hint">有条件的配置在条件满足时自动启用；多个满足时，排在上面的优先。拖动 ☰ 可调整顺序。都不满足时，使用您最后启用的配置。</string>
+    <string name="profiles_hint">条件满足的配置会自动启用；多个满足时，排在上面的优先。拖动 ☰ 可调整顺序。都不满足时，使用您最后启用的配置。</string>
     <string name="profile_in_use">使用中</string>
     <string name="profile_not_in_use">未使用</string>
     <string name="manual_banner">您手动启用了 %1$s，在条件变化前将代替 %2$s 使用。</string>
@@ -145,6 +145,17 @@
     <string name="condition_devices_off">不限</string>
     <string name="condition_devices_on">%1$s 连接时</string>
     <string name="condition_devices_hint">任一勾选的设备连接时适用。主机开启时，附近已配对的设备会自动重新连接。</string>
+    <string name="settings_activation">配置启用方式</string>
+    <string name="mode_auto">全自动</string>
+    <string name="mode_auto_hint">使用已分配设备连接最多的配置；数量相同时，排在上面的优先。</string>
+    <string name="mode_rules">按规则自动</string>
+    <string name="mode_rules_hint">使用条件（时间、已连接设备）满足的最上面的配置。</string>
+    <string name="mode_manual">关闭</string>
+    <string name="mode_manual_hint">只使用您手动启用的配置。</string>
+    <string name="conditions_rules_only">仅当配置启用方式为“按规则自动”时才使用这些条件（设置）。</string>
+    <string name="profile_devices_connected">已连接 %1$d/%2$d 台设备</string>
+    <string name="profiles_hint_auto">使用已分配设备连接最多的配置，数量相同时排在上面的优先。拖动 ☰ 可调整顺序。没有设备连接时，使用您最后启用的配置。</string>
+    <string name="profiles_hint_manual">使用您手动启用的配置。拖动 ☰ 可调整顺序。</string>
     <plurals name="ready_count">
         <item quantity="other">已连接 %1$d 台设备</item>
     </plurals>

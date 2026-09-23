@@ -81,7 +81,7 @@
     <string name="hosting_off_hint">Actívalo para usar el teclado y el ratón de este teléfono en tus dispositivos.</string>
     <string name="settings_title">Ajustes</string>
     <string name="profiles_title">Perfiles</string>
-    <string name="profiles_hint">Los perfiles con condiciones se activan solos; si se cumplen varios, gana el de más arriba. Arrastra ☰ para reordenar. Si no se cumple ninguno, se usa el último perfil que activaste.</string>
+    <string name="profiles_hint">Los perfiles cuyas condiciones se cumplen se activan solos; si se cumplen varios, gana el de más arriba. Arrastra ☰ para reordenar. Si no se cumple ninguno, se usa el último perfil que activaste.</string>
     <string name="profile_in_use">En uso</string>
     <string name="profile_not_in_use">Sin usar</string>
     <string name="manual_banner">Activaste %1$s, así que se usa en lugar de %2$s hasta que cambien las condiciones.</string>
@@ -145,6 +145,17 @@
     <string name="condition_devices_off">Cualquiera</string>
     <string name="condition_devices_on">Cuando %1$s está conectado</string>
     <string name="condition_devices_hint">Se aplica mientras alguno de los dispositivos marcados esté conectado. Con el modo anfitrión activo, los dispositivos emparejados cercanos se reconectan solos.</string>
+    <string name="settings_activation">Activación de perfiles</string>
+    <string name="mode_auto">Totalmente automática</string>
+    <string name="mode_auto_hint">Usa el perfil con más de sus dispositivos conectados; en caso de empate, gana el de más arriba.</string>
+    <string name="mode_rules">Por reglas</string>
+    <string name="mode_rules_hint">Usa el primer perfil cuyas condiciones (hora, dispositivos conectados) se cumplen.</string>
+    <string name="mode_manual">Desactivada</string>
+    <string name="mode_manual_hint">Usa solo el perfil que actives.</string>
+    <string name="conditions_rules_only">Estas condiciones solo se usan cuando la activación de perfiles es por reglas (Ajustes).</string>
+    <string name="profile_devices_connected">%1$d de %2$d dispositivos conectados</string>
+    <string name="profiles_hint_auto">Se usa el perfil con más de sus dispositivos conectados; en caso de empate, el de más arriba. Arrastra ☰ para reordenar. Si no hay ninguno conectado, se usa el último perfil que activaste.</string>
+    <string name="profiles_hint_manual">Se usa el perfil que actives. Arrastra ☰ para reordenar.</string>
     <plurals name="ready_count">
         <item quantity="one">%1$d dispositivo conectado</item>
         <item quantity="many">%1$d dispositivos conectados</item>

@@ -81,7 +81,7 @@
     <string name="hosting_off_hint">Activez pour utiliser le clavier et la souris de ce téléphone sur vos appareils.</string>
     <string name="settings_title">Paramètres</string>
     <string name="profiles_title">Profils</string>
-    <string name="profiles_hint">Les profils avec conditions s\'activent d\'eux-mêmes ; si plusieurs correspondent, le plus haut l\'emporte. Faites glisser ☰ pour réordonner. Si aucun ne correspond, le dernier profil activé est utilisé.</string>
+    <string name="profiles_hint">Les profils dont les conditions sont remplies s\'activent d\'eux-mêmes ; si plusieurs correspondent, le plus haut l\'emporte. Faites glisser ☰ pour réordonner. Si aucun ne correspond, le dernier profil activé est utilisé.</string>
     <string name="profile_in_use">Utilisé</string>
     <string name="profile_not_in_use">Non utilisé</string>
     <string name="manual_banner">Vous avez activé %1$s : il est utilisé à la place de %2$s jusqu\'à ce que les conditions changent.</string>
@@ -145,6 +145,17 @@
     <string name="condition_devices_off">Peu importe</string>
     <string name="condition_devices_on">Quand %1$s est connecté</string>
     <string name="condition_devices_hint">S\'applique tant qu\'un des appareils cochés est connecté. Quand le mode hôte est actif, les appareils associés à proximité se reconnectent d\'eux-mêmes.</string>
+    <string name="settings_activation">Activation des profils</string>
+    <string name="mode_auto">Entièrement automatique</string>
+    <string name="mode_auto_hint">Utilise le profil dont le plus d\'appareils sont connectés ; en cas d\'égalité, le plus haut l\'emporte.</string>
+    <string name="mode_rules">Selon des règles</string>
+    <string name="mode_rules_hint">Utilise le premier profil dont les conditions (heure, appareils connectés) sont remplies.</string>
+    <string name="mode_manual">Désactivée</string>
+    <string name="mode_manual_hint">Utilise uniquement le profil que vous activez.</string>
+    <string name="conditions_rules_only">Ces conditions ne servent que si l\'activation des profils se fait selon des règles (Paramètres).</string>
+    <string name="profile_devices_connected">%1$d appareil(s) connecté(s) sur %2$d</string>
+    <string name="profiles_hint_auto">Le profil dont le plus d\'appareils sont connectés est utilisé ; en cas d\'égalité, le plus haut. Faites glisser ☰ pour réordonner. Si aucun n\'est connecté, le dernier profil activé est utilisé.</string>
+    <string name="profiles_hint_manual">Le profil que vous activez est utilisé. Faites glisser ☰ pour réordonner.</string>
     <plurals name="ready_count">
         <item quantity="one">%1$d appareil connecté</item>
         <item quantity="many">%1$d appareils connectés</item>

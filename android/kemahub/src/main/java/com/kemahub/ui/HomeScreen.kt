@@ -57,6 +57,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kemahub.R
+import com.kemahub.core.ActivationMode
 import com.kemahub.core.HubStatus
 import com.kemahub.core.Profile
 import com.kemahub.core.Settings
@@ -112,7 +113,13 @@ fun HomeScreen(
             }
         }
         Text(
-            stringResource(R.string.profiles_hint),
+            stringResource(
+                when (settings.mode) {
+                    ActivationMode.AUTO -> R.string.profiles_hint_auto
+                    ActivationMode.RULES -> R.string.profiles_hint
+                    ActivationMode.MANUAL -> R.string.profiles_hint_manual
+                },
+            ),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -133,7 +140,7 @@ fun HomeScreen(
             }
         }
 
-        ProfileList(settings, status.running, onEdit, onOpenProfile)
+        ProfileList(settings, status.running, status.ready, onEdit, onOpenProfile)
     }
 
     if (creating) {
@@ -215,7 +222,7 @@ private fun HostingCard(status: HubStatus, onHosting: (Boolean) -> Unit) {
  * room as it passes them, and the new order is saved on release.
  */
 @Composable
-private fun ProfileList(settings: Settings, running: Boolean, onEdit: ((Settings) -> Settings) -> Unit, onOpen: (String) -> Unit) {
+private fun ProfileList(settings: Settings, running: Boolean, ready: Set<String>, onEdit: ((Settings) -> Settings) -> Unit, onOpen: (String) -> Unit) {
     val profiles = settings.profiles
     val heights = remember { mutableStateMapOf<String, Int>() }
     var dragId by remember { mutableStateOf<String?>(null) }
@@ -254,6 +261,7 @@ private fun ProfileList(settings: Settings, running: Boolean, onEdit: ((Settings
             p = p,
             settings = settings,
             running = running,
+            ready = ready,
             dragging = dragging,
             modifier = Modifier
                 .onSizeChanged { heights[p.id] = it.height }
@@ -293,6 +301,7 @@ private fun ProfileRow(
     settings: Settings,
     /** While hosting is off, nothing is really in use: the mark is dimmed and Activate is off. */
     running: Boolean,
+    ready: Set<String>,
     dragging: Boolean,
     modifier: Modifier,
     handle: Modifier,
@@ -317,20 +326,35 @@ private fun ProfileRow(
             }
             Column(Modifier.weight(1f)) {
                 Text(profileName(p), style = MaterialTheme.typography.titleMedium)
-                Text(conditionText(p, settings), style = MaterialTheme.typography.bodySmall)
                 Text(
-                    when {
-                        active -> stringResource(R.string.profile_in_use)
-                        p.id == settings.chosenId -> stringResource(R.string.profile_fallback)
-                        else -> pluralStringResource(R.plurals.receiver_count, p.receivers.size, p.receivers.size)
+                    when (settings.mode) {
+                        ActivationMode.AUTO -> stringResource(
+                            R.string.profile_devices_connected,
+                            p.receivers.values.count { it in ready },
+                            p.receivers.size,
+                        )
+                        ActivationMode.RULES -> conditionText(p, settings)
+                        ActivationMode.MANUAL -> pluralStringResource(R.plurals.receiver_count, p.receivers.size, p.receivers.size)
                     },
                     style = MaterialTheme.typography.bodySmall,
-                    color = when {
-                        lit -> MaterialTheme.colorScheme.primary
-                        active -> dim
-                        else -> MaterialTheme.colorScheme.onSurfaceVariant
-                    },
                 )
+                val state = when {
+                    active -> stringResource(R.string.profile_in_use)
+                    // The fallback only means something while profiles switch by themselves.
+                    p.id == settings.chosenId && settings.mode != ActivationMode.MANUAL -> stringResource(R.string.profile_fallback)
+                    else -> null
+                }
+                if (state != null) {
+                    Text(
+                        state,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = when {
+                            lit -> MaterialTheme.colorScheme.primary
+                            active -> dim
+                            else -> MaterialTheme.colorScheme.onSurfaceVariant
+                        },
+                    )
+                }
             }
             if (active) {
                 Icon(

@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -50,6 +51,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.kemahub.KeyLabels
 import com.kemahub.R
+import com.kemahub.core.ActivationMode
 import com.kemahub.core.HubStatus
 import com.kemahub.core.Profile
 import com.kemahub.core.Settings
@@ -93,6 +95,16 @@ fun ProfileScreen(
         )
 
         SectionTitle(stringResource(R.string.conditions_title), stringResource(R.string.conditions_hint))
+        if (settings.mode != ActivationMode.RULES) {
+            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)) {
+                Text(
+                    stringResource(R.string.conditions_rules_only),
+                    Modifier.padding(12.dp),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer,
+                )
+            }
+        }
         TimeCard(profile.time) { rule -> onEdit { it.setTime(profileId, rule) } }
         ConnectedCard(
             settings = settings,

@@ -100,6 +100,8 @@ class MainActivity : ComponentActivity() {
             )
             route == "settings" -> SettingsScreen(
                 ui = ui,
+                mode = status.settings.mode,
+                onMode = { m -> Hub.edit(this) { it.setMode(m) } },
                 mods = status.settings.mods,
                 onMods = { m -> Hub.edit(this) { it.setMods(m) } },
                 language = remember(tick) { Locales.current(this) },

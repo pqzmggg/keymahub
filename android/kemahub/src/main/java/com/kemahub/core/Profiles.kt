@@ -74,14 +74,26 @@ data class Profile(
     }
 }
 
+/** How the active profile is picked. */
+enum class ActivationMode {
+    /** The profile with the most of its receivers connected (ties: higher in the list). */
+    AUTO,
+
+    /** The first profile, in list order, whose conditions (time, connected devices) hold. */
+    RULES,
+
+    /** Only the profile the user activates. */
+    MANUAL,
+}
+
 /**
  * Everything the user configures. Immutable: every change returns a new value.
  *
  * Which profile is active:
- * - [profiles] with conditions are checked in priority order (first = highest); the first
- *   whose conditions hold right now wins ([matchedId]).
- * - If none holds, the profile the user activated last ([chosenId]) is used. Profiles without
- *   conditions are only ever used this way.
+ * - In [ActivationMode.AUTO] and [ActivationMode.RULES], a profile may match right now
+ *   ([matchedId]); it is used.
+ * - Otherwise (and always in [ActivationMode.MANUAL]) the profile the user activated last
+ *   ([chosenId]) is used.
  * - Activating a profile by hand also overrides the profile matching at that moment
  *   ([overriddenId]) until the matching changes (another profile matches, or none does).
  */
@@ -94,11 +106,14 @@ data class Settings(
     val overriddenId: String? = null,
     /** Modifiers held with the number keys ([Hotkeys]); the same in every profile. */
     val mods: Int = Hotkeys.DEFAULT_MODS,
+    val mode: ActivationMode = ActivationMode.AUTO,
 ) {
     fun hotkey(slot: Int) = Hotkey(mods, Hotkeys.code(slot))
 
     /** The slot [h] selects, or null if it is not a hotkey. */
     fun slotFor(h: Hotkey): Int? = if (h.mods == mods) Hotkeys.slotOf(h.code) else null
+
+    fun setMode(m: ActivationMode) = copy(mode = m, overriddenId = null)
 
     /** Ignored unless valid ([Hotkeys.validMods]). */
     fun setMods(m: Int) = if (Hotkeys.validMods(m)) copy(mods = m) else this
@@ -111,7 +126,15 @@ data class Settings(
 
     /** Picks the active profile for this moment. */
     fun resolve(day: Int, minute: Int, connected: Set<String>): Settings {
-        val matched = profiles.firstOrNull { it.hasConditions && it.matches(day, minute, connected) }?.id
+        val matched = when (mode) {
+            // maxByOrNull keeps the first of equal counts: the higher profile wins ties.
+            ActivationMode.AUTO -> profiles
+                .map { p -> p to p.receivers.values.count { it in connected } }
+                .filter { it.second > 0 }
+                .maxByOrNull { it.second }?.first?.id
+            ActivationMode.RULES -> profiles.firstOrNull { it.hasConditions && it.matches(day, minute, connected) }?.id
+            ActivationMode.MANUAL -> null
+        }
         val overridden = overriddenId?.takeIf { it == matched }
         val chosen = profile(chosenId)?.id ?: profiles.first().id
         val active = if (matched != null && overridden == null) matched else chosen
@@ -243,6 +266,7 @@ data class Settings(
         matchedId?.let { append("matched\t").append(it).append('\n') }
         overriddenId?.let { append("overridden\t").append(it).append('\n') }
         append("mods\t").append(mods).append('\n')
+        append("mode\t").append(mode.name).append('\n')
         for (d in devices) append("device\t${d.address}\t${d.name}\t${d.lastUsed}\t${if (d.blocked) 1 else 0}\n")
         for (p in profiles) {
             val recv = p.receivers.entries.sortedBy { it.key }.joinToString(",") { "${it.key}=${it.value}" }
@@ -262,6 +286,7 @@ data class Settings(
             var matched: String? = null
             var overridden: String? = null
             var mods = Hotkeys.DEFAULT_MODS
+            var mode = ActivationMode.AUTO
             val devices = mutableListOf<Device>()
             val profiles = mutableListOf<Profile>()
             for (line in text.orEmpty().lines()) {
@@ -271,6 +296,7 @@ data class Settings(
                     "chosen" -> chosen = f.getOrElse(1) { "" }
                     "matched" -> matched = f.getOrNull(1)
                     "overridden" -> overridden = f.getOrNull(1)
+                    "mode" -> mode = ActivationMode.entries.firstOrNull { it.name == f.getOrNull(1) } ?: mode
                     "mods" -> mods = f.getOrNull(1)?.toIntOrNull()?.takeIf(Hotkeys::validMods) ?: mods
                     "device" -> if (f.size >= 3 && f[1].isNotEmpty() && devices.none { it.address == f[1] }) {
                         devices += Device(f[1], f[2], f.getOrNull(3)?.toLongOrNull() ?: 0, f.getOrNull(4) == "1")
@@ -291,7 +317,7 @@ data class Settings(
             }
             fun valid(id: String?) = id?.takeIf { i -> cleaned.any { it.id == i } }
             val activeId = valid(active) ?: cleaned.first().id
-            return Settings(devices, cleaned, activeId, valid(chosen) ?: activeId, valid(matched), valid(overridden), mods)
+            return Settings(devices, cleaned, activeId, valid(chosen) ?: activeId, valid(matched), valid(overridden), mods, mode)
         }
 
         private fun time(text: String?): TimeRule? {
