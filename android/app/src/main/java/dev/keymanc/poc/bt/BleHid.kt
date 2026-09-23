@@ -3,6 +3,7 @@ package dev.keymanc.poc.bt
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
+import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattServer
@@ -58,8 +59,14 @@ object BleHid : HidTransport {
     private val connected = LinkedHashMap<String, BluetoothDevice>()
     /** Per device, the characteristics it enabled notifications for. */
     private val subscribed = HashMap<String, MutableSet<BluetoothGattCharacteristic>>()
-    private val queues = HashMap<String, ArrayDeque<Pair<BluetoothGattCharacteristic, ByteArray>>>()
-    private val inFlightSince = HashMap<String, Long>()
+    private val queues = HashMap<String, ReportQueue>()
+    /** Notifications sent but not yet confirmed by onNotificationSent, and when the last one went out. */
+    private val inFlight = HashMap<String, Int>()
+    private val lastSent = HashMap<String, Long>()
+    /** Client-role links used only to ask the target for a short connection interval. */
+    private val fastLinks = HashMap<String, BluetoothGatt>()
+    @Volatile private var appContext: Context? = null
+    @Volatile private var advertisingFast = true
     @Volatile private var active: String? = null
 
     private val listeners = CopyOnWriteArrayList<(Boolean) -> Unit>()
@@ -92,6 +99,7 @@ object BleHid : HidTransport {
     override fun start(context: Context): String? {
         if (running) return null
         if (!HidTransport.hasPermission(context)) return "블루투스 권한(근처 기기)이 필요합니다"
+        appContext = context.applicationContext
         val manager = context.getSystemService(BluetoothManager::class.java) ?: return "블루투스를 지원하지 않는 기기"
         val adapter = manager.adapter ?: return "블루투스를 지원하지 않는 기기"
         if (!adapter.isEnabled) return "블루투스를 켜 주세요"
@@ -112,6 +120,7 @@ object BleHid : HidTransport {
         AppLog.i("BLE HID: services added, starting advertising")
         advertiser = adv
         running = true
+        advertisingFast = true
         advertise(withName = true)
         AppLog.i("BLE HID ready: add this phone as a Bluetooth device on the target")
         return null
@@ -127,7 +136,10 @@ object BleHid : HidTransport {
             connected.clear()
             subscribed.clear()
             queues.clear()
-            inFlightSince.clear()
+            inFlight.clear()
+            lastSent.clear()
+            fastLinks.values.forEach { runCatching { it.close() } }
+            fastLinks.clear()
         }
         runCatching { s?.close() }
         server = null
@@ -136,12 +148,8 @@ object BleHid : HidTransport {
 
     override fun send(reportId: Int, data: ByteArray): Boolean {
         val target = active ?: return false
-        val ch = if (reportId == HidDescriptors.REPORT_ID_MOUSE) mouseIn else keyboardIn
         synchronized(lock) {
-            val q = queues.getOrPut(target) { ArrayDeque() }
-            // Bound latency if the link stalls: drop the oldest reports rather than lag behind.
-            while (q.size >= MAX_QUEUE) q.removeFirst()
-            q.addLast(ch to data)
+            queues.getOrPut(target) { ReportQueue() }.push(reportId, data)
             pump(target)
         }
         return true
@@ -156,17 +164,27 @@ object BleHid : HidTransport {
         return nameOf(next)
     }
 
-    /** Sends the next queued report once the previous notification was acknowledged. Holds [lock]. */
+    /**
+     * Keeps up to [WINDOW] notifications outstanding per target (a few fit in one connection
+     * event); the rest wait in the [ReportQueue], where mouse motion merges. Holds [lock].
+     */
     private fun pump(address: String) {
-        val since = inFlightSince[address]
-        if (since != null && SystemClock.uptimeMillis() - since < IN_FLIGHT_TIMEOUT_MS) return
         val device = connected[address] ?: return
-        val (ch, data) = queues[address]?.removeFirstOrNull() ?: run {
-            inFlightSince.remove(address)
-            return
+        val q = queues[address] ?: return
+        val now = SystemClock.uptimeMillis()
+        if ((inFlight[address] ?: 0) > 0 && now - (lastSent[address] ?: 0) > IN_FLIGHT_TIMEOUT_MS) {
+            inFlight[address] = 0 // a confirmation got lost; don't stall forever
         }
-        val ok = notify(device, ch, data)
-        if (ok) inFlightSince[address] = SystemClock.uptimeMillis() else inFlightSince.remove(address)
+        while ((inFlight[address] ?: 0) < WINDOW) {
+            val item = q.poll() ?: break
+            val ch = if (item.reportId == HidDescriptors.REPORT_ID_MOUSE) mouseIn else keyboardIn
+            if (!notify(device, ch, item.data)) {
+                q.unpoll(item) // stack busy: retry on the next confirmation or report
+                break
+            }
+            inFlight[address] = (inFlight[address] ?: 0) + 1
+            lastSent[address] = now
+        }
     }
 
     private fun notify(device: BluetoothDevice, ch: BluetoothGattCharacteristic, data: ByteArray): Boolean {
@@ -278,10 +296,13 @@ object BleHid : HidTransport {
                         connected.remove(address)
                         subscribed.remove(address)
                         queues.remove(address)
-                        inFlightSince.remove(address)
+                        inFlight.remove(address)
+                        lastSent.remove(address)
+                        fastLinks.remove(address)?.let { runCatching { it.close() } }
                     }
                     AppLog.i("BLE HID: $name disconnected")
                     if (active == address) setActive(targets().firstOrNull())
+                    updateAdvertising()
                 }
             }
         }
@@ -313,10 +334,12 @@ object BleHid : HidTransport {
                 if (d.characteristic === keyboardIn) {
                     if (on) {
                         AppLog.i("BLE HID: ${nameOf(device.address)} ready")
+                        requestFastLink(device)
                         if (active == null) setActive(device.address) else listeners.forEach { it(true) }
                     } else if (active == device.address) {
                         setActive(targets().firstOrNull())
                     }
+                    updateAdvertising()
                 }
             }
             if (responseNeeded) server?.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, value)
@@ -332,9 +355,37 @@ object BleHid : HidTransport {
 
         override fun onNotificationSent(device: BluetoothDevice, status: Int) {
             synchronized(lock) {
-                inFlightSince.remove(device.address)
+                inFlight[device.address] = ((inFlight[device.address] ?: 1) - 1).coerceAtLeast(0)
                 pump(device.address)
             }
+        }
+    }
+
+    /**
+     * As a peripheral, Android never asks for a short connection interval, so the target may
+     * pick 30-50 ms — far too slow for a mouse. A client-role connection over the same link
+     * gives access to requestConnectionPriority(HIGH), i.e. roughly 11-15 ms.
+     */
+    private fun requestFastLink(device: BluetoothDevice) {
+        val ctx = appContext ?: return
+        synchronized(lock) { if (device.address in fastLinks) return }
+        val gatt = device.connectGatt(ctx, false, object : BluetoothGattCallback() {
+            override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
+                if (newState == BluetoothProfile.STATE_CONNECTED) {
+                    val ok = gatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH)
+                    AppLog.i("BLE HID: short connection interval requested from ${nameOf(device.address)}: $ok")
+                }
+            }
+        }, BluetoothDevice.TRANSPORT_LE) ?: return
+        synchronized(lock) { fastLinks[device.address] = gatt }
+    }
+
+    /** Advertise aggressively only while waiting for a first target; slowly afterwards (airtime). */
+    private fun updateAdvertising() {
+        val fast = targets().isEmpty()
+        if (fast != advertisingFast) {
+            advertisingFast = fast
+            advertise(withName = true)
         }
     }
 
@@ -365,7 +416,9 @@ object BleHid : HidTransport {
         if (!running) return
         runCatching { adv.stopAdvertising(advertiseCallback) }
         val settings = AdvertiseSettings.Builder()
-            .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY)
+            .setAdvertiseMode(
+                if (advertisingFast) AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY else AdvertiseSettings.ADVERTISE_MODE_LOW_POWER,
+            )
             .setConnectable(true)
             .setTimeout(0)
             .build()
@@ -377,6 +430,6 @@ object BleHid : HidTransport {
 
     private const val ENC_READ = BluetoothGattCharacteristic.PERMISSION_READ_ENCRYPTED
     private const val ENC_WRITE = BluetoothGattCharacteristic.PERMISSION_WRITE_ENCRYPTED
-    private const val MAX_QUEUE = 64
-    private const val IN_FLIGHT_TIMEOUT_MS = 200L
+    private const val WINDOW = 3
+    private const val IN_FLIGHT_TIMEOUT_MS = 250L
 }
