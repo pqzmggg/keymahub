@@ -13,9 +13,10 @@ import dev.keymanc.poc.wire.Wire
  *
  * - Keyboard: key filtering sees every hardware key before apps do. "Local" simply means
  *   not consuming the event, so no passthrough device is needed.
- * - Mouse (Android 14+): [KeymancAccessibilityService] intercepts SOURCE_MOUSE motion
- *   events only while focus is remote, so local mouse use is untouched. Known limitation:
- *   the phone's own pointer still moves while the target is being controlled.
+ * - Mouse: while focus is remote, [PointerCaptureOverlay] takes the mouse with pointer
+ *   capture (phone pointer hidden and frozen) and feeds [onCapturedPointer]. If capture is
+ *   refused, accessibility interception (Android 14+) feeds [onMotionEvent] instead; the
+ *   phone's pointer then keeps moving.
  *
  * All calls arrive on the main thread except [setRemoteAvailable]; access is synchronized.
  */
