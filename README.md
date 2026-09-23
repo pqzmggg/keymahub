@@ -29,3 +29,27 @@ cargo test --workspace                          # Rust 테스트
 cargo build --release -p win-capture -p kmc     # Windows 도구
 cd android && ./gradlew testDebugUnitTest assembleDebug   # P0 앱 + KemaHub
 ```
+
+## KemaHub 릴리스
+
+GitHub에서 `v1.2.3` 형식 태그로 릴리스를 publish하면 `.github/workflows/release.yml`이
+업로드 키로 서명한 `KemaHub-1.2.3.apk`(직접 설치용)와 `KemaHub-1.2.3.aab`(Play 업로드용)를 그 릴리스에 첨부한다.
+versionName은 태그, versionCode는 `major*10000 + minor*100 + patch`.
+
+업로드 키는 저장소에 넣지 않고 Actions secrets로 둔다 (한 번만):
+
+```sh
+keytool -genkeypair -v -keystore kemahub-upload.jks -alias upload -keyalg RSA -keysize 4096 -validity 10000
+base64 -w0 kemahub-upload.jks   # → KEMAHUB_KEYSTORE_BASE64
+```
+
+| Secret | 값 |
+|---|---|
+| `KEMAHUB_KEYSTORE_BASE64` | 위 base64 출력 |
+| `KEMAHUB_KEYSTORE_PASSWORD` | 키스토어 비밀번호 |
+| `KEMAHUB_KEY_ALIAS` | `upload` |
+| `KEMAHUB_KEY_PASSWORD` | 키 비밀번호 |
+
+키스토어 파일과 비밀번호는 따로 안전하게 보관한다 (잃어버리면 Play 업로드 키 재설정 절차가 필요).
+secrets가 없으면 워크플로는 디버그 서명본을 올리지 않고 실패한다.
+

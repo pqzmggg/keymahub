@@ -13,8 +13,23 @@ android {
         applicationId = "com.kemahub.app"
         minSdk = 26 // pointer capture, BLE peripheral
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        // Release builds take these from the tag (see .github/workflows/release.yml).
+        versionCode = (findProperty("kemahub.versionCode") as String?)?.toInt() ?: 1
+        versionName = (findProperty("kemahub.versionName") as String?) ?: "0.1.0"
+    }
+
+    // The upload key comes from the environment (GitHub secrets in the release workflow);
+    // it is never stored in the repository. Without it, release builds use the debug key.
+    val keystore = System.getenv("KEMAHUB_KEYSTORE")?.let { file(it) }?.takeIf { it.exists() }
+    signingConfigs {
+        if (keystore != null) {
+            create("upload") {
+                storeFile = keystore
+                storePassword = System.getenv("KEMAHUB_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("KEMAHUB_KEY_ALIAS")
+                keyPassword = System.getenv("KEMAHUB_KEY_PASSWORD")
+            }
+        }
     }
 
     buildFeatures {
@@ -32,8 +47,7 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            // Until an upload key exists; Play builds must be signed with the upload key.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.findByName("upload") ?: signingConfigs.getByName("debug")
         }
     }
 
