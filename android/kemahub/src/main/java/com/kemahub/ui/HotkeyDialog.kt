@@ -34,11 +34,11 @@ import com.kemahub.core.Hotkey
 import com.kemahub.core.Hub
 import com.kemahub.core.HubStatus
 import com.kemahub.core.Mods
+import com.kemahub.core.Profile
 
 /** Records a new chord for [slot] from the connected keyboard. */
 @Composable
-fun HotkeyDialog(slot: Int, status: HubStatus, onDismiss: () -> Unit, onSave: (Hotkey) -> Unit) {
-    val profile = status.settings.active
+fun HotkeyDialog(slot: Int, profile: Profile, status: HubStatus, onDismiss: () -> Unit, onSave: (Hotkey) -> Unit) {
     var captured by remember { mutableStateOf<Hotkey?>(null) }
     var invalid by remember { mutableStateOf(false) }
     val focus = remember { FocusRequester() }
@@ -83,7 +83,7 @@ fun HotkeyDialog(slot: Int, status: HubStatus, onDismiss: () -> Unit, onSave: (H
                 Text(stringResource(R.string.record_prompt))
                 if (status.running && status.slot != 0) {
                     Text(
-                        stringResource(R.string.record_remote, KeyLabels.hotkey(profile.hotkeys[0])),
+                        stringResource(R.string.record_remote, KeyLabels.hotkey(status.settings.active.hotkeys[0])),
                         color = MaterialTheme.colorScheme.error,
                     )
                 }

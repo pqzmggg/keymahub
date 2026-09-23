@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import java.text.SimpleDateFormat
+import java.time.LocalDateTime
 import java.util.Date
 import java.util.Locale
 
@@ -20,7 +21,14 @@ data class HubStatus(
     val settings: Settings = Settings(),
     /** Last problem worth showing, as a string resource (null when fine). */
     val problem: Int? = null,
+    /** Pairing mode ends at this uptime (SystemClock.elapsedRealtime), 0 = off. */
+    val pairingUntil: Long = 0,
 )
+
+enum class ThemeMode { SYSTEM, LIGHT, DARK }
+
+/** Personalization (Settings screen). The language lives in [com.kemahub.Locales]. */
+data class UiPrefs(val theme: ThemeMode = ThemeMode.SYSTEM, val dynamicColor: Boolean = true, val showHud: Boolean = true)
 
 object Hub {
     private val _status = MutableStateFlow(HubStatus())
@@ -51,18 +59,61 @@ object Hub {
         _status.value.settings
     }
 
-    /** Changes the settings, saves and publishes them. */
+    /** Last known position, for profiles with a place. */
+    @Volatile
+    var location: GeoPoint? = null
+        private set
+
+    fun setLocation(context: Context, p: GeoPoint) {
+        location = p
+        resolve(context)
+    }
+
+    /** Re-picks the active profile for the current time and place. */
+    fun resolve(context: Context) = edit(context) { it }
+
+    /** Changes the settings (then re-picks the active profile), saves and publishes them. */
     fun edit(context: Context, change: (Settings) -> Settings) {
         val before: Settings
         val after: Settings
         synchronized(this) {
             before = settings(context)
-            after = change(before)
+            val now = LocalDateTime.now()
+            after = change(before).resolve(now.dayOfWeek.value, now.hour * 60 + now.minute, location)
             if (after == before) return
             context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY_SETTINGS, after.encode()).apply()
             _status.update { it.copy(settings = after) }
         }
         if (after.activeId != before.activeId) onProfileChanged?.invoke()
+    }
+
+    // ---------------------------------------------------------------- personalization
+
+    private val _ui = MutableStateFlow(UiPrefs())
+    val ui: StateFlow<UiPrefs> = _ui.asStateFlow()
+    private var uiLoaded = false
+
+    fun loadUi(context: Context): UiPrefs = synchronized(this) {
+        if (!uiLoaded) {
+            val p = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            _ui.value = UiPrefs(
+                theme = ThemeMode.entries.firstOrNull { it.name == p.getString("theme", null) } ?: ThemeMode.SYSTEM,
+                dynamicColor = p.getBoolean("dynamic_color", true),
+                showHud = p.getBoolean("show_hud", true),
+            )
+            uiLoaded = true
+        }
+        _ui.value
+    }
+
+    fun editUi(context: Context, change: (UiPrefs) -> UiPrefs) = synchronized(this) {
+        val u = change(loadUi(context))
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+            .putString("theme", u.theme.name)
+            .putBoolean("dynamic_color", u.dynamicColor)
+            .putBoolean("show_hud", u.showHud)
+            .apply()
+        _ui.value = u
     }
 
     // ---------------------------------------------------------------- log (diagnostics screen)

@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -31,57 +32,133 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kemahub.HubService
 import com.kemahub.KemaAccessibilityService
+import com.kemahub.Locales
+import com.kemahub.Locations
 import com.kemahub.ble.BleHid
 import com.kemahub.core.Hub
+import com.kemahub.core.HubStatus
+import com.kemahub.core.ThemeMode
+import com.kemahub.core.UiPrefs
 
 class MainActivity : ComponentActivity() {
     private var tick by mutableIntStateOf(0)
     private val permissions = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { tick++ }
+    private var afterLocation: (() -> Unit)? = null
+    private val locationPermission = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+        tick++
+        if (Locations.granted(this)) afterLocation?.invoke()
+        afterLocation = null
+    }
+
+    override fun attachBaseContext(newBase: Context) = super.attachBaseContext(Locales.wrap(newBase))
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Hub.settings(this) // load saved settings for the first frame
+        Hub.loadUi(this)
         setContent {
-            KemaTheme {
-                LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { tick++ }
+            val ui by Hub.ui.collectAsStateWithLifecycle()
+            KemaTheme(ui) {
+                LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+                    tick++
+                    Locations.lastKnown(this@MainActivity)?.let { Hub.setLocation(this@MainActivity, it) }
+                        ?: Hub.resolve(this@MainActivity)
+                }
                 val status by Hub.status.collectAsStateWithLifecycle()
                 val log by Hub.log.collectAsStateWithLifecycle()
                 val setup = remember(tick) { setupState() }
 
-                if (!setup.done && !status.running) {
-                    // Host mode setup. On opening, ask for the runtime permissions right away, then
-                    // show the accessibility disclosure; each automatically at most once per visit.
-                    var autoStep by rememberSaveable { mutableStateOf(0) }
-                    var disclosure by rememberSaveable { mutableStateOf(false) }
-                    LaunchedEffect(setup) {
-                        if (!setup.runtimeDone && autoStep == 0) {
-                            autoStep = 1
-                            requestRuntime(automatic = true)
-                        } else if (setup.runtimeDone && !setup.accessibility && autoStep < 2) {
-                            autoStep = 2
-                            disclosure = true
-                        }
-                    }
-                    SetupScreen(
-                        setup = setup,
-                        showDisclosure = disclosure,
-                        onDisclosure = { disclosure = it },
-                        onNotifications = { requestRuntime(automatic = false, Manifest.permission.POST_NOTIFICATIONS) },
-                        onBluetooth = { requestRuntime(automatic = false, *BLUETOOTH) },
-                        onAccessibility = { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },
-                        onAppInfo = ::openAppInfo,
-                    )
-                } else {
-                    HomeScreen(
-                        status = status,
-                        log = log,
-                        onStart = { HubService.start(this) },
-                        onStop = { HubService.stop(this) },
-                        onEdit = { change -> Hub.edit(this, change) },
-                    )
-                }
+                if (!setup.done && !status.running) Setup(setup) else Main(status, log, ui)
             }
         }
+    }
+
+    @Composable
+    private fun Main(status: HubStatus, log: String, ui: UiPrefs) {
+        // "home", "profile:<id>", "devices", "settings"
+        var route by rememberSaveable { mutableStateOf("home") }
+        BackHandler(enabled = route != "home") { route = "home" }
+        val onEdit: ((com.kemahub.core.Settings) -> com.kemahub.core.Settings) -> Unit = { change -> Hub.edit(this, change) }
+
+        when {
+            route.startsWith("profile:") -> ProfileScreen(
+                profileId = route.removePrefix("profile:"),
+                status = status,
+                locationGranted = remember(tick) { Locations.granted(this) },
+                onBack = { route = "home" },
+                onEdit = onEdit,
+                onLocation = ::withLocation,
+            )
+            route == "devices" -> DevicesScreen(
+                status = status,
+                onBack = { route = "home" },
+                onEdit = onEdit,
+                onPairing = { on -> HubService.pairing(this, on) },
+                onDisconnect = { address ->
+                    Hub.edit(this) { it.setBlocked(address, true) }
+                    BleHid.disconnect(address)
+                },
+                onAllow = { address -> Hub.edit(this) { it.setBlocked(address, false) } },
+                onRemove = { address ->
+                    Hub.edit(this) { it.forgetDevice(address) }
+                    BleHid.disconnect(address)
+                    BleHid.unpair(this, address)
+                },
+            )
+            route == "settings" -> SettingsScreen(
+                ui = ui,
+                language = remember(tick) { Locales.current(this) },
+                onBack = { route = "home" },
+                onUi = { change -> Hub.editUi(this, change) },
+                onLanguage = { tag -> Locales.set(this, tag) },
+            )
+            else -> HomeScreen(
+                status = status,
+                log = log,
+                onHosting = { on -> if (on) HubService.start(this) else HubService.stop(this) },
+                onEdit = onEdit,
+                onOpenProfile = { id -> route = "profile:$id" },
+                onDevices = { route = "devices" },
+                onSettings = { route = "settings" },
+            )
+        }
+    }
+
+    /** Host mode setup. On opening, ask for the runtime permissions right away, then show the accessibility disclosure. */
+    @Composable
+    private fun Setup(setup: SetupState) {
+        var autoStep by rememberSaveable { mutableStateOf(0) }
+        var disclosure by rememberSaveable { mutableStateOf(false) }
+        LaunchedEffect(setup) {
+            if (!setup.runtimeDone && autoStep == 0) {
+                autoStep = 1
+                requestRuntime(automatic = true)
+            } else if (setup.runtimeDone && !setup.accessibility && autoStep < 2) {
+                autoStep = 2
+                disclosure = true
+            }
+        }
+        SetupScreen(
+            setup = setup,
+            showDisclosure = disclosure,
+            onDisclosure = { disclosure = it },
+            onNotifications = { requestRuntime(automatic = false, Manifest.permission.POST_NOTIFICATIONS) },
+            onBluetooth = { requestRuntime(automatic = false, *BLUETOOTH) },
+            onAccessibility = { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },
+            onAppInfo = ::openAppInfo,
+        )
+    }
+
+    /** Runs [then] once location may be used, asking for it first if needed. */
+    private fun withLocation(then: () -> Unit) {
+        if (Locations.granted(this)) return then()
+        val prefs = getSharedPreferences("kemahub", Context.MODE_PRIVATE)
+        val blocked = prefs.getBoolean("asked:location", false) &&
+            Locations.PERMISSIONS.none { shouldShowRequestPermissionRationale(it) }
+        if (blocked) return openAppInfo()
+        prefs.edit().putBoolean("asked:location", true).apply()
+        afterLocation = then
+        locationPermission.launch(Locations.PERMISSIONS)
     }
 
     private fun granted(p: String) = checkSelfPermission(p) == PackageManager.PERMISSION_GRANTED
@@ -133,12 +210,16 @@ data class SetupState(val notifications: Boolean, val bluetooth: Boolean, val ac
 }
 
 @Composable
-private fun KemaTheme(content: @Composable () -> Unit) {
-    val dark = isSystemInDarkTheme()
+private fun KemaTheme(ui: UiPrefs, content: @Composable () -> Unit) {
+    val dark = when (ui.theme) {
+        ThemeMode.SYSTEM -> isSystemInDarkTheme()
+        ThemeMode.LIGHT -> false
+        ThemeMode.DARK -> true
+    }
     val context = LocalContext.current
     val colors = when {
-        Build.VERSION.SDK_INT >= 31 && dark -> dynamicDarkColorScheme(context)
-        Build.VERSION.SDK_INT >= 31 -> dynamicLightColorScheme(context)
+        ui.dynamicColor && Build.VERSION.SDK_INT >= 31 && dark -> dynamicDarkColorScheme(context)
+        ui.dynamicColor && Build.VERSION.SDK_INT >= 31 -> dynamicLightColorScheme(context)
         dark -> darkColorScheme()
         else -> lightColorScheme()
     }

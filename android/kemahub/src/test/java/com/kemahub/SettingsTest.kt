@@ -1,10 +1,13 @@
 package com.kemahub
 
 import com.kemahub.core.Device
+import com.kemahub.core.GeoPoint
 import com.kemahub.core.Hotkey
 import com.kemahub.core.Mods
+import com.kemahub.core.PlaceRule
 import com.kemahub.core.Profile
 import com.kemahub.core.Settings
+import com.kemahub.core.TimeRule
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -72,26 +75,117 @@ class SettingsTest {
     }
 
     @Test
-    fun profilesCopySelectAndDelete() {
+    fun newProfilesGoOnTopAsACopyWithoutConditions() {
         var s = Settings().deviceConnected("A", "Desk")
         val first = s.activeId
-        s = s.addProfile("Home")
-        val home = s.activeId
-        assertTrue(home != first)
-        assertEquals("A", s.active.addressOf(1)) // copied
-        s = s.assign(home, 1, null).deviceConnected("B", "Home PC")
-        assertEquals("B", s.active.addressOf(1))
-        assertEquals("A", s.select(first).active.addressOf(1)) // the other profile is untouched
-        assertNull(s.profile(first)!!.slotOf("B")) // devices land only in the active profile
+        s = s.setTime(first, TimeRule())
+        val (next, home) = s.addProfile("Home")
+        s = next
+        assertEquals(listOf(home, first), s.profiles.map { it.id })
+        assertEquals("A", s.profile(home)!!.addressOf(1)) // copied receivers
+        assertNull(s.profile(home)!!.time) // but not the conditions
+        assertEquals(home, s.resolve(1, 12 * 60, null).activeId) // no conditions = always, and on top
+    }
 
-        s = s.renameProfile(home, "  Home\tPC ").deleteProfile(first)
+    @Test
+    fun renameAndDeleteProfiles() {
+        var s = Settings()
+        val first = s.activeId
+        val home = s.addProfile("Home").second
+        s = s.addProfile("Home").first.renameProfile(home, "  Home\tPC ").pin(home).deleteProfile(first)
         assertEquals(listOf("Home PC"), s.profiles.map { it.name })
         assertEquals(s, s.deleteProfile(home)) // the last one stays
+        s = s.addProfile("x").first.pin(home).deleteProfile(home)
+        assertNull(s.manualId) // a deleted pin is dropped
+    }
+
+    @Test
+    fun devicesLandOnlyInTheActiveProfile() {
+        var s = Settings()
+        val first = s.activeId
+        val (next, office) = s.addProfile("Office")
+        s = next.pin(office).deviceConnected("B", "Office PC")
+        assertEquals(1, s.profile(office)!!.slotOf("B"))
+        assertNull(s.profile(first)!!.slotOf("B"))
+    }
+
+    @Test
+    fun priorityDecidesWhenConditionsOverlap() {
+        val office = PlaceRule(37.5665, 126.9780, 200, "Office")
+        var s = Settings()
+        val home = s.activeId // no conditions: fallback
+        var work = ""
+        var late = ""
+        s = s.addProfile("Work").let { (n, id) -> work = id; n }
+            .setTime(work, TimeRule(TimeRule.WEEKDAYS, 9 * 60, 18 * 60))
+            .setPlace(work, office)
+        s = s.addProfile("Late").let { (n, id) -> late = id; n }
+            .setTime(late, TimeRule(TimeRule.ALL, 17 * 60, 17 * 60 + 30))
+        // order: Late, Work, Home
+        val atOffice = GeoPoint(37.5666, 126.9781, 20f)
+        val elsewhere = GeoPoint(37.60, 127.00, 20f)
+        assertEquals(work, s.resolve(1, 10 * 60, atOffice).activeId) // Monday 10:00 at the office
+        assertEquals(home, s.resolve(1, 10 * 60, elsewhere).activeId) // wrong place
+        assertEquals(home, s.resolve(1, 10 * 60, null).activeId) // place unknown
+        assertEquals(home, s.resolve(6, 10 * 60, atOffice).activeId) // Saturday
+        assertEquals(late, s.resolve(1, 17 * 60 + 10, atOffice).activeId) // both match: higher wins
+        s = s.moveProfile(late, 1) // Work above Late now
+        assertEquals(work, s.resolve(1, 17 * 60 + 10, atOffice).activeId)
+        assertEquals(listOf(work, late, home), s.profiles.map { it.id })
+        assertEquals(s, s.moveProfile(work, -1)) // already on top
+        // pinned wins over everything until released
+        s = s.pin(home)
+        assertEquals(home, s.resolve(1, 10 * 60, atOffice).activeId)
+        assertEquals(work, s.pin(null).resolve(1, 10 * 60, atOffice).activeId)
+    }
+
+    @Test
+    fun nothingMatchesKeepsTheCurrentProfile() {
+        var s = Settings()
+        val only = s.activeId
+        s = s.setTime(only, TimeRule(TimeRule.WEEKEND))
+        assertEquals(only, s.resolve(1, 0, null).activeId)
+    }
+
+    @Test
+    fun timeRules() {
+        val night = TimeRule(1, 22 * 60, 6 * 60) // Monday night into Tuesday morning
+        assertTrue(night.matches(1, 23 * 60))
+        assertTrue(night.matches(2, 5 * 60)) // after midnight still counts for Monday
+        assertFalse(night.matches(2, 23 * 60))
+        assertFalse(night.matches(1, 5 * 60)) // Sunday night was not selected
+        val sundayNight = TimeRule(1 shl 6, 22 * 60, 2 * 60)
+        assertTrue(sundayNight.matches(1, 60)) // wraps from Sunday to Monday
+        val allDay = TimeRule(TimeRule.WEEKEND, 0, 0)
+        assertTrue(allDay.matches(7, 0) && allDay.matches(6, 23 * 60 + 59))
+        assertFalse(allDay.matches(5, 12 * 60))
+        assertEquals(TimeRule.WEEKDAYS or TimeRule.WEEKEND, TimeRule.ALL)
+        assertFalse(TimeRule(0).isValid)
+        assertEquals(s0, s0.setTime("p1", TimeRule(0)))
+    }
+
+    private val s0 = Settings()
+
+    @Test
+    fun placeRules() {
+        val p = PlaceRule(0.0, 0.0, 100)
+        assertTrue(p.contains(GeoPoint(0.0, 0.0008))) // ~89 m
+        assertFalse(p.contains(GeoPoint(0.0, 0.0020))) // ~222 m
+        assertTrue(p.contains(GeoPoint(0.0, 0.0015, 80f))) // ~167 m, within radius + accuracy
+        assertFalse(p.contains(GeoPoint(0.0, 0.0030, 5000f))) // accuracy counts at most the radius
+    }
+
+    @Test
+    fun devicesRememberUseAndBlocking() {
+        var s = Settings().deviceConnected("A", "Desk").touch("A", 1234L).setBlocked("A", true)
+        assertEquals(Device("A", "Desk", 1234L, true), s.device("A"))
+        s = s.setBlocked("A", false)
+        assertFalse(s.device("A")!!.blocked)
     }
 
     @Test
     fun forgetRemovesTheDeviceEverywhere() {
-        var s = Settings().deviceConnected("A", "Desk").addProfile("Two")
+        var s = Settings().deviceConnected("A", "Desk").addProfile("Two").first
         s = s.forgetDevice("A")
         assertTrue(s.devices.isEmpty())
         assertTrue(s.profiles.all { it.receivers.isEmpty() })
@@ -101,12 +195,18 @@ class SettingsTest {
     fun encodeDecodeRoundTrips() {
         var s = Settings().deviceConnected("AA:BB", "My\tDesk\n").deviceConnected("CC:DD", "Tab")
         s = s.renameDevice("CC:DD", "  ") // blank names are ignored
+        s = s.touch("AA:BB", 1_700_000_000_000L).setBlocked("CC:DD", true)
         s = s.setHotkey(s.activeId, 2, Hotkey(Mods.META or Mods.SHIFT, 59))
-        s = s.addProfile("Office").assign("p2", 1, null)
+        val (next, office) = s.addProfile("Office")
+        s = next.assign(office, 1, null)
+            .setTime(office, TimeRule(0b0000101, 22 * 60, 6 * 60))
+            .setPlace(office, PlaceRule(37.123456789, -122.5, 500, "HQ, 3rd floor"))
+            .pin(office)
         val back = Settings.decode(s.encode())
         assertEquals(s, back)
-        assertEquals(listOf(Device("AA:BB", "My Desk"), Device("CC:DD", "Tab")), back.devices)
-        assertEquals("p2", back.activeId)
+        assertEquals(listOf(Device("AA:BB", "My Desk", 1_700_000_000_000L), Device("CC:DD", "Tab", 0, true)), back.devices)
+        assertEquals(office, back.activeId)
+        assertEquals("HQ, 3rd floor", back.profile(office)!!.place!!.label)
     }
 
     @Test

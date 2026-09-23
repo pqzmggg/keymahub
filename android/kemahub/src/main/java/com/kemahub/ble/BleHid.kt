@@ -79,6 +79,39 @@ object BleHid {
     @Volatile private var active: String? = null
 
     private val listeners = CopyOnWriteArrayList<Listener>()
+
+    /** Devices the user disconnected: refused when they reconnect. Set by the service. */
+    @Volatile var isBlocked: (address: String) -> Boolean = { false }
+
+    /**
+     * While on, new (unpaired) devices may connect and pair, and the phone advertises its name
+     * quickly. While off, only already paired devices are accepted.
+     */
+    @Volatile var pairing = false
+        private set
+
+    fun setPairing(on: Boolean) {
+        if (pairing == on) return
+        pairing = on
+        Hub.log(if (on) "BLE HID: pairing mode on" else "BLE HID: pairing mode off")
+        advertisingFast = on || targets().isEmpty()
+        advertise(withName = on)
+    }
+
+    /** Drops the link to [address] (it may come back unless blocked). */
+    fun disconnect(address: String) {
+        val d = synchronized(lock) { connected[address] } ?: return
+        runCatching { server?.cancelConnection(d) }
+    }
+
+    /** Removes the phone's pairing with [address]. Best effort: the call is not public API. */
+    fun unpair(context: Context, address: String): Boolean {
+        val adapter = context.getSystemService(BluetoothManager::class.java)?.adapter ?: return false
+        return runCatching {
+            val device = adapter.getRemoteDevice(address)
+            device.javaClass.getMethod("removeBond").invoke(device) as Boolean
+        }.onFailure { Hub.log("unpair $address failed: $it") }.getOrDefault(false)
+    }
     private var serviceAdded = CountDownLatch(1)
 
     fun addListener(l: Listener) {
@@ -136,7 +169,7 @@ object BleHid {
         advertiser = adv
         running = true
         advertisingFast = true
-        advertise(withName = true)
+        advertise(withName = pairing)
         Hub.log("BLE HID ready: add this phone as a Bluetooth device on the target")
         return null
     }
@@ -144,6 +177,7 @@ object BleHid {
     fun stop() {
         if (!running) return
         running = false
+        pairing = false
         runCatching { advertiser?.stopAdvertising(advertiseCallback) }
         val s = server
         synchronized(lock) {
@@ -283,10 +317,16 @@ object BleHid {
             val address = device.address
             when (newState) {
                 BluetoothProfile.STATE_CONNECTED -> {
+                    val bonded = device.bondState == BluetoothDevice.BOND_BONDED
+                    if (isBlocked(address) || (!bonded && !pairing)) {
+                        Hub.log("BLE HID: refused $address (${if (bonded) "disconnected by user" else "not paired, pairing mode off"})")
+                        runCatching { server?.cancelConnection(device) }
+                        return
+                    }
                     synchronized(lock) { connected[address] = device }
                     Hub.log("BLE HID: ${nameOf(address)} connected")
                     // Some controllers stop advertising on connect; keep accepting more targets.
-                    advertise(withName = true)
+                    advertise(withName = pairing)
                 }
                 BluetoothProfile.STATE_DISCONNECTED -> {
                     val name = nameOf(address)
@@ -380,12 +420,15 @@ object BleHid {
         synchronized(lock) { fastLinks[device.address] = gatt }
     }
 
-    /** Advertise aggressively only while waiting for a first target; slowly afterwards (airtime). */
+    /**
+     * Advertise aggressively while pairing or waiting for a first target; slowly afterwards
+     * (airtime). Paired devices reconnect without the name, so it is only sent while pairing.
+     */
     private fun updateAdvertising() {
-        val fast = targets().isEmpty()
+        val fast = pairing || targets().isEmpty()
         if (fast != advertisingFast) {
             advertisingFast = fast
-            advertise(withName = true)
+            advertise(withName = pairing)
         }
     }
 
