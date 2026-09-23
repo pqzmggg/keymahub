@@ -36,6 +36,7 @@ class HostService : Service() {
     private var started = false
     @Volatile private var destroyed = false
     @Volatile private var a11y: A11yCapture? = null
+    private var pointerCapture: PointerCaptureOverlay? = null
     private val transport: HidTransport by lazy { HidTransport.of(Prefs(this)) }
     private val btListener: (Boolean) -> Unit = { up ->
         a11y?.setRemoteAvailable(up) ?: PrivClient.setRemoteAvailable(up)
@@ -119,14 +120,20 @@ class HostService : Service() {
         val capture = A11yCapture(s, ::onFocus, s::switchTarget)
         a11y = capture
         service.hostCapture = capture
-        val mouse = if (Build.VERSION.SDK_INT >= 34) "mouse intercepted while the target has focus" else "mouse needs Android 14+"
-        AppLog.i("host capture: accessibility (keyboard; $mouse)")
+        pointerCapture = PointerCaptureOverlay(service, capture::onCapturedPointer) { captured ->
+            // Without capture, fall back to accessibility interception (Android 14+; the phone's
+            // pointer keeps moving then).
+            if (remoteFocus) service.interceptMouse(!captured)
+        }
+        AppLog.i("host capture: accessibility (keyboard; mouse via pointer capture while the target has focus)")
         return null
     }
 
     private fun stopCapture() {
         val capture = a11y
         if (capture != null) {
+            pointerCapture?.stop()
+            pointerCapture = null
             KeymancAccessibilityService.instance?.let { if (it.hostCapture === capture) it.hostCapture = null }
             capture.stop()
             a11y = null
@@ -137,7 +144,14 @@ class HostService : Service() {
 
     private fun onFocus(remote: Boolean) {
         remoteFocus = remote
-        a11y?.let { KeymancAccessibilityService.instance?.interceptMouse(remote) }
+        if (a11y != null) {
+            if (remote) {
+                pointerCapture?.start()
+            } else {
+                pointerCapture?.stop()
+                KeymancAccessibilityService.instance?.interceptMouse(false)
+            }
+        }
         AppLog.i(if (remote) "focus → Bluetooth target" else "focus → this phone")
         updateNotification()
     }

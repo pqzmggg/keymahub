@@ -42,6 +42,8 @@ class A11yCapture(remote: InputSink, private val onFocus: (Boolean) -> Unit, onN
     private var buttons = 0
     private var lastX = Float.NaN
     private var lastY = Float.NaN
+    private var subX = 0f
+    private var subY = 0f
 
     val isRemote get() = synchronized(router) { router.isRemote }
 
@@ -68,7 +70,7 @@ class A11yCapture(remote: InputSink, private val onFocus: (Boolean) -> Unit, onN
         }
     }
 
-    /** Mouse events intercepted while remote (Android 14+). */
+    /** Mouse events intercepted by the accessibility service while remote (Android 14+ fallback). */
     fun onMotionEvent(e: MotionEvent) = synchronized(router) {
         if (!router.isRemote) return@synchronized
         var dx = e.getAxisValue(MotionEvent.AXIS_RELATIVE_X)
@@ -80,7 +82,30 @@ class A11yCapture(remote: InputSink, private val onFocus: (Boolean) -> Unit, onN
         }
         lastX = e.x
         lastY = e.y
-        router.onMove(dx.toInt(), dy.toInt())
+        pointer(dx, dy, e)
+    }
+
+    /** Pointer-capture events: x/y are already relative motion (SOURCE_MOUSE_RELATIVE). */
+    fun onCapturedPointer(e: MotionEvent) = synchronized(router) {
+        if (!router.isRemote || !e.isFromSource(InputDevice.SOURCE_MOUSE_RELATIVE)) return@synchronized
+        var dx = 0f
+        var dy = 0f
+        for (i in 0 until e.historySize) {
+            dx += e.getHistoricalX(i)
+            dy += e.getHistoricalY(i)
+        }
+        pointer(dx + e.x, dy + e.y, e)
+    }
+
+    /** Holds the router lock. */
+    private fun pointer(dx: Float, dy: Float, e: MotionEvent) {
+        subX += dx
+        subY += dy
+        val ix = subX.toInt()
+        val iy = subY.toInt()
+        subX -= ix
+        subY -= iy
+        router.onMove(ix, iy)
 
         val state = e.buttonState
         for ((bit, button) in BUTTONS) {
