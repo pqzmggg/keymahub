@@ -1,4 +1,4 @@
-# keymanc 설계 문서 (v0.1 초안)
+# keymanc 설계 문서 (v0.2)
 
 > 하나의 키보드·마우스를 같은 LAN 안의 Windows / Android / Linux 기기와 공유하는 앱.
 > 서버 없음, 같은 네트워크에서만 동작, 1순위는 Windows ↔ Android.
@@ -63,20 +63,20 @@
 └───────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 2.1 기술 스택 (제안)
+### 2.1 기술 스택 (확정)
 
 | 영역 | 선택 | 이유 |
 |---|---|---|
 | 공통 코어 | **Rust** (tokio) | 3개 플랫폼 공용, 저지연, 메모리 안전. Android는 FFI로 사용 |
 | Android 바인딩 | **UniFFI** → Kotlin | 보일러플레이트 없이 Kotlin API 생성 |
-| Android 앱 | **Kotlin** (+ Jetpack Compose) | 서비스/접근성/IME/Shizuku 등 Android 전용 API가 많음 |
+| Android 앱 | **Kotlin** (P0는 기본 View, P1부터 Jetpack Compose) | 서비스/접근성/IME/Shizuku 등 Android 전용 API가 많음 |
 | Desktop UI | **Tauri 2** (Windows/Linux 공용) | 트레이 + 설정창, 코어와 같은 Rust 프로세스 |
 | 암호화 | **Noise_KK** (`snow`) + 페어링은 **SPAKE2** | TLS/CA 없이 서버리스 상호인증 |
 | 직렬화 | `serde` + `postcard` | 작고 빠른 바이너리, 스키마 버전 관리 용이 |
 | 탐색 | mDNS/DNS-SD (`mdns-sd`) + UDP 브로드캐스트 폴백 | 서버 없이 LAN 탐색 |
 
 > 대안: 전부 Kotlin Multiplatform, 혹은 C++ 코어. Windows/Linux 저수준 입력 API 접근성과
-> Android FFI 성숙도를 고려해 Rust를 추천. (결정 필요 항목 D1)
+> Android FFI 성숙도를 고려해 Rust로 결정 (D1).
 
 ### 2.2 저장소 구조 (제안)
 
@@ -197,14 +197,17 @@ keymanc/
 
 ### 5.3 Android 리시버에서의 마우스 매핑
 
-| 입력 | 특권 모드 (Shizuku) | 접근성 모드 (폴백) |
-|---|---|---|
-| 이동 | 실제 마우스 포인터(`SOURCE_MOUSE`, hover) | 오버레이 커서 그리기 |
-| 왼쪽 클릭 | 마우스 클릭 | 탭 제스처 |
-| 드래그 | 마우스 드래그 | 이어지는 제스처(`willContinue`) |
-| 오른쪽 클릭 | 보조 버튼(앱 컨텍스트 메뉴) | 뒤로가기 (설정 가능) |
-| 휠 | `AXIS_VSCROLL/HSCROLL` | 스와이프 제스처 |
-| 키보드 | 실제 `KeyEvent` 주입 | keymanc IME 통해 전달 (한글 조합은 자체 오토마타 필요) |
+| 입력 | 특권 A1: UHID (기본) | 특권 A2: Inject | 접근성 모드 (폴백) |
+|---|---|---|---|
+| 이동 | 실제 HID 마우스 → **시스템 포인터** | `SOURCE_MOUSE` 주입 + 오버레이 커서 | 오버레이 커서 |
+| 왼쪽 클릭 | 실제 클릭 | 마우스 클릭 이벤트 | 탭 제스처 |
+| 드래그 | 실제 드래그 | 마우스 드래그 | 놓을 때 경로 재생 (P0) → 이어지는 제스처 (P1 검토) |
+| 오른쪽 클릭 | 실제 보조 버튼 | 보조 버튼 | 뒤로가기 |
+| 휠 | 실제 휠 | `AXIS_VSCROLL/HSCROLL` | 스와이프 제스처 |
+| 키보드 | 실제 HID 키보드 (Android 물리 키보드 배열·키 반복 적용) | `KeyEvent` 주입 | keymanc IME (한글 조합은 자체 오토마타 필요) |
+
+> 주입된 `MotionEvent` 는 시스템 포인터를 움직이지 않는다(포인터는 InputReader가 실제 장치에서만 그린다).
+> 그래서 특권 모드의 기본을 `/dev/uhid` 가상 HID 장치로 바꿨다 (scrcpy의 UHID 모드와 같은 방식).
 
 ### 5.4 Stuck key / 안전장치
 
@@ -306,6 +309,7 @@ enum Msg {
 - UIPI: 관리자 권한 창에는 비관리자 프로세스가 훅/주입 불가 → "관리자 권한으로 실행" 옵션.
 - 보안 데스크톱(UAC 프롬프트, Ctrl+Alt+Del, 잠금화면)은 캡처/주입 불가. `Ctrl+Alt+Del` 은 전달 불가.
 - 세션 0 서비스로는 사용자 데스크톱 훅 불가 → **사용자 세션 프로세스**로 실행, 자동시작은 작업 스케줄러(로그온 시).
+- 일부 구형 Intel 그래픽 드라이버는 `Ctrl+Alt+방향키`를 화면 회전에 쓴다. 훅이 먼저 삼키지만, 충돌 시 단축키 변경 옵션 필요.
 
 ### 7.2 Android — 리시버 (P1 핵심)
 
@@ -313,8 +317,12 @@ enum Msg {
 
 **A. 특권 모드 (권장, 품질 최고)** — Shizuku
 - Shizuku(무선 디버깅으로 기기 단독 활성화 가능, PC 불필요)를 통해 **shell 권한의 UserService** 실행.
-- UserService에서 `InputManager.injectInputEvent` (hidden API, scrcpy와 같은 방식)로
-  실제 `MotionEvent(SOURCE_MOUSE)` / `KeyEvent` 주입 → 진짜 마우스 포인터, 호버, 우클릭, 모든 키 동작.
+- **A1. UHID (기본)**: shell 사용자가 `/dev/uhid` 로 가상 키보드·마우스를 만든다.
+  Android 입장에서는 실제 USB/BT 장치와 같으므로 시스템 포인터, 키 반복, 물리 키보드 배열, 한/영 전환이 그대로 동작.
+  프로토콜이 HID usage 기반이라 변환 없이 리포트로 전달된다.
+- **A2. Inject (비교용)**: `InputManager(Global).injectInputEvent` 로 `KeyEvent`/`MotionEvent` 주입.
+  시스템 포인터가 움직이지 않아 오버레이 커서가 필요.
+- 앱 ↔ 특권 프로세스는 AIDL 없이 직접 작성한 Binder 트랜잭션(단방향 호출)으로 통신.
 - 단점: 재부팅 후 Shizuku 재시작 필요(무선 디버깅 켜야 함). 앱에서 상태 감지 후 안내.
 
 **B. 접근성 모드 (폴백, 설정 쉬움)**
@@ -324,6 +332,7 @@ enum Msg {
 
 **공통**
 - Foreground Service (`foregroundServiceType="connectedDevice"`, Android 14+) + 상시 알림(현재 상태/역할 전환 버튼).
+- 수신 중에는 `WIFI_MODE_FULL_LOW_LATENCY` Wi-Fi 락을 잡아 절전으로 인한 지연 급증을 막는다.
 - 배터리 최적화 예외 요청, 부팅 시 자동 시작(`BOOT_COMPLETED`, 설정 시).
 - 화면 회전/해상도 변경 시 `Caps` 재전송.
 
@@ -333,6 +342,7 @@ Android에 연결된 BT/USB 키보드·마우스를 다른 기기와 공유하�
 
 - **특권 모드 필수**: Shizuku UserService(shell 사용자, `input` 그룹)에서 `/dev/input/event*` 를 읽고
   `EVIOCGRAB` 로 로컬 전달 차단. (기기별 동작 차이 → **P0 PoC 필요**)
+  - `Os.ioctlInt(fd, EVIOCGRAB)` 는 인자로 포인터(널 아님)를 넘기므로 grab으로 동작하고, fd를 닫으면 해제된다 → NDK 불필요.
 - 접근성만으로는 키 이벤트 필터링(`FLAG_REQUEST_FILTER_KEY_EVENTS`)은 가능하나 **마우스 캡처 불가** → 키보드 전용 제한 모드.
 - 트리거: MVP는 단축키만. 경계 모드는 연구 항목
   (후보: 화면 가장자리 1~2px 오버레이 창의 `ACTION_HOVER_ENTER` 감지 — 가장자리 터치 제스처 충돌 검토 필요).
@@ -403,13 +413,13 @@ Idle ─▶ Advertising(mDNS 광고, 리스닝)
 
 ---
 
-## 11. 결정이 필요한 항목
+## 11. 결정 사항 (P0 시작 시 확정)
 
-| ID | 질문 | 제안 |
+| ID | 질문 | 결정 |
 |---|---|---|
 | D1 | 코어 언어 | Rust 코어 + Kotlin(Android) + Tauri(Desktop UI) |
 | D2 | 전환 트리거 | 둘 다 지원. P1은 단축키, P2에 화면 경계 추가 |
-| D3 | Android 리시버 주입 방식 | Shizuku 특권 모드 기본 + 접근성 폴백 |
+| D3 | Android 리시버 주입 방식 | Shizuku 특권 모드(UHID) 기본 + 접근성 폴백 |
 | D4 | 한 기기의 동시 호스트+리시버 활성 | 불허 (실행 시 하나 선택, 트레이에서 즉시 전환) |
 | D5 | 리시버의 다중 호스트 동시 연결 | 1개만 활성, 나머지 `Busy` |
 | D6 | "같은 네트워크" 판정 수준 | 사설대역 + 동일 서브넷 기본, TTL=1 엄격모드는 옵션 |

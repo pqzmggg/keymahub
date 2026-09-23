@@ -1,0 +1,6 @@
+[package]
+name = "keymanc-proto"
+description = "keymanc wire protocol"
+edition.workspace = true
+license.workspace = true
+version.workspace = true

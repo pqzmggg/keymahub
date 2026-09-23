@@ -1,0 +1,17 @@
+[workspace]
+resolver = "2"
+members = [
+    "core/proto",
+    "core/keymap",
+    "poc/kmc",
+    "poc/win-capture",
+]
+
+[workspace.package]
+edition = "2021"
+license = "MIT"
+version = "0.0.1"
+
+[workspace.dependencies]
+keymanc-proto = { path = "core/proto" }
+keymanc-keymap = { path = "core/keymap" }

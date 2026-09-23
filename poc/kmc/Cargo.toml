@@ -1,0 +1,10 @@
+[package]
+name = "kmc"
+description = "P0 test tools: dump receiver, scripted demo sender, ping"
+edition.workspace = true
+license.workspace = true
+version.workspace = true
+
+[dependencies]
+keymanc-proto.workspace = true
+keymanc-keymap.workspace = true
