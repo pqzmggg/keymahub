@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
@@ -23,19 +22,14 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TimePicker
-import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -44,7 +38,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -55,9 +48,8 @@ import com.kemahub.core.ActivationMode
 import com.kemahub.core.HubStatus
 import com.kemahub.core.Profile
 import com.kemahub.core.Settings
-import com.kemahub.core.TimeRule
 
-/** One profile: when it applies (time, connected devices) and which device is on which hotkey. */
+/** One profile: when it applies (connected devices) and which device is on which hotkey. */
 @Composable
 fun ProfileScreen(
     profileId: String,
@@ -105,7 +97,6 @@ fun ProfileScreen(
                 )
             }
         }
-        TimeCard(profile.time) { rule -> onEdit { it.setTime(profileId, rule) } }
         ConnectedCard(
             settings = settings,
             chosen = profile.whenConnected,
@@ -158,83 +149,6 @@ fun ProfileScreen(
 }
 
 // ---------------------------------------------------------------- conditions
-
-@Composable
-private fun TimeCard(time: TimeRule?, onChange: (TimeRule?) -> Unit) {
-    var picking by remember { mutableStateOf<Boolean?>(null) } // true = start, false = end
-    Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Text(stringResource(R.string.condition_time), style = MaterialTheme.typography.titleMedium)
-                    Text(
-                        time?.let { conditionText(Profile("", "", time = it), Settings()) } ?: stringResource(R.string.condition_time_off),
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
-                Switch(checked = time != null, onCheckedChange = { onChange(if (it) TimeRule() else null) })
-            }
-            if (time != null) {
-                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    for (day in 1..7) {
-                        DayToggle(dayName(day), time.on(day), Modifier.weight(1f)) {
-                            val next = time.toggle(day)
-                            if (next.days != 0) onChange(next)
-                        }
-                    }
-                }
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(onClick = { picking = true }, modifier = Modifier.weight(1f)) { Text(timeText(time.start)) }
-                    Text("–")
-                    OutlinedButton(onClick = { picking = false }, modifier = Modifier.weight(1f)) { Text(timeText(time.end)) }
-                }
-                Text(
-                    stringResource(if (time.start == time.end) R.string.time_all_day_hint else R.string.time_hint),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
-    }
-    val which = picking
-    if (which != null && time != null) {
-        TimeDialog(
-            title = stringResource(if (which) R.string.time_start else R.string.time_end),
-            minute = if (which) time.start else time.end,
-            onDismiss = { picking = null },
-            onPick = { m ->
-                picking = null
-                onChange(if (which) time.copy(start = m) else time.copy(end = m))
-            },
-        )
-    }
-}
-
-@Composable
-private fun DayToggle(label: String, on: Boolean, modifier: Modifier, onClick: () -> Unit) {
-    Surface(
-        shape = RoundedCornerShape(8.dp),
-        color = if (on) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-        contentColor = if (on) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = modifier.height(40.dp).clickable(onClick = onClick),
-    ) {
-        Box(contentAlignment = Alignment.Center) { Text(label, style = MaterialTheme.typography.labelMedium, maxLines = 1) }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun TimeDialog(title: String, minute: Int, onDismiss: () -> Unit, onPick: (Int) -> Unit) {
-    val context = LocalContext.current
-    val state = rememberTimePickerState(minute / 60, minute % 60, android.text.format.DateFormat.is24HourFormat(context))
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(title) },
-        text = { TimePicker(state = state) },
-        confirmButton = { TextButton(onClick = { onPick(state.hour * 60 + state.minute) }) { Text(stringResource(R.string.action_ok)) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
-    )
-}
 
 /** "While one of these devices is connected": a checklist of the paired devices. */
 @Composable

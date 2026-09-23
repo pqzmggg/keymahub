@@ -25,7 +25,7 @@ import com.kemahub.ui.MainActivity
 /**
  * Runs KemaHub in the background ("hosting"): the phone advertises as a BLE keyboard + mouse,
  * and the hotkeys (modifiers + 1..9, 0) move the phone's keyboard and mouse between the active profile's receivers and
- * the phone itself. Also re-picks the active profile as the time and the connected devices change.
+ * the phone itself. Also re-picks the active profile as devices connect and disconnect.
  */
 class HubService : Service(), BleHid.Listener {
     private var started = false
@@ -101,7 +101,6 @@ class HubService : Service(), BleHid.Listener {
         main.post {
             if (destroyed) return@post
             if (pendingPairing) setPairing(true)
-            minuteTick.run()
         }
         updateNotification()
     }
@@ -139,17 +138,6 @@ class HubService : Service(), BleHid.Listener {
         if (on) main.postDelayed(pairingOff, PAIRING_MS)
         Hub.update { it.copy(pairingUntil = if (on) SystemClock.elapsedRealtime() + PAIRING_MS else 0) }
         updateNotification()
-    }
-
-    // ---------------------------------------------------------------- automatic profile
-
-    /** Every minute: re-pick the profile for time rules (connections re-pick it as they happen). */
-    private val minuteTick = object : Runnable {
-        override fun run() {
-            Hub.resolve(this@HubService)
-            val now = System.currentTimeMillis()
-            main.postDelayed(this, 60_000 - now % 60_000 + 200)
-        }
     }
 
     // ---------------------------------------------------------------- routing callbacks

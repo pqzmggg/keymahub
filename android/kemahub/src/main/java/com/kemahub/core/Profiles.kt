@@ -48,25 +48,23 @@ data class Device(val address: String, val name: String, val lastUsed: Long = 0,
  *
  * Slot 0 is this phone, slots 1..9 are receivers (see [Hotkeys]).
  * An empty [name] is the unnamed default profile (the UI shows a translated name).
- * Conditions: [time] and/or [whenConnected] (any of these devices connected); with both, both
- * must hold. A profile without conditions is only used when activated by hand.
+ * Condition (rule-based activation): [whenConnected], any of these devices connected. Without
+ * it, the profile is only used when activated by hand (or picked by fully automatic mode).
  */
 data class Profile(
     val id: String,
     val name: String,
     val receivers: Map<Int, String> = emptyMap(),
-    val time: TimeRule? = null,
     val whenConnected: Set<String> = emptySet(),
 ) {
     fun addressOf(slot: Int): String? = receivers[slot]
 
     fun slotOf(address: String): Int? = receivers.entries.firstOrNull { it.value == address }?.key
 
-    val hasConditions get() = time != null || whenConnected.isNotEmpty()
+    val hasConditions get() = whenConnected.isNotEmpty()
 
-    /** [day] ISO 1..7, [minute] of the day, [connected] the devices connected right now. */
-    fun matches(day: Int, minute: Int, connected: Set<String>): Boolean =
-        (time?.matches(day, minute) ?: true) && (whenConnected.isEmpty() || whenConnected.any { it in connected })
+    /** [connected]: the devices connected right now. */
+    fun matches(connected: Set<String>): Boolean = whenConnected.any { it in connected }
 
     companion object {
         const val SLOTS = 10
@@ -79,7 +77,7 @@ enum class ActivationMode {
     /** The profile with the most of its receivers connected (ties: higher in the list). */
     AUTO,
 
-    /** The first profile, in list order, whose conditions (time, connected devices) hold. */
+    /** The first profile, in list order, one of whose chosen devices is connected. */
     RULES,
 
     /** Only the profile the user activates. */
@@ -125,14 +123,15 @@ data class Settings(
     fun profile(id: String) = profiles.firstOrNull { it.id == id }
 
     /** Picks the active profile for this moment. */
-    fun resolve(day: Int, minute: Int, connected: Set<String>): Settings {
+    /** Picks the active profile given the devices connected right now. */
+    fun resolve(connected: Set<String>): Settings {
         val matched = when (mode) {
             // maxByOrNull keeps the first of equal counts: the higher profile wins ties.
             ActivationMode.AUTO -> profiles
                 .map { p -> p to p.receivers.values.count { it in connected } }
                 .filter { it.second > 0 }
                 .maxByOrNull { it.second }?.first?.id
-            ActivationMode.RULES -> profiles.firstOrNull { it.hasConditions && it.matches(day, minute, connected) }?.id
+            ActivationMode.RULES -> profiles.firstOrNull { it.matches(connected) }?.id
             ActivationMode.MANUAL -> null
         }
         val overridden = overriddenId?.takeIf { it == matched }
@@ -210,7 +209,7 @@ data class Settings(
      */
     fun addProfile(name: String): Pair<Settings, String> {
         val n = (profiles.mapNotNull { it.id.removePrefix("p").toIntOrNull() }.maxOrNull() ?: 0) + 1
-        val p = active.copy(id = "p$n", name = clean(name), time = null, whenConnected = emptySet())
+        val p = active.copy(id = "p$n", name = clean(name), whenConnected = emptySet())
         return copy(profiles = listOf(p) + profiles) to p.id
     }
 
@@ -242,12 +241,6 @@ data class Settings(
         return copy(profiles = list)
     }
 
-    fun setTime(id: String, rule: TimeRule?): Settings {
-        val p = profile(id) ?: return this
-        if (rule != null && !rule.isValid) return this
-        return withProfile(p.copy(time = rule))
-    }
-
     /** The profile applies while any of [addresses] is connected (empty: no such condition). */
     fun setWhenConnected(id: String, addresses: Set<String>): Settings {
         val p = profile(id) ?: return this
@@ -270,11 +263,10 @@ data class Settings(
         for (d in devices) append("device\t${d.address}\t${d.name}\t${d.lastUsed}\t${if (d.blocked) 1 else 0}\n")
         for (p in profiles) {
             val recv = p.receivers.entries.sortedBy { it.key }.joinToString(",") { "${it.key}=${it.value}" }
-            val time = p.time?.let { "${it.days},${it.start},${it.end}" }.orEmpty()
             val connected = p.whenConnected.joinToString(",")
             // The empty 4th field held per-profile hotkeys in early builds.
-            // Empty 4th and 7th fields: per-profile hotkeys and places of early builds.
-            append("profile\t${p.id}\t${p.name}\t\t$recv\t$time\t\t$connected\n")
+            // Empty 4th, 6th and 7th fields: per-profile hotkeys, times and places of early builds.
+            append("profile\t${p.id}\t${p.name}\t\t$recv\t\t\t$connected\n")
         }
     }
 
@@ -304,7 +296,6 @@ data class Settings(
                     "profile" -> if (f.size >= 3 && f[1].isNotEmpty() && profiles.none { it.id == f[1] }) {
                         profiles += Profile(
                             f[1], f[2], receivers = receivers(f.getOrNull(4)),
-                            time = time(f.getOrNull(5)),
                             whenConnected = f.getOrNull(7).orEmpty().split(',').filter { it.isNotEmpty() }.toSet(),
                         )
                     }
@@ -318,11 +309,6 @@ data class Settings(
             fun valid(id: String?) = id?.takeIf { i -> cleaned.any { it.id == i } }
             val activeId = valid(active) ?: cleaned.first().id
             return Settings(devices, cleaned, activeId, valid(chosen) ?: activeId, valid(matched), valid(overridden), mods, mode)
-        }
-
-        private fun time(text: String?): TimeRule? {
-            val v = text.orEmpty().split(',').mapNotNull { it.toIntOrNull() }.takeIf { it.size == 3 } ?: return null
-            return TimeRule(v[0], v[1], v[2]).takeIf { it.isValid }
         }
 
         private fun receivers(text: String?): Map<Int, String> {

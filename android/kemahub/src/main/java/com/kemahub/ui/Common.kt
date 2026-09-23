@@ -33,7 +33,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.font.FontWeight
@@ -43,9 +42,6 @@ import androidx.compose.ui.unit.sp
 import com.kemahub.R
 import com.kemahub.core.Profile
 import com.kemahub.core.Settings
-import com.kemahub.core.TimeRule
-import java.time.DayOfWeek
-import java.time.format.TextStyle
 
 @Composable
 fun Page(content: @Composable ColumnScope.() -> Unit) {
@@ -104,38 +100,10 @@ fun SectionTitle(text: String, hint: String? = null) {
     }
 }
 
-fun timeText(minute: Int) = "%02d:%02d".format(minute / 60, minute % 60)
-
-/** "Weekdays", "Mon, Wed", "Every day". */
-@Composable
-fun daysText(days: Int): String = when (days) {
-    TimeRule.ALL -> stringResource(R.string.days_every)
-    TimeRule.WEEKDAYS -> stringResource(R.string.days_weekdays)
-    TimeRule.WEEKEND -> stringResource(R.string.days_weekend)
-    else -> {
-        val locale = LocalConfiguration.current.locales[0]
-        (1..7).filter { days and (1 shl (it - 1)) != 0 }
-            .joinToString(", ") { DayOfWeek.of(it).getDisplayName(TextStyle.SHORT, locale) }
-    }
-}
-
-/** Short localized name of ISO day [day] (1 = Monday). */
-@Composable
-fun dayName(day: Int): String {
-    val locale = LocalConfiguration.current.locales[0]
-    return DayOfWeek.of(day).getDisplayName(TextStyle.SHORT, locale)
-}
-
 /** One line describing when [p] applies. */
 @Composable
 fun conditionText(p: Profile, settings: Settings): String {
-    val parts = mutableListOf<String>()
-    p.time?.let { t ->
-        val hours = if (t.start == t.end) stringResource(R.string.time_all_day) else "${timeText(t.start)}–${timeText(t.end)}"
-        parts += "${daysText(t.days)} $hours"
-    }
-    if (p.whenConnected.isNotEmpty()) parts += connectedText(settings, p.whenConnected)
-    return if (parts.isEmpty()) stringResource(R.string.condition_always) else parts.joinToString(" · ")
+    return if (p.whenConnected.isEmpty()) stringResource(R.string.condition_always) else connectedText(settings, p.whenConnected)
 }
 
 /** "When Desk PC or Laptop is connected". */

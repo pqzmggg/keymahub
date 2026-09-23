@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import java.text.SimpleDateFormat
-import java.time.LocalDateTime
 import java.util.Date
 import java.util.Locale
 
@@ -61,7 +60,7 @@ object Hub {
         _status.value.settings
     }
 
-    /** Re-picks the active profile for the current time and the devices connected now. */
+    /** Re-picks the active profile for the devices connected now. */
     fun resolve(context: Context) = edit(context) { it }
 
     /** Changes the settings (then re-picks the active profile), saves and publishes them. */
@@ -70,8 +69,7 @@ object Hub {
         val after: Settings
         synchronized(this) {
             before = settings(context)
-            val now = LocalDateTime.now()
-            after = change(before).resolve(now.dayOfWeek.value, now.hour * 60 + now.minute, _status.value.ready)
+            after = change(before).resolve(_status.value.ready)
             if (after == before) return
             context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY_SETTINGS, after.encode()).apply()
             _status.update { it.copy(settings = after) }
