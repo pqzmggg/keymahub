@@ -29,7 +29,6 @@
     <string name="action_ok">OK</string>
     <string name="action_stop">Arrêter</string>
     <string name="menu">Menu</string>
-    <string name="diagnostics">Diagnostic</string>
     <string name="diagnostics_title">Journal de diagnostic</string>
     <string name="log_empty">(vide)</string>
     <string name="status_phone">Contrôle de ce téléphone</string>
@@ -151,6 +150,10 @@
     <string name="show_hud">Annonce de changement</string>
     <string name="show_hud_hint">Affiche brièvement l\'appareil choisi</string>
     <string name="version">Version %1$s</string>
+    <string name="report_menu">Envoyer le journal de diagnostic</string>
+    <string name="report_message">Ce journal aide le développeur à analyser les problèmes. Il contient les événements de l\'appli et les noms des appareils, jamais ce que vous tapez. L\'envoi ouvre votre appli de messagerie adressée au développeur.</string>
+    <string name="report_send">Envoyer par e-mail</string>
+    <string name="report_no_app">Aucune appli de messagerie trouvée.</string>
     <plurals name="ready_count">
         <item quantity="one">%1$d appareil connecté</item>
         <item quantity="many">%1$d appareils connectés</item>

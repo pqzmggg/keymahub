@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -24,6 +25,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -55,6 +57,8 @@ fun HomeScreen(
     onOpenProfile: (String) -> Unit,
     onDevices: () -> Unit,
     onSettings: () -> Unit,
+    /** Opens an email to the developer with [log] (the user sends it from their mail app). */
+    onSendLog: (log: String) -> Unit,
 ) {
     val settings = status.settings
     var menu by remember { mutableStateOf(false) }
@@ -71,7 +75,8 @@ fun HomeScreen(
                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                     DropdownMenuItem(text = { Text(stringResource(R.string.devices_title)) }, onClick = { menu = false; onDevices() })
                     DropdownMenuItem(text = { Text(stringResource(R.string.settings_title)) }, onClick = { menu = false; onSettings() })
-                    DropdownMenuItem(text = { Text(stringResource(R.string.diagnostics)) }, onClick = { menu = false; showLog = true })
+                    HorizontalDivider()
+                    DropdownMenuItem(text = { Text(stringResource(R.string.report_menu)) }, onClick = { menu = false; showLog = true })
                 }
             }
         }
@@ -154,11 +159,24 @@ fun HomeScreen(
             onDismissRequest = { showLog = false },
             title = { Text(stringResource(R.string.diagnostics_title)) },
             text = {
-                SelectionContainer(Modifier.height(400.dp).verticalScroll(rememberScrollState())) {
-                    Text(log.ifEmpty { stringResource(R.string.log_empty) }, fontFamily = FontFamily.Monospace, fontSize = 11.sp)
+                Column {
+                    Text(stringResource(R.string.report_message), style = MaterialTheme.typography.bodyMedium)
+                    Spacer(Modifier.height(12.dp))
+                    Surface(
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = MaterialTheme.shapes.small,
+                        modifier = Modifier.fillMaxWidth().height(320.dp),
+                    ) {
+                        SelectionContainer(Modifier.verticalScroll(rememberScrollState()).padding(8.dp)) {
+                            Text(log.ifEmpty { stringResource(R.string.log_empty) }, fontFamily = FontFamily.Monospace, fontSize = 11.sp)
+                        }
+                    }
                 }
             },
-            confirmButton = { TextButton(onClick = { showLog = false }) { Text(stringResource(R.string.action_close)) } },
+            confirmButton = {
+                Button(onClick = { showLog = false; onSendLog(log) }) { Text(stringResource(R.string.report_send)) }
+            },
+            dismissButton = { TextButton(onClick = { showLog = false }) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
 }

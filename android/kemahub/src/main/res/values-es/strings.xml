@@ -29,7 +29,6 @@
     <string name="action_ok">Aceptar</string>
     <string name="action_stop">Detener</string>
     <string name="menu">Menú</string>
-    <string name="diagnostics">Diagnóstico</string>
     <string name="diagnostics_title">Registro de diagnóstico</string>
     <string name="log_empty">(vacío)</string>
     <string name="status_phone">Controlando este teléfono</string>
@@ -151,6 +150,10 @@
     <string name="show_hud">Aviso de cambio</string>
     <string name="show_hud_hint">Muestra brevemente a qué dispositivo cambiaste</string>
     <string name="version">Versión %1$s</string>
+    <string name="report_menu">Enviar registro de diagnóstico</string>
+    <string name="report_message">Este registro ayuda al desarrollador a investigar problemas. Incluye los eventos de la app y los nombres de los dispositivos, nunca lo que escribes. Al enviar se abre tu app de correo con la dirección del desarrollador.</string>
+    <string name="report_send">Enviar por correo</string>
+    <string name="report_no_app">No se encontró ninguna app de correo.</string>
     <plurals name="ready_count">
         <item quantity="one">%1$d dispositivo conectado</item>
         <item quantity="many">%1$d dispositivos conectados</item>

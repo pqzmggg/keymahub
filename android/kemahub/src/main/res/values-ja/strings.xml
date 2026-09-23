@@ -29,7 +29,6 @@
     <string name="action_ok">OK</string>
     <string name="action_stop">停止</string>
     <string name="menu">メニュー</string>
-    <string name="diagnostics">診断</string>
     <string name="diagnostics_title">診断ログ</string>
     <string name="log_empty">（空）</string>
     <string name="status_phone">このスマホを操作中</string>
@@ -151,6 +150,10 @@
     <string name="show_hud">切り替えポップアップ</string>
     <string name="show_hud_hint">切り替えたデバイスを一瞬表示</string>
     <string name="version">バージョン %1$s</string>
+    <string name="report_menu">診断ログを送信</string>
+    <string name="report_message">問題の調査に使うログです。アプリの動作記録とデバイス名が含まれ、入力した内容は含まれません。送信すると、開発者宛てのメールアプリが開きます。</string>
+    <string name="report_send">メールで送信</string>
+    <string name="report_no_app">メールアプリが見つかりません。</string>
     <plurals name="ready_count">
         <item quantity="other">%1$d 台接続中</item>
     </plurals>

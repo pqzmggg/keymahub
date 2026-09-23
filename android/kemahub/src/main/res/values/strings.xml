@@ -30,7 +30,6 @@
     <string name="action_ok">OK</string>
     <string name="action_stop">Stop</string>
     <string name="menu">Menu</string>
-    <string name="diagnostics">Diagnostics</string>
     <string name="diagnostics_title">Diagnostic log</string>
     <string name="log_empty">(empty)</string>
     <string name="status_phone">Controlling this phone</string>
@@ -152,6 +151,10 @@
     <string name="show_hud">Switch popup</string>
     <string name="show_hud_hint">Briefly show which device you switched to</string>
     <string name="version">Version %1$s</string>
+    <string name="report_menu">Send diagnostic log</string>
+    <string name="report_message">This log helps the developer look into problems. It has the app\'s events and device names, never what you type. Sending opens your email app addressed to the developer.</string>
+    <string name="report_send">Send by email</string>
+    <string name="report_no_app">No email app found.</string>
     <plurals name="ready_count">
         <item quantity="one">%1$d device connected</item>
         <item quantity="other">%1$d devices connected</item>

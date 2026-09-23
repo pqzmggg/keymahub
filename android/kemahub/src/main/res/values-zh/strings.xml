@@ -29,7 +29,6 @@
     <string name="action_ok">确定</string>
     <string name="action_stop">停止</string>
     <string name="menu">菜单</string>
-    <string name="diagnostics">诊断</string>
     <string name="diagnostics_title">诊断日志</string>
     <string name="log_empty">（空）</string>
     <string name="status_phone">正在控制本手机</string>
@@ -151,6 +150,10 @@
     <string name="show_hud">切换提示</string>
     <string name="show_hud_hint">短暂显示切换到的设备</string>
     <string name="version">版本 %1$s</string>
+    <string name="report_menu">发送诊断日志</string>
+    <string name="report_message">此日志用于排查问题，包含应用运行记录和设备名称，不包含您输入的内容。点按发送将打开已填好开发者地址的邮件应用。</string>
+    <string name="report_send">通过邮件发送</string>
+    <string name="report_no_app">未找到邮件应用。</string>
     <plurals name="ready_count">
         <item quantity="other">已连接 %1$d 台设备</item>
     </plurals>

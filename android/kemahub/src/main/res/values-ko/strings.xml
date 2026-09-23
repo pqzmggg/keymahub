@@ -29,7 +29,6 @@
     <string name="action_ok">확인</string>
     <string name="action_stop">중지</string>
     <string name="menu">메뉴</string>
-    <string name="diagnostics">진단</string>
     <string name="diagnostics_title">진단 로그</string>
     <string name="log_empty">(비어 있음)</string>
     <string name="status_phone">이 폰 조작 중</string>
@@ -151,6 +150,10 @@
     <string name="show_hud">전환 팝업</string>
     <string name="show_hud_hint">어느 기기로 전환했는지 잠깐 표시</string>
     <string name="version">버전 %1$s</string>
+    <string name="report_menu">진단 로그 보내기</string>
+    <string name="report_message">문제를 확인하는 데 쓰이는 로그입니다. 앱 동작 기록과 기기 이름이 들어 있고, 입력한 내용은 들어 있지 않습니다. 보내기를 누르면 개발자 주소가 채워진 이메일 앱이 열립니다.</string>
+    <string name="report_send">이메일로 보내기</string>
+    <string name="report_no_app">이메일 앱이 없습니다.</string>
     <plurals name="ready_count">
         <item quantity="other">연결된 기기 %1$d개</item>
     </plurals>
