@@ -4,6 +4,7 @@ import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
 import com.kemahub.core.Buttons
+import com.kemahub.core.Hotkey
 import com.kemahub.core.InputSink
 import com.kemahub.core.SlotRouter
 import com.kemahub.hid.EvdevKeymap
@@ -23,6 +24,7 @@ import com.kemahub.hid.HidKeycodes
  */
 class A11yCapture(
     remote: InputSink,
+    hotkey: (Hotkey) -> Int?,
     isAvailable: (Int) -> Boolean,
     onSelect: (Int) -> Unit,
     onUnavailable: (Int) -> Unit,
@@ -38,7 +40,7 @@ class A11yCapture(
     }
 
     private val local = PassThrough()
-    private val router = SlotRouter(local, remote, isAvailable, onSelect = {
+    private val router = SlotRouter(local, remote, hotkey, isAvailable, onSelect = {
         buttons = 0
         lastX = Float.NaN
         lastY = Float.NaN

@@ -4,8 +4,8 @@ package com.kemahub.core
  * Decides where every key, button and motion from the phone's keyboard/mouse goes:
  * [local] (this phone) or [remote] (the Bluetooth target in the current slot).
  *
- * Hotkeys: Ctrl+Alt+1..9 selects target slot 1..9, Ctrl+Alt+0 returns to this phone.
- * Either Ctrl and either Alt count; Shift and Meta are ignored.
+ * Hotkeys come from [hotkey] (the active profile): a chord selects slot 0 (this phone) or a
+ * receiver slot 1..9. The held modifiers must match exactly; left and right count the same.
  *
  * Invariant: a key-up (or button-up) goes where its key-down went, so switching never leaves
  * a key held on either side. When leaving a target, whatever is still held there is
@@ -16,11 +16,13 @@ package com.kemahub.core
 class SlotRouter(
     private val local: InputSink,
     private val remote: InputSink,
-    /** Whether a ready target is assigned to [slot] (1..9). */
+    /** The slot a chord selects, or null if it is not a hotkey (right now). */
+    private val hotkey: (Hotkey) -> Int?,
+    /** Whether a ready receiver is on [slot] (1..9). */
     private val isAvailable: (slot: Int) -> Boolean,
     /** Focus changed to [slot] (0 = this phone). Called after the old target's keys were released. */
     private val onSelect: (slot: Int) -> Unit,
-    /** Ctrl+Alt+[slot] was pressed but nothing is connected in that slot. */
+    /** The hotkey of [slot] was pressed but nothing is connected there. */
     private val onUnavailable: (slot: Int) -> Unit = {},
 ) {
     private enum class Dest { LOCAL, REMOTE, SWALLOWED }
@@ -46,10 +48,11 @@ class SlotRouter(
         }
         if (code in keys) return // duplicate down
 
-        val digit = DIGITS[code]
-        if (digit != null && held(KEY_LEFTCTRL, KEY_RIGHTCTRL) && held(KEY_LEFTALT, KEY_RIGHTALT)) {
+        val mods = heldMods()
+        val target = if (mods != 0 && Mods.of(code) == 0) hotkey(Hotkey(mods, code)) else null
+        if (target != null) {
             keys[code] = Dest.SWALLOWED to null
-            select(digit)
+            select(target)
             return
         }
 
@@ -93,7 +96,7 @@ class SlotRouter(
         if (isRemote) remote.wheel(v, h) else local.wheel(v, h)
     }
 
-    /** Switches focus as if Ctrl+Alt+[target] was pressed. */
+    /** Switches focus as if the hotkey of [target] was pressed. */
     fun select(target: Int) {
         when {
             target == slot -> {}
@@ -124,7 +127,7 @@ class SlotRouter(
         buttons.clear()
     }
 
-    private fun held(vararg codes: Int) = codes.any { it in keys }
+    private fun heldMods() = keys.keys.fold(0) { m, code -> m or Mods.of(code) }
 
     /** Releases on the current target whatever is held there; their physical releases get swallowed. */
     private fun releaseRemote() {
@@ -142,15 +145,5 @@ class SlotRouter(
             }
         }
         remote.releaseAll()
-    }
-
-    companion object {
-        const val KEY_LEFTCTRL = 29
-        const val KEY_LEFTALT = 56
-        const val KEY_RIGHTCTRL = 97
-        const val KEY_RIGHTALT = 100
-
-        /** evdev KEY_1..KEY_9 = 2..10, KEY_0 = 11 → slot. */
-        private val DIGITS: Map<Int, Int> = (1..9).associateBy { it + 1 } + (11 to 0)
     }
 }

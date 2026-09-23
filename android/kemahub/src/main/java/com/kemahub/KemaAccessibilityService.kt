@@ -37,7 +37,7 @@ class KemaAccessibilityService : AccessibilityService() {
         if (instance === this) instance = null
         if (capture != null) {
             Hub.log("accessibility service turned off while running")
-            HubService.stop(applicationContext, problem = "접근성 서비스가 꺼져서 중지했습니다")
+            HubService.stop(applicationContext, problem = R.string.problem_a11y_turned_off)
         }
         capture = null
     }

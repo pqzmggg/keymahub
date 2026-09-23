@@ -18,6 +18,7 @@ import android.bluetooth.le.BluetoothLeAdvertiser
 import android.content.Context
 import android.os.Build
 import android.os.ParcelUuid
+import com.kemahub.R
 import android.os.SystemClock
 import com.kemahub.core.Hub
 import com.kemahub.hid.HidDescriptors
@@ -108,18 +109,18 @@ object BleHid {
         android.Manifest.permission.BLUETOOTH_ADVERTISE,
     ).all { context.checkSelfPermission(it) == android.content.pm.PackageManager.PERMISSION_GRANTED }
 
-    /** Blocking; call off the main thread. Returns null when ready, else why not. */
-    fun start(context: Context): String? {
+    /** Blocking; call off the main thread. Returns null when ready, else a string resource saying why not. */
+    fun start(context: Context): Int? {
         if (running) return null
-        if (!hasPermission(context)) return "블루투스 권한(근처 기기)이 필요합니다"
+        if (!hasPermission(context)) return R.string.problem_bt_permission
         appContext = context.applicationContext
-        val manager = context.getSystemService(BluetoothManager::class.java) ?: return "블루투스를 지원하지 않는 기기"
-        val adapter = manager.adapter ?: return "블루투스를 지원하지 않는 기기"
-        if (!adapter.isEnabled) return "블루투스를 켜 주세요"
-        val adv = adapter.bluetoothLeAdvertiser ?: return "이 기기는 BLE 주변기기(광고) 모드를 지원하지 않습니다"
+        val manager = context.getSystemService(BluetoothManager::class.java) ?: return R.string.problem_bt_unsupported
+        val adapter = manager.adapter ?: return R.string.problem_bt_unsupported
+        if (!adapter.isEnabled) return R.string.problem_bt_off
+        val adv = adapter.bluetoothLeAdvertiser ?: return R.string.problem_ble_peripheral
 
         Hub.log("BLE HID: opening GATT server")
-        val s = manager.openGattServer(context.applicationContext, callback) ?: return "GATT 서버를 열 수 없습니다"
+        val s = manager.openGattServer(context.applicationContext, callback) ?: return R.string.problem_gatt
         server = s
         values.clear()
         for (svc in listOf(hidService(), batteryService(), deviceInfoService())) {
@@ -127,7 +128,8 @@ object BleHid {
             if (!s.addService(svc) || !serviceAdded.await(3, TimeUnit.SECONDS)) {
                 s.close()
                 server = null
-                return "GATT 서비스 등록 실패 (${svc.uuid})"
+                Hub.log("BLE HID: adding service ${svc.uuid} failed")
+                return R.string.problem_gatt
             }
         }
         Hub.log("BLE HID: services added, starting advertising")

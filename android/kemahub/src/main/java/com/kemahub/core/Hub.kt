@@ -13,13 +13,13 @@ import java.util.Locale
 /** What the UI shows; written by the service, read by the UI. */
 data class HubStatus(
     val running: Boolean = false,
-    /** 0 = this phone, 1..9 = target slot with focus. */
+    /** 0 = this phone, 1..9 = receiver slot with focus. */
     val slot: Int = 0,
-    /** Addresses of targets connected and ready for input. */
+    /** Addresses of receivers connected and ready for input. */
     val ready: Set<String> = emptySet(),
-    val targets: List<Target> = emptyList(),
-    /** Last problem worth showing (null when fine). */
-    val problem: String? = null,
+    val settings: Settings = Settings(),
+    /** Last problem worth showing, as a string resource (null when fine). */
+    val problem: Int? = null,
 )
 
 object Hub {
@@ -28,27 +28,41 @@ object Hub {
 
     fun update(f: (HubStatus) -> HubStatus) = _status.update(f)
 
-    // ---------------------------------------------------------------- targets (persisted)
+    /** While the UI records a new hotkey, chords pass through instead of switching. */
+    @Volatile
+    var recordingHotkey = false
+
+    /** Called (on the editing thread) after the active profile changed. */
+    @Volatile
+    var onProfileChanged: (() -> Unit)? = null
+
+    // ---------------------------------------------------------------- settings (persisted)
 
     private const val PREFS = "kemahub"
-    private const val KEY_TARGETS = "targets"
-    private var table: SlotTable? = null
+    private const val KEY_SETTINGS = "settings"
+    private var loaded = false
 
-    private fun load(context: Context): SlotTable = table ?: SlotTable.decode(
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_TARGETS, null),
-    ).also {
-        table = it
-        _status.update { s -> s.copy(targets = it.all) }
+    fun settings(context: Context): Settings = synchronized(this) {
+        if (!loaded) {
+            val text = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_SETTINGS, null)
+            _status.update { it.copy(settings = Settings.decode(text)) }
+            loaded = true
+        }
+        _status.value.settings
     }
 
-    fun targets(context: Context): SlotTable = synchronized(this) { load(context) }
-
-    /** Changes the slot table, saves it and publishes it. */
-    fun editTargets(context: Context, edit: (SlotTable) -> Unit) = synchronized(this) {
-        val t = load(context)
-        edit(t)
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY_TARGETS, t.encode()).apply()
-        _status.update { it.copy(targets = t.all) }
+    /** Changes the settings, saves and publishes them. */
+    fun edit(context: Context, change: (Settings) -> Settings) {
+        val before: Settings
+        val after: Settings
+        synchronized(this) {
+            before = settings(context)
+            after = change(before)
+            if (after == before) return
+            context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY_SETTINGS, after.encode()).apply()
+            _status.update { it.copy(settings = after) }
+        }
+        if (after.activeId != before.activeId) onProfileChanged?.invoke()
     }
 
     // ---------------------------------------------------------------- log (diagnostics screen)

@@ -21,6 +21,12 @@ android {
         compose = true
     }
 
+    // English (default), Korean, Japanese, Chinese, Spanish, French; also lists them for the
+    // per-app language setting (Android 13+).
+    androidResources {
+        generateLocaleConfig = true
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
