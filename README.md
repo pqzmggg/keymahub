@@ -21,13 +21,12 @@
 | `core/keymap` | USB HID ↔ Windows / Linux 키 코드 변환표 |
 | `poc/win-capture` | Windows 전역 입력 캡처·차단·전송 |
 | `poc/kmc` | 테스트 도구: `dump` / `demo` / `ping` |
-| `android/app` | P0 테스트 콘솔 (리시버 UHID·Inject·접근성, BLE 호스트, evdev 프로브) |
 | `android/keymahub` | **KeymaHub** 제품 앱: 폰의 키보드·마우스를 BLE로 PC·태블릿에 (기본 `Shift+Alt+1` 이 폰, `Shift+Alt+2~9, 0` 기기; 보조키 변경·프로필·6개 언어) |
 
 ```sh
 cargo test --workspace                          # Rust 테스트
 cargo build --release -p win-capture -p kmc     # Windows 도구
-cd android && ./gradlew testDebugUnitTest assembleDebug   # P0 앱 + KeymaHub
+cd android && ./gradlew testDebugUnitTest assembleDebug   # KeymaHub
 ```
 
 ## KeymaHub 릴리스

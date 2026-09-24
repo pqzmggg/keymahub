@@ -46,10 +46,6 @@ jobs:
       - run: ./gradlew --no-daemon testDebugUnitTest assembleDebug :keymahub:assembleRelease
       - uses: actions/upload-artifact@v4
         with:
-          name: keymahub-p0-apk
-          path: android/app/build/outputs/apk/debug/*.apk
-      - uses: actions/upload-artifact@v4
-        with:
           name: keymahub-apk
           path: |
             android/keymahub/build/outputs/apk/debug/*.apk
