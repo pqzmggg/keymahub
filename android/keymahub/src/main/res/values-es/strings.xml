@@ -147,6 +147,8 @@
     <string name="profiles_hint_auto">Se usa el perfil con más de sus dispositivos conectados; en caso de empate, el de más arriba. Arrastra ☰ para reordenar. Si no hay ninguno conectado, se usa el último perfil que activaste.</string>
     <string name="profiles_hint_manual">Se usa el perfil que actives. Arrastra ☰ para reordenar.</string>
     <string name="mode_fallback_note">En ambos modos automáticos, si no coincide ninguno, se usa el último perfil que activaste. Activar un perfil a mano también tiene prioridad sobre la elección automática hasta que cambien los dispositivos conectados.</string>
+    <string name="device_connect">Conectar</string>
+    <string name="device_connecting">Conectando con %1$s. Se conectará cuando el dispositivo esté encendido y cerca.</string>
     <plurals name="ready_count">
         <item quantity="one">%1$d dispositivo conectado</item>
         <item quantity="many">%1$d dispositivos conectados</item>

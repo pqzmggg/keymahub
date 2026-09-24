@@ -20,6 +20,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -45,6 +46,7 @@ fun DevicesScreen(
     onBack: () -> Unit,
     onEdit: ((Settings) -> Settings) -> Unit,
     onPairing: (Boolean) -> Unit,
+    onConnect: (Device) -> Unit,
     onDisconnect: (String) -> Unit,
     onAllow: (String) -> Unit,
     onRemove: (String) -> Unit,
@@ -65,6 +67,7 @@ fun DevicesScreen(
             DeviceRow(
                 d, connected = d.address in status.ready,
                 onRename = { renaming = d },
+                onConnect = { onConnect(d) },
                 onDisconnect = { onDisconnect(d.address) },
                 onAllow = { onAllow(d.address) },
                 onRemove = { removing = d },
@@ -145,6 +148,7 @@ private fun DeviceRow(
     d: Device,
     connected: Boolean,
     onRename: () -> Unit,
+    onConnect: () -> Unit,
     onDisconnect: () -> Unit,
     onAllow: () -> Unit,
     onRemove: () -> Unit,
@@ -178,13 +182,16 @@ private fun DeviceRow(
                 )
                 Text(lastUsed, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
+            if (!connected && !d.blocked) {
+                TextButton(onClick = onConnect) { Text(stringResource(R.string.device_connect)) }
+            }
             Box {
                 IconButton(onClick = { menu = true }) { Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.menu)) }
                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                     DropdownMenuItem(text = { Text(stringResource(R.string.device_rename)) }, onClick = { menu = false; onRename() })
                     if (d.blocked) {
                         DropdownMenuItem(text = { Text(stringResource(R.string.device_allow)) }, onClick = { menu = false; onAllow() })
-                    } else {
+                    } else if (connected) {
                         DropdownMenuItem(text = { Text(stringResource(R.string.device_disconnect)) }, onClick = { menu = false; onDisconnect() })
                     }
                     HorizontalDivider()
