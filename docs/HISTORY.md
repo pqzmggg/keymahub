@@ -57,12 +57,12 @@
 | **Windows 조작 중 폰 포인터도 같이 움직임** | 접근성 모션 가로채기는 이벤트만 가로채고 포인터는 시스템이 먼저 움직임 | 대상 조작 중 투명 오버레이 + **포인터 캡처** (폰 포인터 숨김·고정) | `7776709` |
 | 최종 | **Shizuku 없이 BLE 호스트 정상, 버벅임 없음** | P0 결과 기록 | `7157fca` |
 
-## 6. KemaHub (Android 제품) 착수
+## 6. KeymaHub (Android 제품, 처음 이름 KemaHub) 착수
 
 - 결정: 첫 유료 제품은 **Android 블루투스 허브만**. 이름 KemaHub, Play 스토어 비공개(closed) 배포부터.
 - 결정: **단축키만** (`Ctrl+Alt+1~9` = 대상 번호, `Ctrl+Alt+0` = 이 폰). 화면 경계는 뒤로.
 - 결정: **BLE(HOGP)만**. 클래식 HID·Shizuku·리시버 모드는 제품에서 제외 (P0 앱에만 남김).
-- 구현: 새 모듈 `android/kemahub` (패키지 `com.kemahub`, Compose UI). P0에서 검증한 BLE HID·전송 큐·접근성 캡처·포인터 캡처를 옮기고,
+- 구현: 새 모듈 `android/keymahub` (당시 `android/kemahub`, 패키지 `com.kemahub` → 지금 `com.keymahub`, Compose UI). P0에서 검증한 BLE HID·전송 큐·접근성 캡처·포인터 캡처를 옮기고,
   번호 슬롯 라우터(`SlotRouter`)·대상 번호표(`SlotTable`)·포그라운드 서비스·설정 안내(접근성 사전 고지 포함)를 새로 작성.
 - 단위 테스트: 슬롯 단축키·전환 시 키 해제 순서·번호 교환·전송 큐.
 - 변경 (v0.3): 단축키 배치를 **`1` = 이 폰, `2~9, 0` = 리시버**로 바꾸고 **사용자 지정** 가능하게 함 (조합이 정확히 일치해야 전환, 녹화 중에는 전환 멈춤).
@@ -86,7 +86,10 @@
 
 - 변경: **시간 조건 제거**. 규칙 기반 자동은 "고른 기기 연결 시"만. 시간 경계에서 작업 중 전환이 튀고, 기기 조건으로 대부분 충분.
 
-- 변경: 앱 이름 **KemaHub → KeymaHub** (화면·알림·접근성 설명·릴리스 파일명). 패키지명·모듈명(`com.kemahub`, `android/kemahub`)은 내부 식별자라 유지.
+- 변경: 앱 이름 **KemaHub → KeymaHub** (화면·알림·접근성 설명·릴리스 파일명).
+
+- 변경: **앱 아이콘**(키보드·마우스 허브 그림, 적응형·테마 아이콘) 적용. 코드 패키지 `com.kemahub` → **`com.keymahub`**, 앱 ID `com.kemahub.app` → **`com.keymahub.app`**, 모듈 `android/kemahub` → `android/keymahub`, 접근성 서비스 `KeymaAccessibilityService`.
+  앱 ID가 바뀌어 기존 설치본과는 별개 앱(설정·페어링 다시). 릴리스 secrets 이름은 `KEYMAHUB_*`(예전 `KEMAHUB_*`도 읽음).
 
 ## 7. 운영 규칙
 

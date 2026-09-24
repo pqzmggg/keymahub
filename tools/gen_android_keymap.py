@@ -10,7 +10,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC = ROOT / "core/keymap/src/lib.rs"
 OUTS = {
     "dev.keymanc.poc.input": ROOT / "android/app/src/main/java/dev/keymanc/poc/input/EvdevKeymap.kt",
-    "com.kemahub.hid": ROOT / "android/kemahub/src/main/java/com/kemahub/hid/EvdevKeymap.kt",
+    "com.keymahub.hid": ROOT / "android/keymahub/src/main/java/com/keymahub/hid/EvdevKeymap.kt",
 }
 
 CONSTS = {"HID_LANG1_HANGUL": 0x90, "HID_LANG2_HANJA": 0x91}

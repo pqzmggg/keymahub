@@ -14,4 +14,4 @@ dependencyResolutionManagement {
 }
 rootProject.name = "keymanc-android"
 include(":app")      // P0 test console
-include(":kemahub")  // KeymaHub product app
+include(":keymahub")  // KeymaHub product app

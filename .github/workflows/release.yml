@@ -5,11 +5,12 @@ name: release
 # to that release.
 #
 # Secrets (Settings → Secrets and variables → Actions):
-#   KEMAHUB_KEYSTORE_BASE64    the keystore file, base64-encoded
-#   KEMAHUB_KEYSTORE_PASSWORD  keystore password
-#   KEMAHUB_KEY_ALIAS          key alias
-#   KEMAHUB_KEY_PASSWORD       key password (optional: keytool's default PKCS12 keystores use the
+#   KEYMAHUB_KEYSTORE_BASE64    the keystore file, base64-encoded
+#   KEYMAHUB_KEYSTORE_PASSWORD  keystore password
+#   KEYMAHUB_KEY_ALIAS          key alias
+#   KEYMAHUB_KEY_PASSWORD       key password (optional: keytool's default PKCS12 keystores use the
 #                              keystore password for the key too)
+#   (the older KEMAHUB_* names are still read when a KEYMAHUB_* secret is missing)
 
 on:
   release:
@@ -19,7 +20,7 @@ permissions:
   contents: write
 
 jobs:
-  kemahub:
+  keymahub:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -48,47 +49,47 @@ jobs:
 
       - name: Upload key
         env:
-          KEYSTORE_BASE64: ${{ secrets.KEMAHUB_KEYSTORE_BASE64 }}
+          KEYSTORE_BASE64: ${{ secrets.KEYMAHUB_KEYSTORE_BASE64 || secrets.KEMAHUB_KEYSTORE_BASE64 }}
         run: |
           if [ -z "$KEYSTORE_BASE64" ]; then
-            echo "::error::Secret KEMAHUB_KEYSTORE_BASE64 is not set; refusing to publish a debug-signed build"
+            echo "::error::Secret KEYMAHUB_KEYSTORE_BASE64 is not set; refusing to publish a debug-signed build"
             exit 1
           fi
           echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/upload.jks"
-          echo "KEMAHUB_KEYSTORE=$RUNNER_TEMP/upload.jks" >> "$GITHUB_ENV"
+          echo "KEYMAHUB_KEYSTORE=$RUNNER_TEMP/upload.jks" >> "$GITHUB_ENV"
 
       - name: Check the key and passwords
         env:
-          STORE_PASSWORD: ${{ secrets.KEMAHUB_KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEMAHUB_KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEMAHUB_KEY_PASSWORD }}
+          STORE_PASSWORD: ${{ secrets.KEYMAHUB_KEYSTORE_PASSWORD || secrets.KEMAHUB_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEYMAHUB_KEY_ALIAS || secrets.KEMAHUB_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEYMAHUB_KEY_PASSWORD || secrets.KEMAHUB_KEY_PASSWORD }}
         run: |
           # Pasted secrets often end with a newline: try as given, then trimmed.
           strip() { printf '%s' "$1" | sed -e 's/[[:space:]]*$//'; }
           alias="$(strip "$KEY_ALIAS")"
-          opens() { keytool -list -keystore "$KEMAHUB_KEYSTORE" -storepass "$1" -alias "$alias" > /dev/null 2>&1; }
+          opens() { keytool -list -keystore "$KEYMAHUB_KEYSTORE" -storepass "$1" -alias "$alias" > /dev/null 2>&1; }
           if opens "$STORE_PASSWORD"; then
             store="$STORE_PASSWORD"
           elif opens "$(strip "$STORE_PASSWORD")"; then
             store="$(strip "$STORE_PASSWORD")"
           else
-            echo "::error::Cannot open the keystore or find alias '$alias': check KEMAHUB_KEYSTORE_BASE64, KEMAHUB_KEYSTORE_PASSWORD and KEMAHUB_KEY_ALIAS"
+            echo "::error::Cannot open the keystore or find alias '$alias': check KEYMAHUB_KEYSTORE_BASE64, KEYMAHUB_KEYSTORE_PASSWORD and KEYMAHUB_KEY_ALIAS"
             exit 1
           fi
           echo "::add-mask::$store"
-          type=$(keytool -list -keystore "$KEMAHUB_KEYSTORE" -storepass "$store" | sed -n 's/^Keystore type: *//p')
+          type=$(keytool -list -keystore "$KEYMAHUB_KEYSTORE" -storepass "$store" | sed -n 's/^Keystore type: *//p')
           echo "Keystore type: $type"
           if [ "$type" = "PKCS12" ]; then
             # PKCS12 keystores (keytool's default) protect the key with the keystore password;
             # a different key password cannot work.
             key="$store"
             if [ -n "$KEY_PASSWORD" ] && [ "$(strip "$KEY_PASSWORD")" != "$(strip "$store")" ]; then
-              echo "::warning::KEMAHUB_KEY_PASSWORD differs from the keystore password; a PKCS12 key uses the keystore password, so that was used (the secret can be deleted)"
+              echo "::warning::KEYMAHUB_KEY_PASSWORD differs from the keystore password; a PKCS12 key uses the keystore password, so that was used (the secret can be deleted)"
             fi
           else
             # JKS keys can have their own password.
             key_ok() {
-              keytool -certreq -keystore "$KEMAHUB_KEYSTORE" -storepass "$store" -alias "$alias" \
+              keytool -certreq -keystore "$KEYMAHUB_KEYSTORE" -storepass "$store" -alias "$alias" \
                 -keypass "$1" -file /dev/null > /dev/null 2>&1
             }
             key=""
@@ -96,27 +97,27 @@ jobs:
               if [ -n "$candidate" ] && key_ok "$candidate"; then key="$candidate"; break; fi
             done
             if [ -z "$key" ]; then
-              echo "::error::Neither KEMAHUB_KEY_PASSWORD nor the keystore password opens key '$alias'"
+              echo "::error::Neither KEYMAHUB_KEY_PASSWORD nor the keystore password opens key '$alias'"
               exit 1
             fi
           fi
           echo "::add-mask::$key"
           {
-            echo "KEMAHUB_KEYSTORE_PASSWORD=$store"
-            echo "KEMAHUB_KEY_ALIAS=$alias"
-            echo "KEMAHUB_KEY_PASSWORD=$key"
+            echo "KEYMAHUB_KEYSTORE_PASSWORD=$store"
+            echo "KEYMAHUB_KEY_ALIAS=$alias"
+            echo "KEYMAHUB_KEY_PASSWORD=$key"
           } >> "$GITHUB_ENV"
 
       - name: Build
         run: >
-          ./gradlew --no-daemon :kemahub:testReleaseUnitTest :kemahub:assembleRelease :kemahub:bundleRelease
-          -Pkemahub.versionName=${{ steps.version.outputs.name }}
-          -Pkemahub.versionCode=${{ steps.version.outputs.code }}
+          ./gradlew --no-daemon :keymahub:testReleaseUnitTest :keymahub:assembleRelease :keymahub:bundleRelease
+          -Pkeymahub.versionName=${{ steps.version.outputs.name }}
+          -Pkeymahub.versionCode=${{ steps.version.outputs.code }}
 
       - name: Check the signature
         run: |
           apksigner=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)
-          "$apksigner" verify --print-certs kemahub/build/outputs/apk/release/kemahub-release.apk | tee certs.txt
+          "$apksigner" verify --print-certs keymahub/build/outputs/apk/release/keymahub-release.apk | tee certs.txt
           if grep -q "CN=Android Debug" certs.txt; then
             echo "::error::The APK is signed with the debug key"
             exit 1
@@ -129,8 +130,8 @@ jobs:
           VERSION: ${{ steps.version.outputs.name }}
         run: |
           mkdir -p out
-          cp kemahub/build/outputs/apk/release/kemahub-release.apk "out/KeymaHub-$VERSION.apk"
-          cp kemahub/build/outputs/bundle/release/kemahub-release.aab "out/KeymaHub-$VERSION.aab"
+          cp keymahub/build/outputs/apk/release/keymahub-release.apk "out/KeymaHub-$VERSION.apk"
+          cp keymahub/build/outputs/bundle/release/keymahub-release.aab "out/KeymaHub-$VERSION.aab"
           gh release upload "$TAG" out/* --clobber --repo "$GITHUB_REPOSITORY"
 
       - name: Remove the key
