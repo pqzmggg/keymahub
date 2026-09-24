@@ -192,7 +192,26 @@ object BleHid {
         running = true
         advertise()
         Hub.log("BLE HID: hosting")
+        adoptLinks(manager)
         return null
+    }
+
+    /**
+     * Links that are still up take part right away. Stopping hosting cannot always drop a link: the
+     * phone only lets go of its own use of it, and another app or the system (e.g. Samsung's own
+     * phone-tablet features) may keep it. The host then still shows the phone connected and has no
+     * reason to connect again, so without this it would stay unusable.
+     */
+    private fun adoptLinks(manager: BluetoothManager) {
+        val known = knownTargets().toSet()
+        for (device in runCatching { manager.getConnectedDevices(BluetoothProfile.GATT_SERVER) }.getOrDefault(emptyList())) {
+            val address = device.address
+            if (address !in known || isBlocked(address)) continue
+            if (synchronized(lock) { address in connected }) continue
+            synchronized(lock) { connected[address] = device }
+            Hub.log("BLE HID: ${nameOf(address)} still connected")
+            restoreSubscriptions(device)
+        }
     }
 
     /** Opens the GATT server with its services, once per Bluetooth-on period. */
@@ -230,10 +249,11 @@ object BleHid {
         advertisingSet?.enableAdvertising(false, 0, 0)
         advertisingSet?.setScanResponseData(scanResponse(withName = false))
         val s = server
+        val links = synchronized(lock) { connected.values.toList() }
         synchronized(lock) {
             fastLinks.values.forEach { runCatching { it.disconnect(); it.close() } }
             fastLinks.clear()
-            connected.values.forEach { runCatching { s?.cancelConnection(it) } }
+            links.forEach { runCatching { s?.cancelConnection(it) } }
             connected.clear()
             subscribed.clear()
             queues.clear()
@@ -243,7 +263,15 @@ object BleHid {
         }
         active = null
         Hub.log("BLE HID: stopped hosting")
+        // Diagnostics: a link the phone could not drop (see adoptLinks).
+        val manager = appContext?.getSystemService(BluetoothManager::class.java) ?: return
+        main.postDelayed({
+            if (running) return@postDelayed
+            val up = links.filter { manager.getConnectionState(it, BluetoothProfile.GATT_SERVER) == BluetoothProfile.STATE_CONNECTED }
+            if (up.isNotEmpty()) Hub.log("BLE HID: still linked after stopping (kept by another app or the system): ${up.joinToString { it.name ?: it.address }}")
+        }, 2_000)
     }
+
 
     /** Bluetooth turned off: the server and advertising set are gone with it; opened again on start. */
     private fun closeAll() {
