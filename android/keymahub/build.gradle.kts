@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.keymahub"
+    namespace = "app.keymahub"
     compileSdk = 35
 
     defaultConfig {
