@@ -123,7 +123,8 @@ class HubService : Service(), BleHid.Listener {
         hud?.remove()
         sender?.shutdown()
         Thread { BleHid.stop() }.start()
-        Hub.update { it.copy(running = false, slot = 0, ready = emptySet(), pairingUntil = 0) }
+        // Hosts stay connected while hosting is off (see BleHid.stop).
+        Hub.update { it.copy(running = false, slot = 0, ready = BleHid.readyTargets(), pairingUntil = 0) }
         Hub.log("stopped")
         super.onDestroy()
     }
