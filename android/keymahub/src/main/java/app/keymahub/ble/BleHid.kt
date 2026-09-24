@@ -358,9 +358,12 @@ object BleHid {
                         synchronized(lock) { connected[address] = device }
                         Hub.log("BLE HID: ${nameOf(address)} connected${statusText(status)}")
                     }
-                    // Advertising is not restarted here: stopping the advertising set while a new
-                    // link is still being set up (a first connection encrypts and pairs next) drops
-                    // that link on some phones. It restarts once the target is ready.
+                    // Some phones stop advertising when any link comes up (the phone's own keyboard
+                    // or the phone's own connection to a target included), and then no PC or tablet
+                    // can find the phone. Restart it, but not for a device that is pairing: stopping
+                    // the advertising set while a first connection is being encrypted and paired
+                    // drops that link. For those it restarts once the target is ready.
+                    if (device.bondState == BluetoothDevice.BOND_BONDED) advertise(withName = pairing)
                 }
                 BluetoothProfile.STATE_DISCONNECTED -> {
                     val name = nameOf(address)
@@ -372,7 +375,10 @@ object BleHid {
                         fastLinks.remove(address)?.let { runCatching { it.close() } }
                         connected.remove(address) != null
                     }
-                    if (!wasTarget) return
+                    if (!wasTarget) {
+                        if (pairing) advertise(withName = true) // a pairing attempt that went nowhere
+                        return
+                    }
                     Hub.log("BLE HID: $name disconnected${statusText(status)}")
                     if (active == address) active = null
                     listeners.forEach { it.onGone(address) }
