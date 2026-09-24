@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "dev.keymanc.poc"
+    namespace = "dev.keymahub.poc"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "dev.keymanc.poc"
+        applicationId = "dev.keymahub.poc"
         minSdk = 26
         targetSdk = 35
         versionCode = 1

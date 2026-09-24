@@ -7,7 +7,7 @@
 //! side when focus returns are released on the remote and their physical release is
 //! swallowed.
 
-use keymanc_proto::{Button, Msg};
+use keymahub_proto::{Button, Msg};
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -212,7 +212,7 @@ impl Router {
     /// Relative motion from Raw Input (not affected by blocking in the hook).
     pub fn on_raw_motion(&mut self, dx: i32, dy: i32) {
         if self.focus == Focus::Remote && (dx != 0 || dy != 0) {
-            keymanc_proto::split_motion(dx, dy, |m| self.out.push(m));
+            keymahub_proto::split_motion(dx, dy, |m| self.out.push(m));
         }
     }
 

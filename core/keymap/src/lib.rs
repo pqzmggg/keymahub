@@ -1,4 +1,4 @@
-//! USB HID keyboard usages (page 0x07) are keymanc's canonical key identity.
+//! USB HID keyboard usages (page 0x07) are keymahub's canonical key identity.
 //! This crate maps them to and from platform key codes.
 //!
 //! * `evdev`: Linux `KEY_*` codes (input-event-codes.h). Android's kernel HID driver

@@ -90,6 +90,8 @@
 
 - 변경: **앱 아이콘**(키보드·마우스 허브 그림, 적응형·테마 아이콘) 적용. 코드 패키지 `com.kemahub` → **`com.keymahub`**, 앱 ID `com.kemahub.app` → **`com.keymahub.app`**, 모듈 `android/kemahub` → `android/keymahub`, 접근성 서비스 `KeymaAccessibilityService`.
   앱 ID가 바뀌어 기존 설치본과는 별개 앱(설정·페어링 다시). 릴리스 secrets 이름은 `KEYMAHUB_*`(예전 `KEMAHUB_*`도 읽음).
+- 변경: 저장소·프로젝트 이름 **keymanc → keymahub** (Rust 크레이트 `keymahub-proto`·`keymahub-keymap`, PoC 앱 패키지 `dev.keymahub.poc`, Gradle 루트 `keymahub-android`, BLE 제조사 이름 `KeymaHub`).
+  아이콘 여백은 원본 그림과 같은 비율(그림 폭 = 보이는 아이콘 폭의 약 82%).
 
 ## 7. 운영 규칙
 

@@ -1,4 +1,4 @@
-//! keymanc wire protocol.
+//! keymahub wire protocol.
 //!
 //! P0 uses the *unencrypted* "PoC wire v0" defined here so that the
 //! Android PoC (Kotlin) can decode it without a Rust dependency. P1 replaces the transport

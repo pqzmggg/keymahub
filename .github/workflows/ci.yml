@@ -26,7 +26,7 @@ jobs:
       - run: cargo build --release -p win-capture -p kmc
       - uses: actions/upload-artifact@v4
         with:
-          name: keymanc-p0-windows
+          name: keymahub-p0-windows
           path: |
             target/release/win-capture.exe
             target/release/kmc.exe
@@ -46,7 +46,7 @@ jobs:
       - run: ./gradlew --no-daemon testDebugUnitTest assembleDebug :keymahub:assembleRelease
       - uses: actions/upload-artifact@v4
         with:
-          name: keymanc-p0-apk
+          name: keymahub-p0-apk
           path: android/app/build/outputs/apk/debug/*.apk
       - uses: actions/upload-artifact@v4
         with:

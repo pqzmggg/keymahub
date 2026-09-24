@@ -1,6 +1,6 @@
 [package]
-name = "keymanc-proto"
-description = "keymanc wire protocol"
+name = "keymahub-proto"
+description = "keymahub wire protocol"
 edition.workspace = true
 license.workspace = true
 version.workspace = true

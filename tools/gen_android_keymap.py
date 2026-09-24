@@ -9,7 +9,7 @@ import re
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC = ROOT / "core/keymap/src/lib.rs"
 OUTS = {
-    "dev.keymanc.poc.input": ROOT / "android/app/src/main/java/dev/keymanc/poc/input/EvdevKeymap.kt",
+    "dev.keymahub.poc.input": ROOT / "android/app/src/main/java/dev/keymahub/poc/input/EvdevKeymap.kt",
     "com.keymahub.hid": ROOT / "android/keymahub/src/main/java/com/keymahub/hid/EvdevKeymap.kt",
 }
 

@@ -3,27 +3,27 @@
 version = 4
 
 [[package]]
-name = "keymanc-keymap"
+name = "keymahub-keymap"
 version = "0.0.1"
 
 [[package]]
-name = "keymanc-proto"
+name = "keymahub-proto"
 version = "0.0.1"
 
 [[package]]
 name = "kmc"
 version = "0.0.1"
 dependencies = [
- "keymanc-keymap",
- "keymanc-proto",
+ "keymahub-keymap",
+ "keymahub-proto",
 ]
 
 [[package]]
 name = "win-capture"
 version = "0.0.1"
 dependencies = [
- "keymanc-keymap",
- "keymanc-proto",
+ "keymahub-keymap",
+ "keymahub-proto",
  "windows-sys",
 ]
 

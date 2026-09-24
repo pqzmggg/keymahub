@@ -1,4 +1,4 @@
-# keymanc
+# KeymaHub
 
 같은 네트워크(LAN)에 있는 Windows / Android / Linux 기기끼리 하나의 키보드·마우스를 공유하는 앱.
 

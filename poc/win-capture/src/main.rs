@@ -37,7 +37,7 @@ fn main() {
         let full = if raw.contains(':') {
             raw.clone()
         } else {
-            format!("{raw}:{}", keymanc_proto::DEFAULT_PORT)
+            format!("{raw}:{}", keymahub_proto::DEFAULT_PORT)
         };
         match full.to_socket_addrs().ok().and_then(|mut a| a.next()) {
             Some(a) => Some(a),

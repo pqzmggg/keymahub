@@ -1,4 +1,4 @@
-# keymanc 설계 문서 (v0.2)
+# keymahub 설계 문서 (v0.2)
 
 > 하나의 키보드·마우스를 같은 LAN 안의 Windows / Android / Linux 기기와 공유하는 앱.
 > 서버 없음, 같은 네트워크에서만 동작, 1순위는 Windows ↔ Android.
@@ -46,7 +46,7 @@
 ```
 ┌──────────────────────── 한 기기 (역할: Host 또는 Receiver) ────────────────────────┐
 │                                                                                   │
-│  ┌─────────── UI ───────────┐     ┌──────────────── keymanc-core (Rust) ─────────┐ │
+│  ┌─────────── UI ───────────┐     ┌──────────────── keymahub-core (Rust) ─────────┐ │
 │  │ Windows/Linux: 트레이 +   │     │  engine   : 역할 상태머신, Focus 전환, 레이아웃 │ │
 │  │   설정창 (Tauri)          │◀──▶│  net      : 탐색(mDNS), 페어링, Noise 세션     │ │
 │  │ Android: Kotlin 앱        │ FFI │  proto    : 메시지 정의/직렬화                 │ │
@@ -81,7 +81,7 @@
 ### 2.2 저장소 구조 (제안)
 
 ```
-keymanc/
+keymahub/
 ├─ core/                    # Rust workspace
 │  ├─ proto/                # 메시지 타입, 코덱, 버전
 │  ├─ net/                  # discovery, pairing, transport(Noise)
@@ -204,7 +204,7 @@ keymanc/
 | 드래그 | 실제 드래그 | 마우스 드래그 | 놓을 때 경로 재생 (P0) → 이어지는 제스처 (P1 검토) |
 | 오른쪽 클릭 | 실제 보조 버튼 | 보조 버튼 | 뒤로가기 |
 | 휠 | 실제 휠 | `AXIS_VSCROLL/HSCROLL` | 스와이프 제스처 |
-| 키보드 | 실제 HID 키보드 (Android 물리 키보드 배열·키 반복 적용) | `KeyEvent` 주입 | keymanc IME (한글 조합은 자체 오토마타 필요) |
+| 키보드 | 실제 HID 키보드 (Android 물리 키보드 배열·키 반복 적용) | `KeyEvent` 주입 | keymahub IME (한글 조합은 자체 오토마타 필요) |
 
 > 주입된 `MotionEvent` 는 시스템 포인터를 움직이지 않는다(포인터는 InputReader가 실제 장치에서만 그린다).
 > 그래서 특권 모드의 기본을 `/dev/uhid` 가상 HID 장치로 바꿨다 (scrcpy의 UHID 모드와 같은 방식).
@@ -222,7 +222,7 @@ keymanc/
 
 ### 6.1 탐색 (Discovery)
 
-- mDNS/DNS-SD 서비스 `_keymanc._tcp.local`
+- mDNS/DNS-SD 서비스 `_keymahub._tcp.local`
   - TXT: `id`(기기 UUID), `name`, `os`, `roles`(host/receiver 대기 여부), `pv`(프로토콜 버전), `fp`(공개키 지문 앞 8바이트)
 - 폴백: UDP 브로드캐스트 `255.255.255.255:<port>` 비콘 (mDNS 막힌 공유기 대비)
 - 최후 수단: IP 직접 입력
@@ -327,7 +327,7 @@ enum Msg {
 
 **B. 접근성 모드 (폴백, 설정 쉬움)**
 - `AccessibilityService`: 오버레이 커서 + `dispatchGesture` 로 탭/드래그/스와이프, 글로벌 액션(뒤로/홈/최근앱).
-- `InputMethodService`(keymanc 키보드): 사용자가 IME로 선택해야 키 입력 가능. 한글은 자체 조합 오토마타 필요.
+- `InputMethodService`(keymahub 키보드): 사용자가 IME로 선택해야 키 입력 가능. 한글은 자체 조합 오토마타 필요.
 - 한계: 호버 없음, 게임/일부 앱 제스처 차이, IME 전환 불편.
 
 **공통**
@@ -347,7 +347,7 @@ Android에 연결된 BT/USB **실제 키보드·마우스**를 다른 기기와 
 ```
 
 - **캡처 (Shizuku 필요)**: 특권 프로세스가 `/dev/input/event*` 중 키보드(문자키+스페이스 보유)와
-  마우스(REL_X/Y + BTN_LEFT)만 골라 `EVIOCGRAB` 한다. 전원·볼륨 버튼(gpio-keys)과 keymanc 자신의 UHID 장치는 제외.
+  마우스(REL_X/Y + BTN_LEFT)만 골라 `EVIOCGRAB` 한다. 전원·볼륨 버튼(gpio-keys)과 keymahub 자신의 UHID 장치는 제외.
   - `Os.ioctlInt(fd, EVIOCGRAB)` 는 포인터(널 아님)를 인자로 넘기므로 grab으로 동작한다. 단 **풀기(ungrab)는 불가**하고 fd를 닫아야 풀린다.
   - 그래서 **항상 grab + 로컬은 UHID 패스스루**로 설계했다. 전환 시점에 눌려 있던 키의 뗌이
     누른 쪽으로 정확히 가므로(Windows 라우터와 같은 규칙) 어느 쪽에도 키가 눌린 채 남지 않는다.
@@ -364,7 +364,7 @@ Android에 연결된 BT/USB **실제 키보드·마우스**를 다른 기기와 
   - BLE는 GATT를 쓰므로 폰의 블루투스 키보드·마우스와 충돌하지 않고, **여러 대상이 동시에 연결**된다.
     대상 조작 중 `Ctrl+Alt+→` 를 다시 누르면 다음 대상으로 **즉시 전환**(떠나는 대상의 눌린 키는 먼저 뗀다).
   - 대상은 키보드 입력 리포트 알림을 구독한 순간부터 "준비됨". 모든 HID 특성은 암호화 필수라 첫 접근 때 본딩된다.
-  - 대상은 OS의 블루투스 설정에서 페어링만 하면 되고 **keymanc 앱이 필요 없다** (Windows·Mac·iPad·다른 Android).
+  - 대상은 OS의 블루투스 설정에서 페어링만 하면 되고 **keymahub 앱이 필요 없다** (Windows·Mac·iPad·다른 Android).
   - 암호화는 블루투스 페어링이 담당한다 → 이 경로에는 Noise 불필요.
   - 마우스 이동은 8ms 단위로 합쳐서 보낸다 (블루투스 대역폭).
 - **제약**

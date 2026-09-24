@@ -12,6 +12,6 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "keymanc-android"
+rootProject.name = "keymahub-android"
 include(":app")      // P0 test console
 include(":keymahub")  // KeymaHub product app

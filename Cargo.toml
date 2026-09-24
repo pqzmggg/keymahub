@@ -13,5 +13,5 @@ license = "MIT"
 version = "0.0.1"
 
 [workspace.dependencies]
-keymanc-proto = { path = "core/proto" }
-keymanc-keymap = { path = "core/keymap" }
+keymahub-proto = { path = "core/proto" }
+keymahub-keymap = { path = "core/keymap" }
