@@ -11,7 +11,7 @@
 
 | 항목 | 결정 |
 |---|---|
-| 앱 이름 | **KeymaHub** (앱 ID `com.keymahub.app`, 코드 패키지 `com.keymahub` — Play 첫 업로드 후 변경 불가) |
+| 앱 이름 | **KeymaHub** (앱 ID `app.keymahub`, 코드 패키지 `com.keymahub` — Play 첫 업로드 후 변경 불가) |
 | 아이콘 | 키보드·마우스 허브 그림. 적응형 아이콘(흰 배경 + 전경, 테마 아이콘용 단색) — `res/mipmap-*`, Play용 512px은 `docs/play/icon-512.png` |
 | 범위 | **Android 호스트만**: 폰에 연결한 키보드·마우스 → **BLE HID** → 대상 기기 (대상에 설치 없음) |
 | 입력 받기 | 접근성 서비스(키보드) + 포인터 캡처(마우스). **Shizuku·클래식 블루투스·리시버 모드는 v1.0에서 제외** |
@@ -171,7 +171,7 @@ UI는 Jetpack Compose + Material 3. P0 콘솔 화면은 "개발자 메뉴"로 �
 | Q6 | 태블릿·폴더블·삼성 DeX 대응 수준 | 태블릿 가로 화면 레이아웃은 v1.0에 포함 |
 | Q7 | 전환 수단 | **결정: 단축키. 숫자 고정(`1` 이 폰, `2~9, 0` 기기), 보조키 기본 Shift+Alt, 설정에서 변경** |
 | Q8 | 클래식 블루투스 HID | **결정: 제외 (BLE만)** |
-| Q9 | 패키지명 | **결정: `com.keymahub.app`** (코드 패키지 `com.keymahub`) |
+| Q9 | 패키지명 | **결정: `app.keymahub`** (코드 패키지 `com.keymahub`) |
 
 ## 13. Play 출시 체크리스트
 
