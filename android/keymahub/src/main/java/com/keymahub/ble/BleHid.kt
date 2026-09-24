@@ -17,6 +17,8 @@ import android.bluetooth.le.AdvertiseSettings
 import android.bluetooth.le.BluetoothLeAdvertiser
 import android.content.Context
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.os.ParcelUuid
 import com.keymahub.R
 import android.os.SystemClock
@@ -81,6 +83,9 @@ object BleHid {
     @Volatile private var appContext: Context? = null
     @Volatile private var advertisingFast = true
     @Volatile private var active: String? = null
+    private val main = Handler(Looper.getMainLooper())
+    /** Restarts advertising for more targets once a new link has settled (see onConnectionStateChange). */
+    private val readvertise = Runnable { advertise(withName = pairing) }
 
     private val listeners = CopyOnWriteArrayList<Listener>()
 
@@ -199,6 +204,7 @@ object BleHid {
         if (!running) return
         running = false
         pairing = false
+        main.removeCallbacks(readvertise)
         runCatching { advertiser?.stopAdvertising(advertiseCallback) }
         val s = server
         synchronized(lock) {
@@ -358,9 +364,12 @@ object BleHid {
                         return
                     }
                     synchronized(lock) { connected[address] = device }
-                    Hub.log("BLE HID: ${nameOf(address)} connected")
-                    // Some controllers stop advertising on connect; keep accepting more targets.
-                    advertise(withName = pairing)
+                    Hub.log("BLE HID: ${nameOf(address)} connected${statusText(status)}${if (bonded) "" else " (not paired yet)"}")
+                    // Some controllers stop advertising on connect; keep accepting more targets. Not
+                    // right away: stopping the advertising set while a new link is still being set up
+                    // (a first connection encrypts and pairs next) drops that link on some phones.
+                    main.removeCallbacks(readvertise)
+                    main.postDelayed(readvertise, READVERTISE_DELAY_MS)
                 }
                 BluetoothProfile.STATE_DISCONNECTED -> {
                     val name = nameOf(address)
@@ -372,7 +381,7 @@ object BleHid {
                         lastSent.remove(address)
                         fastLinks.remove(address)?.let { runCatching { it.close() } }
                     }
-                    Hub.log("BLE HID: $name disconnected")
+                    Hub.log("BLE HID: $name disconnected${statusText(status)}")
                     if (active == address) active = null
                     listeners.forEach { it.onGone(address) }
                     updateAdvertising()
@@ -505,6 +514,11 @@ object BleHid {
             }
         }
     }
+
+    /** " (status 0x3e)" for a failure; the HCI reason tells why a link dropped. */
+    private fun statusText(status: Int) = if (status == BluetoothGatt.GATT_SUCCESS) "" else " (status 0x%02x)".format(status)
+
+    private const val READVERTISE_DELAY_MS = 3_000L
 
     private fun advertise(withName: Boolean) {
         val adv = advertiser ?: return
