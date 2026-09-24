@@ -17,6 +17,8 @@ import android.bluetooth.le.AdvertiseSettings
 import android.bluetooth.le.BluetoothLeAdvertiser
 import android.content.Context
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.os.ParcelUuid
 import app.keymahub.R
 import android.os.SystemClock
@@ -60,6 +62,7 @@ object BleHid {
     @Volatile private var running = false
     /** False until this session's services are up: links reported earlier belong to the last session. */
     @Volatile private var accepting = false
+    private val main = Handler(Looper.getMainLooper())
 
     private lateinit var keyboardIn: BluetoothGattCharacteristic
     private lateinit var mouseIn: BluetoothGattCharacteristic
@@ -203,6 +206,7 @@ object BleHid {
         if (!running) return
         running = false
         accepting = false
+        main.removeCallbacksAndMessages(null)
         pairing = false
         runCatching { advertiser?.stopAdvertising(advertiseCallback) }
         val s = server
@@ -373,7 +377,7 @@ object BleHid {
                     // can find the phone. Restart it, but not for a device that is pairing: stopping
                     // the advertising set while a first connection is being encrypted and paired
                     // drops that link. For those it restarts once the target is ready.
-                    if (known || device.bondState == BluetoothDevice.BOND_BONDED) advertise(withName = pairing)
+                    if (known || device.bondState == BluetoothDevice.BOND_BONDED) afterSettling { advertise(withName = pairing) }
                 }
                 BluetoothProfile.STATE_DISCONNECTED -> {
                     val name = nameOf(address)
@@ -427,6 +431,9 @@ object BleHid {
                 }
                 saveSubscriptions(device.address, mask)
                 // A host may enable notifications again after they were restored: already ready.
+                if (d.characteristic === keyboardIn && !changed && on) {
+                    Hub.log("BLE HID: ${nameOf(device.address)} enabled input again")
+                }
                 if (d.characteristic === keyboardIn && changed) {
                     if (on) {
                         markReady(device, restored = false)
@@ -509,12 +516,30 @@ object BleHid {
      */
     private fun markReady(device: BluetoothDevice, restored: Boolean) {
         Hub.log("BLE HID: ${nameOf(device.address)} ready${if (restored) " (restored)" else ""}")
-        requestFastLink(device)
         listeners.forEach { it.onReady(device.address, nameOf(device.address)) }
-        // The link is settled: advertise again (some controllers stop on connect).
+        // A host that enabled notifications has set up the link; a restored one has only just
+        // connected and is still encrypting and opening its HID connection.
+        if (restored) afterSettling { tune(device) } else tune(device)
+    }
+
+    /** Short connection interval, and advertise again (some controllers stop on connect). */
+    private fun tune(device: BluetoothDevice) {
+        if (synchronized(lock) { device.address !in connected }) return
+        requestFastLink(device)
         advertisingMode = wantedMode()
         advertise(withName = pairing)
     }
+
+    /**
+     * Runs [block] once a new link has settled. Changing the connection parameters or restarting
+     * advertising while a host is still encrypting and opening its HID connection leaves the host
+     * stuck at "connecting" (and drops a link that is pairing).
+     */
+    private fun afterSettling(block: () -> Unit) {
+        main.postDelayed({ if (running) block() }, SETTLE_MS)
+    }
+
+    private const val SETTLE_MS = 3_000L
 
     // ---------------------------------------------------------------- subscriptions
     // HOGP: the device keeps each paired host's notification settings (CCCDs) across connections.
