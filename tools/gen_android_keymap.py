@@ -9,7 +9,7 @@ import re
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC = ROOT / "core/keymap/src/lib.rs"
 OUTS = {
-    "com.keymahub.hid": ROOT / "android/keymahub/src/main/java/com/keymahub/hid/EvdevKeymap.kt",
+    "app.keymahub.hid": ROOT / "android/keymahub/src/main/java/app/keymahub/hid/EvdevKeymap.kt",
 }
 
 CONSTS = {"HID_LANG1_HANGUL": 0x90, "HID_LANG2_HANJA": 0x91}
