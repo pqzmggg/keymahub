@@ -157,7 +157,7 @@ object BleHid {
     }
 
     /** Addresses of targets ready for input. */
-    fun readyTargets(): Set<String> = if (!running) emptySet() else synchronized(lock) {
+    fun readyTargets(): Set<String> = synchronized(lock) {
         connected.keys.filter { subscribed[it]?.contains(keyboardIn) == true }.toSet()
     }
 
@@ -216,7 +216,13 @@ object BleHid {
         return null
     }
 
-    /** Stops hosting: no advertising, targets disconnected. The server and advertising set stay. */
+    /**
+     * Stops hosting: no advertising (no new hosts), no input. Connected hosts stay connected, as with
+     * a real keyboard that is not being typed on: the phone cannot reliably drop a link anyway (it
+     * only gives up its own use of it; the system or another app may keep it, and the host then
+     * still shows the keyboard connected), and a host the phone disconnects does not come back on
+     * its own. Starting hosting again resumes at once with the hosts still connected.
+     */
     @Synchronized
     fun stop() {
         if (!running) return
@@ -225,28 +231,8 @@ object BleHid {
         main.removeCallbacksAndMessages(null)
         advertisingSet?.enableAdvertising(false, 0, 0)
         advertisingSet?.setScanResponseData(scanResponse(withName = false))
-        val s = server
-        val links = synchronized(lock) { connected.values.toList() }
-        synchronized(lock) {
-            fastLinks.values.forEach { runCatching { it.disconnect(); it.close() } }
-            fastLinks.clear()
-            links.forEach { runCatching { s?.cancelConnection(it) } }
-            connected.clear()
-            subscribed.clear()
-            queues.clear()
-            inFlight.clear()
-            lastSent.clear()
-            strangers.clear()
-        }
         active = null
-        Hub.log("BLE HID: stopped hosting")
-        // Diagnostics: a link the phone could not drop (kept by another app or the system).
-        val manager = appContext?.getSystemService(BluetoothManager::class.java) ?: return
-        main.postDelayed({
-            if (running) return@postDelayed
-            val up = links.filter { manager.getConnectionState(it, BluetoothProfile.GATT_SERVER) == BluetoothProfile.STATE_CONNECTED }
-            if (up.isNotEmpty()) Hub.log("BLE HID: still linked after stopping (kept by another app or the system): ${up.joinToString { it.name ?: it.address }}")
-        }, 2_000)
+        Hub.log("BLE HID: stopped hosting (${readyTargets().size} still connected)")
     }
 
 
@@ -444,6 +430,7 @@ object BleHid {
                     Hub.log("BLE HID: $name disconnected${statusText(status)}")
                     if (active == address) active = null
                     listeners.forEach { it.onGone(address) }
+                    if (!running) Hub.update { it.copy(ready = readyTargets()) } // no service to tell
                     advertise() // back to advertising if the link had stopped it (same set, same address)
                 }
             }
@@ -535,6 +522,7 @@ object BleHid {
     private fun markReady(device: BluetoothDevice) {
         Hub.log("BLE HID: ${nameOf(device.address)} ready")
         listeners.forEach { it.onReady(device.address, nameOf(device.address)) }
+        if (!running) Hub.update { it.copy(ready = readyTargets()) } // no service to tell
         tune(device)
     }
 
@@ -557,7 +545,8 @@ object BleHid {
         if (!hid || synchronized(lock) { address in connected }) return true
         val bonded = device.bondState == BluetoothDevice.BOND_BONDED
         when {
-            !running -> refuse(device, "not hosting")
+            // A paired host is taken even while not hosting (it may reopen HID over a link the
+            // system kept); it just gets no input until hosting starts.
             isBlocked(address) -> refuse(device, "disconnected by user")
             bonded || pairing -> {
                 synchronized(lock) { connected[address] = device }
