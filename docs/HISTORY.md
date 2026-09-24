@@ -62,7 +62,7 @@
 - 결정: 첫 유료 제품은 **Android 블루투스 허브만**. 이름 KemaHub, Play 스토어 비공개(closed) 배포부터.
 - 결정: **단축키만** (`Ctrl+Alt+1~9` = 대상 번호, `Ctrl+Alt+0` = 이 폰). 화면 경계는 뒤로.
 - 결정: **BLE(HOGP)만**. 클래식 HID·Shizuku·리시버 모드는 제품에서 제외 (P0 앱에만 남김).
-- 구현: 새 모듈 `android/keymahub` (당시 `android/kemahub`, 패키지 `com.kemahub` → 지금 `com.keymahub`, Compose UI). P0에서 검증한 BLE HID·전송 큐·접근성 캡처·포인터 캡처를 옮기고,
+- 구현: 새 모듈 `android/keymahub` (당시 `android/kemahub`, 패키지 `com.kemahub` → 지금 `app.keymahub`, Compose UI). P0에서 검증한 BLE HID·전송 큐·접근성 캡처·포인터 캡처를 옮기고,
   번호 슬롯 라우터(`SlotRouter`)·대상 번호표(`SlotTable`)·포그라운드 서비스·설정 안내(접근성 사전 고지 포함)를 새로 작성.
 - 단위 테스트: 슬롯 단축키·전환 시 키 해제 순서·번호 교환·전송 큐.
 - 변경 (v0.3): 단축키 배치를 **`1` = 이 폰, `2~9, 0` = 리시버**로 바꾸고 **사용자 지정** 가능하게 함 (조합이 정확히 일치해야 전환, 녹화 중에는 전환 멈춤).
@@ -96,6 +96,7 @@
   호스팅을 켤 때(그리고 "연결 허용" 때) **폰이 페어링된 기기에 먼저 자동 연결**(백그라운드 대기, 차단한 기기 제외). "연결 해제"는 폰 쪽 연결도 닫아 링크가 실제로 끊기게 함.
 - 변경: **P0 테스트 콘솔 앱(`android/app`) 삭제**. KeymaHub가 쓰는 BLE·캡처 코드는 모두 옮겨졌고, 나머지(리시버 UHID·Inject, Shizuku, IME, evdev 프로브)는 제품에서 제외한 방식. 코드는 git 기록에 남김(커밋 `71410e3` 시점에 있음). CI의 P0 APK 빌드·첨부도 제거.
 - 변경: 앱 ID(패키지명) `com.keymahub.app` → **`app.keymahub`**. 코드 패키지는 `com.keymahub` 그대로. 앱 ID가 바뀌어 기존 설치본과는 별개 앱(설정·페어링 다시).
+- 변경: 코드 패키지도 `com.keymahub` → **`app.keymahub`** (앱 ID와 같게).
 
 ## 7. 운영 규칙
 
