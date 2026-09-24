@@ -73,7 +73,10 @@ object BleHid {
     /** Notifications sent but not yet confirmed by onNotificationSent, and when the last one went out. */
     private val inFlight = HashMap<String, Int>()
     private val lastSent = HashMap<String, Long>()
-    /** Client-role links used only to ask the target for a short connection interval. */
+    /**
+     * Client-role links: the phone's own connection attempts to paired targets (see [reconnect])
+     * and the way to ask a target for a short connection interval (see [requestFastLink]).
+     */
     private val fastLinks = HashMap<String, BluetoothGatt>()
     @Volatile private var appContext: Context? = null
     @Volatile private var advertisingFast = true
@@ -83,6 +86,9 @@ object BleHid {
 
     /** Devices the user disconnected: refused when they reconnect. Set by the service. */
     @Volatile var isBlocked: (address: String) -> Boolean = { false }
+
+    /** Addresses of the targets the user keeps (paired through KeymaHub). Set by the service. */
+    @Volatile var knownTargets: () -> Collection<String> = { emptyList() }
 
     /**
      * While on, new (unpaired) devices may connect and pair, and the phone advertises its name
@@ -101,8 +107,20 @@ object BleHid {
 
     /** Drops the link to [address] (it may come back unless blocked). */
     fun disconnect(address: String) {
+        closeLink(address) // the link stays up while the phone's own client connection holds it
         val d = synchronized(lock) { connected[address] } ?: return
         runCatching { server?.cancelConnection(d) }
+    }
+
+    /** Connects to paired [address] again (after "allow"), as on start. */
+    fun reconnect(address: String) {
+        if (!running) return
+        val adapter = appContext?.getSystemService(BluetoothManager::class.java)?.adapter ?: return
+        reconnect(adapter.bondedDevices.orEmpty().filter { it.address == address })
+    }
+
+    private fun closeLink(address: String) {
+        synchronized(lock) { fastLinks.remove(address) }?.let { runCatching { it.disconnect(); it.close() } }
     }
 
     /** Removes the phone's pairing with [address]. Best effort: the call is not public API. */
@@ -171,6 +189,7 @@ object BleHid {
         running = true
         advertisingFast = true
         advertise(withName = pairing)
+        reconnect(adapter.bondedDevices.orEmpty())
         Hub.log("BLE HID ready: add this phone as a Bluetooth device on the target")
         return null
     }
@@ -188,7 +207,7 @@ object BleHid {
             queues.clear()
             inFlight.clear()
             lastSent.clear()
-            fastLinks.values.forEach { runCatching { it.close() } }
+            fastLinks.values.forEach { runCatching { it.disconnect(); it.close() } }
             fastLinks.clear()
         }
         runCatching { s?.close() }
@@ -333,6 +352,7 @@ object BleHid {
                     val bonded = device.bondState == BluetoothDevice.BOND_BONDED
                     if (isBlocked(address) || (!bonded && !pairing)) {
                         Hub.log("BLE HID: refused $address (${if (bonded) "disconnected by user" else "not paired, pairing mode off"})")
+                        closeLink(address)
                         runCatching { server?.cancelConnection(device) }
                         return
                     }
@@ -419,10 +439,28 @@ object BleHid {
      * pick 30-50 ms — far too slow for a mouse. A client-role connection over the same link
      * gives access to requestConnectionPriority(HIGH), i.e. roughly 11-15 ms.
      */
-    private fun requestFastLink(device: BluetoothDevice) {
+    private fun requestFastLink(device: BluetoothDevice) = link(device, auto = false)
+
+    /**
+     * Hosting just started: connects to the paired targets instead of waiting for them. A BLE
+     * keyboard normally only advertises and the target connects, but some hosts (Android tablets
+     * in particular) stop doing so once the keyboard itself ended the link, as stopping hosting
+     * does. An auto-connect attempt waits in the background until the target is in range; the
+     * target then finds its keyboard connected and subscribes to it again.
+     */
+    private fun reconnect(bonded: Collection<BluetoothDevice>) {
+        val known = knownTargets().toSet()
+        for (device in bonded) {
+            if (device.address !in known || isBlocked(device.address)) continue
+            Hub.log("BLE HID: reconnecting to ${runCatching { device.name }.getOrNull() ?: device.address}")
+            link(device, auto = true)
+        }
+    }
+
+    private fun link(device: BluetoothDevice, auto: Boolean) {
         val ctx = appContext ?: return
         synchronized(lock) { if (device.address in fastLinks) return }
-        val gatt = device.connectGatt(ctx, false, object : BluetoothGattCallback() {
+        val gatt = device.connectGatt(ctx, auto, object : BluetoothGattCallback() {
             override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
                 if (newState == BluetoothProfile.STATE_CONNECTED) {
                     val ok = gatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH)

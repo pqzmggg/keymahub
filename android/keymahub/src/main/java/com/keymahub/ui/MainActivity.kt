@@ -91,7 +91,10 @@ class MainActivity : ComponentActivity() {
                     Hub.edit(this) { it.setBlocked(address, true) }
                     BleHid.disconnect(address)
                 },
-                onAllow = { address -> Hub.edit(this) { it.setBlocked(address, false) } },
+                onAllow = { address ->
+                    Hub.edit(this) { it.setBlocked(address, false) }
+                    BleHid.reconnect(address)
+                },
                 onRemove = { address ->
                     Hub.edit(this) { it.forgetDevice(address) }
                     BleHid.disconnect(address)
