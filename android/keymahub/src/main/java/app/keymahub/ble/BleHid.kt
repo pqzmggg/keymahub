@@ -178,7 +178,12 @@ object BleHid {
     ).all { context.checkSelfPermission(it) == android.content.pm.PackageManager.PERMISSION_GRANTED }
 
     /** Blocking; call off the main thread. Returns null when ready, else a string resource saying why not. */
-    fun start(context: Context): Int? {
+    /** start() and stop() run one at a time: stop() may wait for links while hosting restarts. */
+    private val lifecycle = Any()
+
+    fun start(context: Context): Int? = synchronized(lifecycle) { startLocked(context) }
+
+    private fun startLocked(context: Context): Int? {
         if (running) return null
         if (!hasPermission(context)) return R.string.problem_bt_permission
         appContext = context.applicationContext
@@ -216,7 +221,9 @@ object BleHid {
         return null
     }
 
-    fun stop() {
+    fun stop() = synchronized(lifecycle) { stopLocked() }
+
+    private fun stopLocked() {
         if (!running) return
         running = false
         accepting = false
@@ -226,20 +233,38 @@ object BleHid {
         pairing = false
         runCatching { advertiser?.stopAdvertising(advertiseCallback) }
         val s = server
+        val links = synchronized(lock) {
+            fastLinks.values.forEach { runCatching { it.disconnect(); it.close() } }
+            fastLinks.clear()
+            connected.values.toList()
+        }
+        links.forEach { runCatching { s?.cancelConnection(it) } }
+        // Close the services only once the links are down. A host still connected sees the HID
+        // service disappear (Service Changed) and its HID connection gets stuck: the next time it
+        // connects it stays at "connecting" until its Bluetooth is restarted.
+        val manager = appContext?.getSystemService(BluetoothManager::class.java)
+        val deadline = SystemClock.elapsedRealtime() + STOP_WAIT_MS
+        fun up() = links.filter {
+            manager?.getConnectionState(it, BluetoothProfile.GATT_SERVER) == BluetoothProfile.STATE_CONNECTED
+        }
+        while (up().isNotEmpty() && SystemClock.elapsedRealtime() < deadline) Thread.sleep(50)
+        up().takeIf { it.isNotEmpty() }?.let { still ->
+            Hub.log("BLE HID: still connected when closing: ${still.joinToString { nameOf(it.address) }}")
+        }
         synchronized(lock) {
-            connected.values.forEach { runCatching { s?.cancelConnection(it) } }
             connected.clear()
             subscribed.clear()
             queues.clear()
             inFlight.clear()
             lastSent.clear()
-            fastLinks.values.forEach { runCatching { it.disconnect(); it.close() } }
-            fastLinks.clear()
         }
         runCatching { s?.close() }
         server = null
         active = null
     }
+
+    /** Blocking: stop() waits this long at most for the links to go down. */
+    private const val STOP_WAIT_MS = 3_000L
 
     /** Sends one report to the selected target; false when there is none. */
     fun send(reportId: Int, data: ByteArray): Boolean {
