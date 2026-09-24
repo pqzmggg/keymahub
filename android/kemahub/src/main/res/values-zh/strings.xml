@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="a11y_summary">用连接到本手机的键盘和鼠标控制其他设备</string>
-    <string name="a11y_description">KemaHub 接收连接到本设备的键盘和鼠标的输入，并将其发送到您用快捷键选择的蓝牙设备（电脑、平板）。选择本手机时，输入保持不变。输入内容不会被保存，也不会发送到互联网，只会发送到您选择的设备。KemaHub 不读取屏幕内容。</string>
+    <string name="a11y_description">KeymaHub 接收连接到本设备的键盘和鼠标的输入，并将其发送到您用快捷键选择的蓝牙设备（电脑、平板）。选择本手机时，输入保持不变。输入内容不会被保存，也不会发送到互联网，只会发送到您选择的设备。KeymaHub 不读取屏幕内容。</string>
     <string name="setup_title">主机模式设置</string>
     <string name="setup_intro">用连接到本手机的键盘和鼠标控制附近的电脑和平板。对方设备无需安装任何软件。</string>
     <string name="setup_steps">开始前，请允许以下项目。</string>
@@ -10,17 +10,17 @@
     <string name="step_a11y_title">无障碍服务</string>
     <string name="step_a11y_body">用于接收所连接键盘和鼠标的输入，并将其发送到您选择的设备。</string>
     <string name="step_notifications_title">通知（推荐）</string>
-    <string name="step_notifications_body">通过通知显示 KemaHub 正在运行以及当前控制的设备。</string>
+    <string name="step_notifications_body">通过通知显示 KeymaHub 正在运行以及当前控制的设备。</string>
     <string name="action_allow">允许</string>
     <string name="action_open_settings">设置</string>
-    <string name="restricted_hint">无法开启 KemaHub？应用信息 → ⋮ → 允许受限制的设置</string>
+    <string name="restricted_hint">无法开启 KeymaHub？应用信息 → ⋮ → 允许受限制的设置</string>
     <string name="disclosure_title">无障碍服务使用说明</string>
-    <string name="disclosure_intro">KemaHub 仅将无障碍服务用于以下目的：</string>
+    <string name="disclosure_intro">KeymaHub 仅将无障碍服务用于以下目的：</string>
     <string name="disclosure_1">• 接收连接到本手机的键盘和鼠标的输入。</string>
     <string name="disclosure_2">• 将这些输入发送到您用快捷键选择的蓝牙设备（电脑、平板）。选择本手机时，输入保持不变。</string>
     <string name="disclosure_3">• 输入内容不会被保存，也不会发送到互联网或开发者，只会发送到您选择的设备。</string>
-    <string name="disclosure_4">• KemaHub 不读取屏幕内容。</string>
-    <string name="disclosure_next">请在下一个界面的“已安装的应用”（或“已下载的应用”）中开启 KemaHub。</string>
+    <string name="disclosure_4">• KeymaHub 不读取屏幕内容。</string>
+    <string name="disclosure_next">请在下一个界面的“已安装的应用”（或“已下载的应用”）中开启 KeymaHub。</string>
     <string name="disclosure_agree">同意并打开设置</string>
     <string name="action_cancel">取消</string>
     <string name="action_close">关闭</string>
@@ -62,14 +62,14 @@
     <string name="guide_mac">系统设置 → 蓝牙 → 点按本手机旁的“连接”</string>
     <string name="guide_mobile">设置 → 蓝牙 → 选择本手机</string>
     <string name="guide_note">如果手机上出现配对请求，请允许。连接时请关闭本手机的蓝牙设置界面。</string>
-    <string name="notif_channel">KemaHub 运行中</string>
+    <string name="notif_channel">KeymaHub 运行中</string>
     <string name="notif_text">%1$s · 已连接 %2$d 台 · %3$s：本手机</string>
     <string name="hud_phone">← 本手机</string>
     <string name="hud_target">→ %1$s</string>
     <string name="hud_unavailable">%1$s 未连接</string>
     <string name="hud_empty">%1$s 上没有设备</string>
     <string name="hud_connected">%1$s 已连接</string>
-    <string name="problem_a11y_off">无障碍服务已关闭。请在无障碍设置中开启 KemaHub。</string>
+    <string name="problem_a11y_off">无障碍服务已关闭。请在无障碍设置中开启 KeymaHub。</string>
     <string name="problem_a11y_turned_off">无障碍服务被关闭，已停止。</string>
     <string name="problem_bt_permission">请允许“附近的设备（蓝牙）”权限。</string>
     <string name="problem_bt_unsupported">本手机不支持蓝牙。</string>
@@ -99,7 +99,7 @@
     <string name="state_disconnected_by_user">已断开（不会重新连接）</string>
     <string name="last_used">上次使用：%1$s</string>
     <string name="last_used_never">从未使用</string>
-    <string name="device_rename_hint">在 KemaHub 中显示的设备名称。</string>
+    <string name="device_rename_hint">在 KeymaHub 中显示的设备名称。</string>
     <string name="device_disconnect">断开连接</string>
     <string name="device_allow">允许连接</string>
     <string name="device_remove">删除</string>

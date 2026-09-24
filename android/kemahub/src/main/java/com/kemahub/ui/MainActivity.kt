@@ -149,14 +149,14 @@ class MainActivity : ComponentActivity() {
     private fun sendLog(log: String) {
         val version = runCatching { packageManager.getPackageInfo(packageName, 0).versionName }.getOrNull().orEmpty()
         val body = buildString {
-            append("KemaHub $version\n")
+            append("KeymaHub $version\n")
             append("${Build.MANUFACTURER} ${Build.MODEL}, Android ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})\n\n")
             append(log)
         }
         val mail = Intent(Intent.ACTION_SEND).apply {
             type = "message/rfc822"
             putExtra(Intent.EXTRA_EMAIL, arrayOf(SUPPORT_EMAIL))
-            putExtra(Intent.EXTRA_SUBJECT, "KemaHub diagnostic log ($version, ${Build.MODEL})")
+            putExtra(Intent.EXTRA_SUBJECT, "KeymaHub diagnostic log ($version, ${Build.MODEL})")
             putExtra(Intent.EXTRA_TEXT, body)
             // Only mail apps: the selector limits the chooser to apps that handle mailto.
             selector = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:"))
@@ -211,7 +211,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-/** Notifications are asked for but optional: KemaHub runs without them (the notification is just hidden). */
+/** Notifications are asked for but optional: KeymaHub runs without them (the notification is just hidden). */
 data class SetupState(val notifications: Boolean, val bluetooth: Boolean, val accessibility: Boolean) {
     val runtimeDone get() = notifications && bluetooth
     val done get() = bluetooth && accessibility

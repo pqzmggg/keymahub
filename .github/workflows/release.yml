@@ -1,6 +1,6 @@
 name: release
 
-# Publishing a GitHub release (tag like v0.2.0) builds KemaHub, signs it with the upload key
+# Publishing a GitHub release (tag like v0.2.0) builds KeymaHub, signs it with the upload key
 # from the repository secrets, and attaches the APK (for sideloading) and the AAB (for Play)
 # to that release.
 #
@@ -129,8 +129,8 @@ jobs:
           VERSION: ${{ steps.version.outputs.name }}
         run: |
           mkdir -p out
-          cp kemahub/build/outputs/apk/release/kemahub-release.apk "out/KemaHub-$VERSION.apk"
-          cp kemahub/build/outputs/bundle/release/kemahub-release.aab "out/KemaHub-$VERSION.aab"
+          cp kemahub/build/outputs/apk/release/kemahub-release.apk "out/KeymaHub-$VERSION.apk"
+          cp kemahub/build/outputs/bundle/release/kemahub-release.aab "out/KeymaHub-$VERSION.aab"
           gh release upload "$TAG" out/* --clobber --repo "$GITHUB_REPOSITORY"
 
       - name: Remove the key

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="a11y_summary">Controla otros dispositivos con el teclado y el ratón conectados a este teléfono</string>
-    <string name="a11y_description">KemaHub recibe la entrada del teclado y el ratón conectados a este dispositivo y la envía al dispositivo Bluetooth (PC, tableta) que elijas con un atajo. Mientras este teléfono está seleccionado, la entrada no se modifica. La entrada nunca se guarda ni se envía a Internet; solo va al dispositivo que elijas. KemaHub no lee el contenido de la pantalla.</string>
+    <string name="a11y_description">KeymaHub recibe la entrada del teclado y el ratón conectados a este dispositivo y la envía al dispositivo Bluetooth (PC, tableta) que elijas con un atajo. Mientras este teléfono está seleccionado, la entrada no se modifica. La entrada nunca se guarda ni se envía a Internet; solo va al dispositivo que elijas. KeymaHub no lee el contenido de la pantalla.</string>
     <string name="setup_title">Configuración del modo anfitrión</string>
     <string name="setup_intro">Usa el teclado y el ratón conectados a este teléfono para controlar PC y tabletas cercanos. No hay que instalar nada en ellos.</string>
     <string name="setup_steps">Para empezar, permite lo siguiente.</string>
@@ -10,17 +10,17 @@
     <string name="step_a11y_title">Servicio de accesibilidad</string>
     <string name="step_a11y_body">Necesario para recibir la entrada del teclado y el ratón conectados y enviarla al dispositivo que elijas.</string>
     <string name="step_notifications_title">Notificaciones (recomendado)</string>
-    <string name="step_notifications_body">Muestra que KemaHub está en marcha y qué dispositivo estás controlando.</string>
+    <string name="step_notifications_body">Muestra que KeymaHub está en marcha y qué dispositivo estás controlando.</string>
     <string name="action_allow">Permitir</string>
     <string name="action_open_settings">Configurar</string>
-    <string name="restricted_hint">¿No puedes activar KemaHub? Info. de la app → ⋮ → Permitir ajustes restringidos</string>
-    <string name="disclosure_title">Cómo usa KemaHub el servicio de accesibilidad</string>
-    <string name="disclosure_intro">KemaHub usa el servicio de accesibilidad solo para:</string>
+    <string name="restricted_hint">¿No puedes activar KeymaHub? Info. de la app → ⋮ → Permitir ajustes restringidos</string>
+    <string name="disclosure_title">Cómo usa KeymaHub el servicio de accesibilidad</string>
+    <string name="disclosure_intro">KeymaHub usa el servicio de accesibilidad solo para:</string>
     <string name="disclosure_1">• Recibir la entrada del teclado y el ratón conectados a este teléfono.</string>
     <string name="disclosure_2">• Enviar esa entrada al dispositivo Bluetooth (PC, tableta) que elijas con un atajo. Mientras este teléfono está seleccionado, la entrada no se modifica.</string>
     <string name="disclosure_3">• La entrada nunca se guarda ni se envía a Internet ni al desarrollador. Solo va al dispositivo que elijas.</string>
-    <string name="disclosure_4">• KemaHub no lee el contenido de la pantalla.</string>
-    <string name="disclosure_next">En la siguiente pantalla, activa KemaHub en Aplicaciones instaladas (o Aplicaciones descargadas).</string>
+    <string name="disclosure_4">• KeymaHub no lee el contenido de la pantalla.</string>
+    <string name="disclosure_next">En la siguiente pantalla, activa KeymaHub en Aplicaciones instaladas (o Aplicaciones descargadas).</string>
     <string name="disclosure_agree">Aceptar y abrir ajustes</string>
     <string name="action_cancel">Cancelar</string>
     <string name="action_close">Cerrar</string>
@@ -62,14 +62,14 @@
     <string name="guide_mac">Ajustes del Sistema → Bluetooth → pulsa Conectar junto a este teléfono</string>
     <string name="guide_mobile">Ajustes → Bluetooth → elige este teléfono</string>
     <string name="guide_note">Si el teléfono pide emparejar, permítelo. Mantén cerrada la pantalla de ajustes de Bluetooth de este teléfono mientras te conectas.</string>
-    <string name="notif_channel">KemaHub en marcha</string>
+    <string name="notif_channel">KeymaHub en marcha</string>
     <string name="notif_text">%1$s · %2$d conectados · %3$s: este teléfono</string>
     <string name="hud_phone">← Este teléfono</string>
     <string name="hud_target">→ %1$s</string>
     <string name="hud_unavailable">%1$s no está conectado</string>
     <string name="hud_empty">Ningún dispositivo en %1$s</string>
     <string name="hud_connected">%1$s conectado</string>
-    <string name="problem_a11y_off">El servicio de accesibilidad está desactivado. Activa KemaHub en los ajustes de accesibilidad.</string>
+    <string name="problem_a11y_off">El servicio de accesibilidad está desactivado. Activa KeymaHub en los ajustes de accesibilidad.</string>
     <string name="problem_a11y_turned_off">Se detuvo porque se desactivó el servicio de accesibilidad.</string>
     <string name="problem_bt_permission">Concede el permiso Dispositivos cercanos (Bluetooth).</string>
     <string name="problem_bt_unsupported">Este teléfono no admite Bluetooth.</string>
@@ -99,7 +99,7 @@
     <string name="state_disconnected_by_user">Desconectado (no se volverá a conectar)</string>
     <string name="last_used">Último uso: %1$s</string>
     <string name="last_used_never">Nunca usado</string>
-    <string name="device_rename_hint">Un nombre para este dispositivo en KemaHub.</string>
+    <string name="device_rename_hint">Un nombre para este dispositivo en KeymaHub.</string>
     <string name="device_disconnect">Desconectar</string>
     <string name="device_allow">Permitir conexión</string>
     <string name="device_remove">Quitar</string>

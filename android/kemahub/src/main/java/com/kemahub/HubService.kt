@@ -23,7 +23,7 @@ import com.kemahub.core.Hub
 import com.kemahub.ui.MainActivity
 
 /**
- * Runs KemaHub in the background ("hosting"): the phone advertises as a BLE keyboard + mouse,
+ * Runs KeymaHub in the background ("hosting"): the phone advertises as a BLE keyboard + mouse,
  * and the hotkeys (modifiers + 1..9, 0) move the phone's keyboard and mouse between the active profile's receivers and
  * the phone itself. Also re-picks the active profile as devices connect and disconnect.
  */

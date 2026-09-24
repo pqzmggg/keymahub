@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="a11y_summary">이 폰에 연결한 키보드·마우스로 다른 기기 조작</string>
-    <string name="a11y_description">KemaHub는 이 기기에 연결된 키보드와 마우스의 입력을 받아, 단축키로 고른 블루투스 기기(PC·태블릿)로 전달합니다. 이 폰을 선택한 동안에는 입력을 그대로 둡니다. 입력 내용은 저장하거나 인터넷으로 보내지 않으며, 선택한 기기로만 전달됩니다. 화면 내용은 읽지 않습니다.</string>
+    <string name="a11y_description">KeymaHub는 이 기기에 연결된 키보드와 마우스의 입력을 받아, 단축키로 고른 블루투스 기기(PC·태블릿)로 전달합니다. 이 폰을 선택한 동안에는 입력을 그대로 둡니다. 입력 내용은 저장하거나 인터넷으로 보내지 않으며, 선택한 기기로만 전달됩니다. 화면 내용은 읽지 않습니다.</string>
     <string name="setup_title">호스트 모드 설정</string>
     <string name="setup_intro">이 폰에 연결한 키보드·마우스로 주변의 PC와 태블릿을 조작합니다. 상대 기기에는 설치할 것이 없습니다.</string>
     <string name="setup_steps">시작하려면 다음을 허용해 주세요.</string>
@@ -13,14 +13,14 @@
     <string name="step_notifications_body">실행 중인지, 지금 어떤 기기를 조작 중인지 알림으로 보여 줍니다.</string>
     <string name="action_allow">허용</string>
     <string name="action_open_settings">설정</string>
-    <string name="restricted_hint">KemaHub가 켜지지 않나요? 앱 정보 → ⋮ → 제한된 설정 허용</string>
+    <string name="restricted_hint">KeymaHub가 켜지지 않나요? 앱 정보 → ⋮ → 제한된 설정 허용</string>
     <string name="disclosure_title">접근성 서비스 사용 안내</string>
-    <string name="disclosure_intro">KemaHub는 접근성 서비스를 다음 용도로만 사용합니다.</string>
+    <string name="disclosure_intro">KeymaHub는 접근성 서비스를 다음 용도로만 사용합니다.</string>
     <string name="disclosure_1">• 이 폰에 연결된 키보드와 마우스의 입력을 받습니다.</string>
     <string name="disclosure_2">• 단축키로 고른 블루투스 기기(PC·태블릿)로 그 입력을 전달합니다. 이 폰을 선택한 동안에는 입력을 그대로 둡니다.</string>
     <string name="disclosure_3">• 입력 내용은 저장하지 않으며, 인터넷이나 개발자에게 보내지 않습니다. 선택한 기기로만 전달됩니다.</string>
     <string name="disclosure_4">• 화면 내용은 읽지 않습니다.</string>
-    <string name="disclosure_next">다음 화면의 \'설치된 앱\'(또는 \'다운로드한 앱\')에서 KemaHub를 켜 주세요.</string>
+    <string name="disclosure_next">다음 화면의 \'설치된 앱\'(또는 \'다운로드한 앱\')에서 KeymaHub를 켜 주세요.</string>
     <string name="disclosure_agree">동의하고 설정 열기</string>
     <string name="action_cancel">취소</string>
     <string name="action_close">닫기</string>
@@ -62,14 +62,14 @@
     <string name="guide_mac">시스템 설정 → Bluetooth → 이 폰 옆의 \'연결\'</string>
     <string name="guide_mobile">설정 → Bluetooth → 이 폰 선택</string>
     <string name="guide_note">폰에 페어링 요청이 뜨면 허용하세요. 연결하는 동안 이 폰의 블루투스 설정 화면은 닫아 두세요.</string>
-    <string name="notif_channel">KemaHub 실행 중</string>
+    <string name="notif_channel">KeymaHub 실행 중</string>
     <string name="notif_text">%1$s · 연결 %2$d개 · %3$s: 이 폰</string>
     <string name="hud_phone">← 이 폰</string>
     <string name="hud_target">→ %1$s</string>
     <string name="hud_unavailable">%1$s 연결 안 됨</string>
     <string name="hud_empty">%1$s 에 기기 없음</string>
     <string name="hud_connected">%1$s 연결됨</string>
-    <string name="problem_a11y_off">접근성 서비스가 꺼져 있습니다. 접근성 설정에서 KemaHub를 켜 주세요.</string>
+    <string name="problem_a11y_off">접근성 서비스가 꺼져 있습니다. 접근성 설정에서 KeymaHub를 켜 주세요.</string>
     <string name="problem_a11y_turned_off">접근성 서비스가 꺼져서 중지했습니다.</string>
     <string name="problem_bt_permission">근처 기기(블루투스) 권한을 허용해 주세요.</string>
     <string name="problem_bt_unsupported">블루투스를 지원하지 않는 기기입니다.</string>
@@ -99,7 +99,7 @@
     <string name="state_disconnected_by_user">연결 해제됨 (다시 연결 안 함)</string>
     <string name="last_used">마지막 사용: %1$s</string>
     <string name="last_used_never">사용한 적 없음</string>
-    <string name="device_rename_hint">KemaHub에서 이 기기를 부를 이름입니다.</string>
+    <string name="device_rename_hint">KeymaHub에서 이 기기를 부를 이름입니다.</string>
     <string name="device_disconnect">연결 해제</string>
     <string name="device_allow">연결 허용</string>
     <string name="device_remove">삭제</string>

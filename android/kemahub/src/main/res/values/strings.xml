@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">KemaHub</string>
+    <string name="app_name" translatable="false">KeymaHub</string>
     <string name="a11y_summary">Control other devices with the keyboard and mouse connected to this phone</string>
-    <string name="a11y_description">KemaHub receives input from the keyboard and mouse connected to this device and sends it to the Bluetooth device (PC, tablet) you choose with a hotkey. When this phone is selected, input is left as it is. Input is never stored or sent to the internet; it only goes to the device you choose. KemaHub does not read screen content.</string>
+    <string name="a11y_description">KeymaHub receives input from the keyboard and mouse connected to this device and sends it to the Bluetooth device (PC, tablet) you choose with a hotkey. When this phone is selected, input is left as it is. Input is never stored or sent to the internet; it only goes to the device you choose. KeymaHub does not read screen content.</string>
     <string name="setup_title">Host mode setup</string>
     <string name="setup_intro">Use the keyboard and mouse connected to this phone to control PCs and tablets nearby. Nothing needs to be installed on them.</string>
     <string name="setup_steps">To start, allow the following.</string>
@@ -11,17 +11,17 @@
     <string name="step_a11y_title">Accessibility service</string>
     <string name="step_a11y_body">Needed to receive input from the connected keyboard and mouse and pass it to the device you choose.</string>
     <string name="step_notifications_title">Notifications (recommended)</string>
-    <string name="step_notifications_body">Shows that KemaHub is running and which device you are controlling.</string>
+    <string name="step_notifications_body">Shows that KeymaHub is running and which device you are controlling.</string>
     <string name="action_allow">Allow</string>
     <string name="action_open_settings">Set up</string>
-    <string name="restricted_hint">Can\'t turn on KemaHub? App info → ⋮ → Allow restricted settings</string>
-    <string name="disclosure_title">How KemaHub uses the accessibility service</string>
-    <string name="disclosure_intro">KemaHub uses the accessibility service only to:</string>
+    <string name="restricted_hint">Can\'t turn on KeymaHub? App info → ⋮ → Allow restricted settings</string>
+    <string name="disclosure_title">How KeymaHub uses the accessibility service</string>
+    <string name="disclosure_intro">KeymaHub uses the accessibility service only to:</string>
     <string name="disclosure_1">• Receive input from the keyboard and mouse connected to this phone.</string>
     <string name="disclosure_2">• Send that input to the Bluetooth device (PC, tablet) you select with a hotkey. While this phone is selected, input is left as it is.</string>
     <string name="disclosure_3">• Input is never stored and never sent to the internet or to the developer. It only goes to the device you select.</string>
-    <string name="disclosure_4">• KemaHub does not read screen content.</string>
-    <string name="disclosure_next">On the next screen, turn on KemaHub under Installed apps (or Downloaded apps).</string>
+    <string name="disclosure_4">• KeymaHub does not read screen content.</string>
+    <string name="disclosure_next">On the next screen, turn on KeymaHub under Installed apps (or Downloaded apps).</string>
     <string name="disclosure_agree">Agree and open settings</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_close">Close</string>
@@ -63,14 +63,14 @@
     <string name="guide_mac">System Settings → Bluetooth → click Connect next to this phone</string>
     <string name="guide_mobile">Settings → Bluetooth → select this phone</string>
     <string name="guide_note">If this phone asks to pair, allow it. Keep this phone\'s Bluetooth settings screen closed while connecting.</string>
-    <string name="notif_channel">KemaHub running</string>
+    <string name="notif_channel">KeymaHub running</string>
     <string name="notif_text">%1$s · %2$d connected · %3$s: this phone</string>
     <string name="hud_phone">← This phone</string>
     <string name="hud_target">→ %1$s</string>
     <string name="hud_unavailable">%1$s is not connected</string>
     <string name="hud_empty">No device on %1$s</string>
     <string name="hud_connected">%1$s connected</string>
-    <string name="problem_a11y_off">The accessibility service is off. Turn on KemaHub in the accessibility settings.</string>
+    <string name="problem_a11y_off">The accessibility service is off. Turn on KeymaHub in the accessibility settings.</string>
     <string name="problem_a11y_turned_off">Stopped because the accessibility service was turned off.</string>
     <string name="problem_bt_permission">Allow Nearby devices (Bluetooth) permission.</string>
     <string name="problem_bt_unsupported">This phone does not support Bluetooth.</string>
@@ -100,7 +100,7 @@
     <string name="state_disconnected_by_user">Disconnected (won\'t reconnect)</string>
     <string name="last_used">Last used %1$s</string>
     <string name="last_used_never">Never used</string>
-    <string name="device_rename_hint">A name for this device in KemaHub.</string>
+    <string name="device_rename_hint">A name for this device in KeymaHub.</string>
     <string name="device_disconnect">Disconnect</string>
     <string name="device_allow">Allow connection</string>
     <string name="device_remove">Remove</string>

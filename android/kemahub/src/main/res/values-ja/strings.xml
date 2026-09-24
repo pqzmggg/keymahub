@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="a11y_summary">このスマホにつないだキーボード・マウスで他のデバイスを操作</string>
-    <string name="a11y_description">KemaHub は、このデバイスに接続されたキーボードとマウスの入力を受け取り、ホットキーで選んだ Bluetooth デバイス（PC・タブレット）に送ります。このスマホを選んでいる間は入力をそのままにします。入力内容を保存したりインターネットに送信したりすることはなく、選んだデバイスにだけ送ります。画面の内容は読み取りません。</string>
+    <string name="a11y_description">KeymaHub は、このデバイスに接続されたキーボードとマウスの入力を受け取り、ホットキーで選んだ Bluetooth デバイス（PC・タブレット）に送ります。このスマホを選んでいる間は入力をそのままにします。入力内容を保存したりインターネットに送信したりすることはなく、選んだデバイスにだけ送ります。画面の内容は読み取りません。</string>
     <string name="setup_title">ホストモードの設定</string>
     <string name="setup_intro">このスマホにつないだキーボードとマウスで、近くの PC やタブレットを操作します。相手側に何かをインストールする必要はありません。</string>
     <string name="setup_steps">始めるには、次を許可してください。</string>
@@ -13,14 +13,14 @@
     <string name="step_notifications_body">実行中であることと、今どのデバイスを操作しているかを通知で表示します。</string>
     <string name="action_allow">許可</string>
     <string name="action_open_settings">設定</string>
-    <string name="restricted_hint">KemaHub をオンにできない場合：アプリ情報 → ⋮ → 制限付き設定を許可</string>
+    <string name="restricted_hint">KeymaHub をオンにできない場合：アプリ情報 → ⋮ → 制限付き設定を許可</string>
     <string name="disclosure_title">ユーザー補助サービスの利用について</string>
-    <string name="disclosure_intro">KemaHub はユーザー補助サービスを次の目的にのみ使用します。</string>
+    <string name="disclosure_intro">KeymaHub はユーザー補助サービスを次の目的にのみ使用します。</string>
     <string name="disclosure_1">• このスマホに接続されたキーボードとマウスの入力を受け取ります。</string>
     <string name="disclosure_2">• その入力を、ホットキーで選んだ Bluetooth デバイス（PC・タブレット）に送ります。このスマホを選んでいる間は入力をそのままにします。</string>
     <string name="disclosure_3">• 入力内容は保存せず、インターネットや開発者に送信しません。選んだデバイスにだけ送ります。</string>
     <string name="disclosure_4">• 画面の内容は読み取りません。</string>
-    <string name="disclosure_next">次の画面の「インストール済みアプリ」（または「ダウンロードしたアプリ」）で KemaHub をオンにしてください。</string>
+    <string name="disclosure_next">次の画面の「インストール済みアプリ」（または「ダウンロードしたアプリ」）で KeymaHub をオンにしてください。</string>
     <string name="disclosure_agree">同意して設定を開く</string>
     <string name="action_cancel">キャンセル</string>
     <string name="action_close">閉じる</string>
@@ -62,14 +62,14 @@
     <string name="guide_mac">システム設定 → Bluetooth → このスマホの横の「接続」</string>
     <string name="guide_mobile">設定 → Bluetooth → このスマホを選択</string>
     <string name="guide_note">スマホにペアリングの確認が表示されたら許可してください。接続中はこのスマホの Bluetooth 設定画面を閉じておいてください。</string>
-    <string name="notif_channel">KemaHub 実行中</string>
+    <string name="notif_channel">KeymaHub 実行中</string>
     <string name="notif_text">%1$s · 接続 %2$d 台 · %3$s: このスマホ</string>
     <string name="hud_phone">← このスマホ</string>
     <string name="hud_target">→ %1$s</string>
     <string name="hud_unavailable">%1$s は未接続です</string>
     <string name="hud_empty">%1$s にデバイスがありません</string>
     <string name="hud_connected">%1$s が接続されました</string>
-    <string name="problem_a11y_off">ユーザー補助サービスがオフです。ユーザー補助の設定で KemaHub をオンにしてください。</string>
+    <string name="problem_a11y_off">ユーザー補助サービスがオフです。ユーザー補助の設定で KeymaHub をオンにしてください。</string>
     <string name="problem_a11y_turned_off">ユーザー補助サービスがオフになったため停止しました。</string>
     <string name="problem_bt_permission">付近のデバイス（Bluetooth）の権限を許可してください。</string>
     <string name="problem_bt_unsupported">このスマホは Bluetooth に対応していません。</string>
@@ -99,7 +99,7 @@
     <string name="state_disconnected_by_user">切断済み（再接続しない）</string>
     <string name="last_used">最終使用: %1$s</string>
     <string name="last_used_never">未使用</string>
-    <string name="device_rename_hint">KemaHub でこのデバイスを呼ぶ名前です。</string>
+    <string name="device_rename_hint">KeymaHub でこのデバイスを呼ぶ名前です。</string>
     <string name="device_disconnect">切断</string>
     <string name="device_allow">接続を許可</string>
     <string name="device_remove">削除</string>

@@ -116,7 +116,7 @@ object Hub {
     val log: StateFlow<String> = _log.asStateFlow()
 
     fun log(msg: String) {
-        Log.i("KemaHub", msg)
+        Log.i("KeymaHub", msg)
         synchronized(lines) {
             lines.addLast("${fmt.format(Date())}  $msg")
             while (lines.size > 300) lines.removeFirst()

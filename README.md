@@ -13,7 +13,7 @@
 - P0 기술 검증 가이드·결과: [docs/P0.md](docs/P0.md)
 - Android 제품 기획: [docs/ANDROID_PRODUCT.md](docs/ANDROID_PRODUCT.md)
 
-## 현재 단계: KemaHub (Android 블루투스 허브) v0.1 개발
+## 현재 단계: KeymaHub (Android 블루투스 허브) v0.1 개발
 
 | 경로 | 내용 |
 |---|---|
@@ -22,18 +22,18 @@
 | `poc/win-capture` | Windows 전역 입력 캡처·차단·전송 |
 | `poc/kmc` | 테스트 도구: `dump` / `demo` / `ping` |
 | `android/app` | P0 테스트 콘솔 (리시버 UHID·Inject·접근성, BLE 호스트, evdev 프로브) |
-| `android/kemahub` | **KemaHub** 제품 앱: 폰의 키보드·마우스를 BLE로 PC·태블릿에 (기본 `Shift+Alt+1` 이 폰, `Shift+Alt+2~9, 0` 기기; 보조키 변경·프로필·6개 언어) |
+| `android/kemahub` | **KeymaHub** 제품 앱: 폰의 키보드·마우스를 BLE로 PC·태블릿에 (기본 `Shift+Alt+1` 이 폰, `Shift+Alt+2~9, 0` 기기; 보조키 변경·프로필·6개 언어) |
 
 ```sh
 cargo test --workspace                          # Rust 테스트
 cargo build --release -p win-capture -p kmc     # Windows 도구
-cd android && ./gradlew testDebugUnitTest assembleDebug   # P0 앱 + KemaHub
+cd android && ./gradlew testDebugUnitTest assembleDebug   # P0 앱 + KeymaHub
 ```
 
-## KemaHub 릴리스
+## KeymaHub 릴리스
 
 GitHub에서 `v1.2.3` 형식 태그로 릴리스를 publish하면 `.github/workflows/release.yml`이
-업로드 키로 서명한 `KemaHub-1.2.3.apk`(직접 설치용)와 `KemaHub-1.2.3.aab`(Play 업로드용)를 그 릴리스에 첨부한다.
+업로드 키로 서명한 `KeymaHub-1.2.3.apk`(직접 설치용)와 `KeymaHub-1.2.3.aab`(Play 업로드용)를 그 릴리스에 첨부한다.
 versionName은 태그, versionCode는 `major*10000 + minor*100 + patch`.
 
 업로드 키는 저장소에 넣지 않고 Actions secrets로 둔다 (한 번만):

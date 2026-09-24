@@ -37,7 +37,7 @@ class HudOverlay(private val service: AccessibilityService) {
             ).apply {
                 gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
                 y = (48 * service.resources.displayMetrics.density).toInt()
-                title = "KemaHub HUD"
+                title = "KeymaHub HUD"
             }
             if (runCatching { wm.addView(tv, params) }.isFailure) return@post
             view = tv

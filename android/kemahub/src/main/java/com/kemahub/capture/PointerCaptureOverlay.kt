@@ -66,7 +66,7 @@ class PointerCaptureOverlay(
             PixelFormat.TRANSLUCENT,
         ).apply {
             gravity = Gravity.TOP or Gravity.START
-            title = "KemaHub pointer capture"
+            title = "KeymaHub pointer capture"
         }
         runCatching { wm.addView(v, params) }
             .onSuccess {
