@@ -37,8 +37,6 @@ class HubService : Service(), BleHid.Listener {
     private var hud: HudOverlay? = null
     private val main = Handler(Looper.getMainLooper())
     private var pendingPairing = false
-    /** Pairing mode was turned on by starting hosting, not by the user (see startReconnectWindow). */
-    private var reconnectWindow = false
 
     override fun attachBaseContext(base: Context) = super.attachBaseContext(Locales.wrap(base))
 
@@ -104,7 +102,7 @@ class HubService : Service(), BleHid.Listener {
         Hub.log("running, profile ${profile.id}, app $version (${Build.MODEL}, Android ${Build.VERSION.RELEASE})")
         main.post {
             if (destroyed) return@post
-            if (pendingPairing) setPairing(true) else startReconnectWindow()
+            if (pendingPairing) setPairing(true)
         }
         updateNotification()
     }
@@ -136,30 +134,12 @@ class HubService : Service(), BleHid.Listener {
     private val pairingOff = Runnable { setPairing(false) }
 
     /** Main thread. */
-    private fun setPairing(on: Boolean, durationMs: Long = PAIRING_MS) {
-        reconnectWindow = false
+    private fun setPairing(on: Boolean) {
         BleHid.setPairing(on)
         main.removeCallbacks(pairingOff)
-        if (on) main.postDelayed(pairingOff, durationMs)
-        Hub.update { it.copy(pairingUntil = if (on) SystemClock.elapsedRealtime() + durationMs else 0) }
+        if (on) main.postDelayed(pairingOff, PAIRING_MS)
+        Hub.update { it.copy(pairingUntil = if (on) SystemClock.elapsedRealtime() + PAIRING_MS else 0) }
         updateNotification()
-    }
-
-    /**
-     * Paired tablets come back reliably only while pairing mode is on, so hosting starts with a
-     * short pairing window. It ends early once every paired device is back.
-     */
-    private fun startReconnectWindow() {
-        if (waitingFor().isEmpty()) return
-        Hub.log("pairing mode on for ${RECONNECT_WINDOW_MS / 1000} s so paired devices can reconnect")
-        setPairing(true, RECONNECT_WINDOW_MS)
-        reconnectWindow = true
-    }
-
-    /** Paired devices (not disconnected by the user) that are not back yet. */
-    private fun waitingFor(): List<String> {
-        val ready = BleHid.readyTargets()
-        return Hub.settings(this).devices.filter { !it.blocked && it.address !in ready }.map { it.address }
     }
 
     // ---------------------------------------------------------------- routing callbacks
@@ -216,7 +196,10 @@ class HubService : Service(), BleHid.Listener {
         Hub.edit(this) { it.deviceConnected(address, name).touch(address, System.currentTimeMillis()) }
         Hub.settings(this).device(address)?.let { showHud(getString(R.string.hud_connected, it.name)) }
         updateNotification()
-        main.post { if (reconnectWindow && waitingFor().isEmpty()) setPairing(false) }
+    }
+
+    override fun onBluetoothOff() {
+        main.post { stop(this, R.string.problem_bt_off) }
     }
 
     override fun onGone(address: String) {
@@ -277,7 +260,6 @@ class HubService : Service(), BleHid.Listener {
         private const val ACTION_PAIR = "app.keymahub.PAIR"
         private const val EXTRA_ON = "on"
         const val PAIRING_MS = 3 * 60_000L
-        private const val RECONNECT_WINDOW_MS = 60_000L
 
         @Volatile
         var running = false
