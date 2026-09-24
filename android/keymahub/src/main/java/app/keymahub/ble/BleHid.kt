@@ -68,6 +68,9 @@ object BleHid {
     private val main = Handler(Looper.getMainLooper())
     /** Addresses using the HID service without being recognized as a target (see admit). */
     private val strangers = HashSet<String>()
+    /** GATT requests on each link so far (see trace). */
+    private val traced = HashMap<String, Int>()
+    @Volatile private var advertisedWithName = false
 
     private lateinit var keyboardIn: BluetoothGattCharacteristic
     private lateinit var mouseIn: BluetoothGattCharacteristic
@@ -373,6 +376,7 @@ object BleHid {
             val address = device.address
             when (newState) {
                 BluetoothProfile.STATE_CONNECTED -> {
+                    synchronized(lock) { traced.remove(address) }
                     // Every LE link of the phone shows up here, the phone's own Bluetooth keyboard and
                     // mouse included. Only KeymaHub's devices are targets right away; any other device
                     // becomes one when it starts using the HID service (see admit).
@@ -402,6 +406,7 @@ object BleHid {
                         lastSent.remove(address)
                         fastLinks.remove(address)?.let { runCatching { it.close() } }
                         strangers.remove(address)
+                        traced.remove(address)
                         connected.remove(address) != null
                     }
                     if (!wasTarget) {
@@ -417,11 +422,13 @@ object BleHid {
         }
 
         override fun onCharacteristicReadRequest(device: BluetoothDevice, requestId: Int, offset: Int, ch: BluetoothGattCharacteristic) {
+            trace(device, "read ${label(ch)}${if (offset > 0) " @$offset" else ""}")
             if (!admit(device, requestId)) return
             respond(device, requestId, offset, values[ch] ?: ByteArray(0))
         }
 
         override fun onDescriptorReadRequest(device: BluetoothDevice, requestId: Int, offset: Int, d: BluetoothGattDescriptor) {
+            trace(device, "read ${label(d.characteristic)}/${short(d.uuid)}")
             if (!admit(device, requestId)) return
             val value = if (d.uuid == CCCD) {
                 val on = synchronized(lock) { subscribed[device.address]?.contains(d.characteristic) == true }
@@ -436,6 +443,7 @@ object BleHid {
             device: BluetoothDevice, requestId: Int, d: BluetoothGattDescriptor,
             preparedWrite: Boolean, responseNeeded: Boolean, offset: Int, value: ByteArray?,
         ) {
+            trace(device, "write ${label(d.characteristic)}/${short(d.uuid)} = ${hex(value)}")
             if (!admit(device, requestId)) return
             // Notification settings count for targets only; others just get an answer.
             if (d.uuid == CCCD && synchronized(lock) { device.address in connected }) {
@@ -467,6 +475,7 @@ object BleHid {
             device: BluetoothDevice, requestId: Int, ch: BluetoothGattCharacteristic,
             preparedWrite: Boolean, responseNeeded: Boolean, offset: Int, value: ByteArray?,
         ) {
+            trace(device, "write ${label(ch)} = ${hex(value)}")
             if (!admit(device, requestId)) return
             // Protocol mode, control point (suspend/exit suspend) and keyboard LEDs: accepted, ignored.
             if (responseNeeded) server?.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, value)
@@ -651,7 +660,12 @@ object BleHid {
 
     private val advertiseCallback = object : AdvertiseCallback() {
         override fun onStartSuccess(settingsInEffect: AdvertiseSettings?) {
-            Hub.log("BLE HID: advertising")
+            val speed = when (advertisingMode) {
+                AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY -> "fast"
+                AdvertiseSettings.ADVERTISE_MODE_BALANCED -> "medium"
+                else -> "slow"
+            }
+            Hub.log("BLE HID: advertising ($speed${if (advertisedWithName) ", with name" else ""})")
         }
 
         override fun onStartFailure(errorCode: Int) {
@@ -662,6 +676,27 @@ object BleHid {
             }
         }
     }
+
+    // ---------------------------------------------------------------- diagnostics
+
+    /**
+     * Logs the first GATT requests of each link: how a host sets up its HID connection, and where
+     * it stalls when it does not finish ("connecting" on the host).
+     */
+    private fun trace(device: BluetoothDevice, what: String) {
+        val n = synchronized(lock) { ((traced[device.address] ?: 0) + 1).also { traced[device.address] = it } }
+        if (n <= TRACE_MAX) Hub.log("BLE HID:   ${nameOf(device.address)} $what")
+        else if (n == TRACE_MAX + 1) Hub.log("BLE HID:   ${nameOf(device.address)} …")
+    }
+
+    private const val TRACE_MAX = 40
+
+    private fun short(uuid: UUID) = "%04X".format((uuid.mostSignificantBits ushr 32).toInt() and 0xFFFF)
+
+    /** "2A4D#12": characteristic and its instance (report characteristics share a UUID). */
+    private fun label(ch: BluetoothGattCharacteristic) = "${short(ch.uuid)}#${ch.instanceId}"
+
+    private fun hex(value: ByteArray?) = value?.joinToString("") { "%02x".format(it) } ?: "-"
 
     /** " (status 0x3e)" for a failure; the HCI reason tells why a link dropped. */
     private fun statusText(status: Int) = if (status == BluetoothGatt.GATT_SUCCESS) "" else " (status 0x%02x)".format(status)
@@ -679,6 +714,7 @@ object BleHid {
             .build()
         val data = AdvertiseData.Builder().addServiceUuid(ParcelUuid(HID_SERVICE)).build()
         val scan = AdvertiseData.Builder().setIncludeDeviceName(withName).build()
+        advertisedWithName = withName
         runCatching { adv.startAdvertising(settings, data, scan, advertiseCallback) }
             .onFailure { Hub.log("BLE HID: advertising failed: $it") }
     }

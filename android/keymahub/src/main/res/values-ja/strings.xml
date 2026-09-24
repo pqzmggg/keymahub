@@ -149,6 +149,8 @@
     <string name="mode_fallback_note">どちらの自動モードでも、合うプロファイルがない場合は最後に有効にしたプロファイルを使います。手動で有効にすると、接続中のデバイスが変わるまで自動の選択より優先されます。</string>
     <string name="device_connect">接続</string>
     <string name="device_connecting">%1$s に接続しています。デバイスの電源が入っていて近くにあれば接続されます。</string>
+    <string name="log_note_hint">メモ: 何をして、どうなったか</string>
+    <string name="log_note_add">追加</string>
     <plurals name="ready_count">
         <item quantity="other">%1$d 台接続中</item>
     </plurals>

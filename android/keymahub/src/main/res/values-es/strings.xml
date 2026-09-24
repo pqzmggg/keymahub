@@ -149,6 +149,8 @@
     <string name="mode_fallback_note">En ambos modos automáticos, si no coincide ninguno, se usa el último perfil que activaste. Activar un perfil a mano también tiene prioridad sobre la elección automática hasta que cambien los dispositivos conectados.</string>
     <string name="device_connect">Conectar</string>
     <string name="device_connecting">Conectando con %1$s. Se conectará cuando el dispositivo esté encendido y cerca.</string>
+    <string name="log_note_hint">Nota: qué hiciste y qué pasó</string>
+    <string name="log_note_add">Añadir</string>
     <plurals name="ready_count">
         <item quantity="one">%1$d dispositivo conectado</item>
         <item quantity="many">%1$d dispositivos conectados</item>

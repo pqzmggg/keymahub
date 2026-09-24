@@ -150,6 +150,8 @@
     <string name="mode_fallback_note">In both automatic modes, when nothing matches, the profile you activated last is used. Activating a profile by hand also overrides the automatic choice until the connected devices change.</string>
     <string name="device_connect">Connect</string>
     <string name="device_connecting">Connecting to %1$s. It connects when the device is on and nearby.</string>
+    <string name="log_note_hint">Note: what you tried, what happened</string>
+    <string name="log_note_add">Add</string>
     <plurals name="ready_count">
         <item quantity="one">%1$d device connected</item>
         <item quantity="other">%1$d devices connected</item>

@@ -149,6 +149,8 @@
     <string name="mode_fallback_note">두 자동 방식 모두, 맞는 프로필이 없으면 마지막으로 활성화한 프로필을 사용합니다. 직접 활성화하면 연결된 기기가 바뀔 때까지 자동 선택보다 우선합니다.</string>
     <string name="device_connect">연결</string>
     <string name="device_connecting">%1$s에 연결하는 중이에요. 기기가 켜져 있고 가까이 있으면 연결돼요.</string>
+    <string name="log_note_hint">메모: 무엇을 했고 어떻게 됐는지</string>
+    <string name="log_note_add">추가</string>
     <plurals name="ready_count">
         <item quantity="other">연결된 기기 %1$d개</item>
     </plurals>
