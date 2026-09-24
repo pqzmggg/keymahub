@@ -34,6 +34,8 @@ cd android && ./gradlew testDebugUnitTest assembleDebug   # P0 앱 + KeymaHub
 
 GitHub에서 `v1.2.3` 형식 태그로 릴리스를 publish하면 `.github/workflows/release.yml`이
 업로드 키로 서명한 `KeymaHub-1.2.3.apk`(직접 설치용)와 `KeymaHub-1.2.3.aab`(Play 업로드용)를 그 릴리스에 첨부한다.
+**Pre-release**로 체크하면(태그 `v1.2.3` 또는 `v1.2.3-beta.1`) 대신 디버그 빌드 `KeymaHub-dev-1.2.3.apk`를 첨부한다:
+앱 이름 **KeymaHub(dev)**, 앱 ID `com.keymahub.app.dev` 라 정식 앱과 나란히 설치되고, 같은 업로드 키로 서명해 다음 pre-release로 덮어 설치된다.
 versionName은 태그, versionCode는 `major*10000 + minor*100 + patch`.
 
 업로드 키는 저장소에 넣지 않고 Actions secrets로 둔다 (한 번만):

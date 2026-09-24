@@ -2,7 +2,8 @@ name: release
 
 # Publishing a GitHub release (tag like v0.2.0) builds KeymaHub, signs it with the upload key
 # from the repository secrets, and attaches the APK (for sideloading) and the AAB (for Play)
-# to that release.
+# to that release. A pre-release (tag like v0.2.0 or v0.2.0-beta.1) gets the debug build
+# instead: "KeymaHub(dev)", app id com.keymahub.app.dev, installable next to the release app.
 #
 # Secrets (Settings → Secrets and variables → Actions):
 #   KEYMAHUB_KEYSTORE_BASE64    the keystore file, base64-encoded
@@ -37,10 +38,13 @@ jobs:
         id: version
         env:
           TAG: ${{ github.event.release.tag_name }}
+          PRERELEASE: ${{ github.event.release.prerelease }}
         run: |
           name="${TAG#v}"
-          if ! [[ "$name" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
-            echo "::error::Release tag must look like v1.2.3 (got '$TAG')"
+          if [ "$PRERELEASE" = true ]; then pattern='^([0-9]+)\.([0-9]+)\.([0-9]+)(-[0-9A-Za-z.]+)?$'
+          else pattern='^([0-9]+)\.([0-9]+)\.([0-9]+)$'; fi
+          if ! [[ "$name" =~ $pattern ]]; then
+            echo "::error::Release tag must look like v1.2.3 (pre-release: also v1.2.3-beta.1) (got '$TAG')"
             exit 1
           fi
           code=$(( BASH_REMATCH[1] * 10000 + BASH_REMATCH[2] * 100 + BASH_REMATCH[3] ))
@@ -109,15 +113,28 @@ jobs:
           } >> "$GITHUB_ENV"
 
       - name: Build
+        if: ${{ !github.event.release.prerelease }}
         run: >
           ./gradlew --no-daemon :keymahub:testReleaseUnitTest :keymahub:assembleRelease :keymahub:bundleRelease
           -Pkeymahub.versionName=${{ steps.version.outputs.name }}
           -Pkeymahub.versionCode=${{ steps.version.outputs.code }}
+          && mkdir -p out
+          && cp keymahub/build/outputs/apk/release/keymahub-release.apk "out/KeymaHub-${{ steps.version.outputs.name }}.apk"
+          && cp keymahub/build/outputs/bundle/release/keymahub-release.aab "out/KeymaHub-${{ steps.version.outputs.name }}.aab"
+
+      - name: Build (pre-release, debug)
+        if: ${{ github.event.release.prerelease }}
+        run: >
+          ./gradlew --no-daemon :keymahub:testDebugUnitTest :keymahub:assembleDebug
+          -Pkeymahub.versionName=${{ steps.version.outputs.name }}
+          -Pkeymahub.versionCode=${{ steps.version.outputs.code }}
+          && mkdir -p out
+          && cp keymahub/build/outputs/apk/debug/keymahub-debug.apk "out/KeymaHub-dev-${{ steps.version.outputs.name }}.apk"
 
       - name: Check the signature
         run: |
           apksigner=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)
-          "$apksigner" verify --print-certs keymahub/build/outputs/apk/release/keymahub-release.apk | tee certs.txt
+          "$apksigner" verify --print-certs out/*.apk | tee certs.txt
           if grep -q "CN=Android Debug" certs.txt; then
             echo "::error::The APK is signed with the debug key"
             exit 1
@@ -127,11 +144,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.event.release.tag_name }}
-          VERSION: ${{ steps.version.outputs.name }}
         run: |
-          mkdir -p out
-          cp keymahub/build/outputs/apk/release/keymahub-release.apk "out/KeymaHub-$VERSION.apk"
-          cp keymahub/build/outputs/bundle/release/keymahub-release.aab "out/KeymaHub-$VERSION.aab"
           gh release upload "$TAG" out/* --clobber --repo "$GITHUB_REPOSITORY"
 
       - name: Remove the key

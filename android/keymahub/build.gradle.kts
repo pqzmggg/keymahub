@@ -19,7 +19,7 @@ android {
     }
 
     // The upload key comes from the environment (GitHub secrets in the release workflow);
-    // it is never stored in the repository. Without it, release builds use the debug key.
+    // it is never stored in the repository. Without it, builds use the debug key.
     val keystore = System.getenv("KEYMAHUB_KEYSTORE")?.let { file(it) }?.takeIf { it.exists() }
     signingConfigs {
         if (keystore != null) {
@@ -43,6 +43,13 @@ android {
     }
 
     buildTypes {
+        // Pre-releases: "KeymaHub(dev)", its own app id so it installs next to the release app.
+        // Signed with the upload key when available, so each pre-release updates the last one.
+        debug {
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+            signingConfigs.findByName("upload")?.let { signingConfig = it }
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
