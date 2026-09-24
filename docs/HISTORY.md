@@ -96,7 +96,9 @@
 ## 7. 운영 규칙
 
 - 커밋 작성자: `dean <pqzmggg@gmail.com>`, 커밋 메시지에 공동 작성자·세션 줄을 넣지 않는다 (기존 이력도 재작성함).
-- CI(GitHub Actions)가 Rust 테스트·clippy, Windows exe, Android APK를 빌드하고 산출물을 올린다. Android 빌드 검증은 CI 기준.
+- `main`에는 직접 푸시하지 않고 **항상 PR로 머지**한다.
+- CI(GitHub Actions)는 **PR에서만** 돈다(PR 생성·PR 브랜치에 푸시할 때, 필요하면 Actions 탭에서 수동 실행). `main` 머지 후에는 다시 돌지 않는다.
+  Rust 테스트·clippy, Windows exe, Android APK를 빌드하고 산출물을 올린다. Android 빌드 검증은 CI 기준. 릴리스 빌드는 release 워크플로.
 
 ## 8. 남은 확인 항목 (2026-09-23 기준)
 
