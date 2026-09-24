@@ -149,6 +149,8 @@
     <string name="mode_fallback_note">Dans les deux modes automatiques, si rien ne correspond, le dernier profil activé est utilisé. Activer un profil à la main l\'emporte aussi sur le choix automatique jusqu\'à ce que les appareils connectés changent.</string>
     <string name="device_connect">Connecter</string>
     <string name="device_connecting">Connexion à %1$s. Elle se fera quand l\'appareil sera allumé et à proximité.</string>
+    <string name="log_note_hint">Note : ce que vous avez fait, ce qui s\'est passé</string>
+    <string name="log_note_add">Ajouter</string>
     <plurals name="ready_count">
         <item quantity="one">%1$d appareil connecté</item>
         <item quantity="many">%1$d appareils connectés</item>

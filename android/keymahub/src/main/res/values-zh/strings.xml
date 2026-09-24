@@ -149,6 +149,8 @@
     <string name="mode_fallback_note">两种自动方式下，没有符合的配置时都会使用您最后启用的配置。手动启用的配置在已连接设备变化前优先于自动选择。</string>
     <string name="device_connect">连接</string>
     <string name="device_connecting">正在连接 %1$s。设备开启且在附近时会自动连接。</string>
+    <string name="log_note_hint">备注：做了什么，结果如何</string>
+    <string name="log_note_add">添加</string>
     <plurals name="ready_count">
         <item quantity="other">已连接 %1$d 台设备</item>
     </plurals>

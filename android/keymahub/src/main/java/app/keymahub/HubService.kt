@@ -100,7 +100,8 @@ class HubService : Service(), BleHid.Listener {
         running = true
         ready = true
         Hub.update { it.copy(running = true, slot = 0, ready = BleHid.readyTargets(), problem = null) }
-        Hub.log("running, profile ${profile.id}")
+        val version = runCatching { packageManager.getPackageInfo(packageName, 0).versionName }.getOrNull()
+        Hub.log("running, profile ${profile.id}, app $version (${Build.MODEL}, Android ${Build.VERSION.RELEASE})")
         main.post {
             if (destroyed) return@post
             if (pendingPairing) setPairing(true) else startReconnectWindow()

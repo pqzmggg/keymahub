@@ -6,6 +6,7 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -64,6 +65,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import app.keymahub.core.Hub
 import app.keymahub.R
 import app.keymahub.core.ActivationMode
 import app.keymahub.core.HubStatus
@@ -182,6 +184,21 @@ fun HomeScreen(
                         SelectionContainer(Modifier.verticalScroll(rememberScrollState()).padding(8.dp)) {
                             Text(log.ifEmpty { stringResource(R.string.log_empty) }, fontFamily = FontFamily.Monospace, fontSize = 11.sp)
                         }
+                    }
+                    // A note lands in the log at this moment: what was tried, what happened.
+                    var note by remember { mutableStateOf("") }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        OutlinedTextField(
+                            value = note,
+                            onValueChange = { note = it },
+                            placeholder = { Text(stringResource(R.string.log_note_hint)) },
+                            singleLine = true,
+                            modifier = Modifier.weight(1f),
+                        )
+                        TextButton(
+                            onClick = { Hub.log("NOTE: ${note.trim()}"); note = "" },
+                            enabled = note.isNotBlank(),
+                        ) { Text(stringResource(R.string.log_note_add)) }
                     }
                 }
             },
