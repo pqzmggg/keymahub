@@ -58,6 +58,8 @@ object BleHid {
     private var server: BluetoothGattServer? = null
     private var advertiser: BluetoothLeAdvertiser? = null
     @Volatile private var running = false
+    /** False until this session's services are up: links reported earlier belong to the last session. */
+    @Volatile private var accepting = false
 
     private lateinit var keyboardIn: BluetoothGattCharacteristic
     private lateinit var mouseIn: BluetoothGattCharacteristic
@@ -191,6 +193,7 @@ object BleHid {
         running = true
         advertisingMode = AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY
         advertise(withName = pairing)
+        accepting = true
         reconnect(adapter.bondedDevices.orEmpty())
         Hub.log("BLE HID ready: add this phone as a Bluetooth device on the target")
         return null
@@ -199,6 +202,7 @@ object BleHid {
     fun stop() {
         if (!running) return
         running = false
+        accepting = false
         pairing = false
         runCatching { advertiser?.stopAdvertising(advertiseCallback) }
         val s = server
@@ -354,6 +358,9 @@ object BleHid {
                     // Every LE link of the phone shows up here, the phone's own Bluetooth keyboard and
                     // mouse included. Only KeymaHub's devices are targets right away; any other device
                     // becomes one when it starts using the HID service (see admit).
+                    // A link still up from the last session (hosting was just restarted) is about to
+                    // drop; it is handled like any target coming back once it does.
+                    if (!accepting) return
                     if (isBlocked(address)) return refuse(device, "disconnected by user")
                     val known = address in knownTargets()
                     if (known) {
@@ -386,6 +393,9 @@ object BleHid {
                     if (active == address) active = null
                     listeners.forEach { it.onGone(address) }
                     updateAdvertising()
+                    // Went out of range, or the host dropped it: wait for it to come back. Not after
+                    // "disconnect" (blocked) or "remove" (no longer known), nor when hosting stops.
+                    if (running && accepting) reconnect(listOf(device))
                 }
             }
         }
