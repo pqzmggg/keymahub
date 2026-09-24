@@ -87,6 +87,11 @@ class MainActivity : ComponentActivity() {
                 onBack = { route = "home" },
                 onEdit = onEdit,
                 onPairing = { on -> HubService.pairing(this, on) },
+                onConnect = { d ->
+                    // Starting hosting connects to every paired device anyway.
+                    if (HubService.running) BleHid.reconnect(d.address) else HubService.start(this)
+                    Toast.makeText(this, getString(R.string.device_connecting, d.name), Toast.LENGTH_LONG).show()
+                },
                 onDisconnect = { address ->
                     Hub.edit(this) { it.setBlocked(address, true) }
                     BleHid.disconnect(address)

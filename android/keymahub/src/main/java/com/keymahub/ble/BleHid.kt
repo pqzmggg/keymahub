@@ -112,9 +112,10 @@ object BleHid {
         runCatching { server?.cancelConnection(d) }
     }
 
-    /** Connects to paired [address] again (after "allow"), as on start. */
+    /** Connects to paired [address] again ("connect", "allow"), as on start; restarts a pending attempt. */
     fun reconnect(address: String) {
         if (!running) return
+        closeLink(address)
         val adapter = appContext?.getSystemService(BluetoothManager::class.java)?.adapter ?: return
         reconnect(adapter.bondedDevices.orEmpty().filter { it.address == address })
     }
