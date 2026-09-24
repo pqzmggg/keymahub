@@ -1,10 +1,10 @@
 name: ci
 
+# Runs on pull requests (opened and every push to them). Changes reach main only through a
+# pull request, so a merge into main is not built again; releases build in the release workflow.
 on:
-  # Branches only: a release's tag push would repeat what the release workflow builds.
-  push:
-    branches: ['**']
   pull_request:
+  workflow_dispatch:
 
 jobs:
   rust:
