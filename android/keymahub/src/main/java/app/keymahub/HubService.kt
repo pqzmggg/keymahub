@@ -72,7 +72,6 @@ class HubService : Service(), BleHid.Listener {
         val a11y = KeymaAccessibilityService.instance ?: return fail(R.string.problem_a11y_off)
         Hub.loadUi(this)
         BleHid.isBlocked = { address -> Hub.settings(this).device(address)?.blocked == true }
-        BleHid.knownTargets = { Hub.settings(this).devices.map { it.address } }
         BleHid.start(this)?.let { return fail(it) }
         if (destroyed) return BleHid.stop()
 
