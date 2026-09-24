@@ -123,4 +123,12 @@ object Hub {
             _log.value = lines.joinToString("\n")
         }
     }
+
+    /** The app was closed. The process lives on with the accessibility service, so the log would too. */
+    fun clearLog() {
+        synchronized(lines) {
+            lines.clear()
+            _log.value = ""
+        }
+    }
 }

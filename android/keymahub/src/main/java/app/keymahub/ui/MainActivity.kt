@@ -68,6 +68,12 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onDestroy() {
+        // Closed (swiped away from recents), not just rotated: start the next visit with a fresh log.
+        if (isFinishing && !isChangingConfigurations) Hub.clearLog()
+        super.onDestroy()
+    }
+
     @Composable
     private fun Main(status: HubStatus, log: String, ui: UiPrefs) {
         // "home", "profile:<id>", "devices", "settings"
