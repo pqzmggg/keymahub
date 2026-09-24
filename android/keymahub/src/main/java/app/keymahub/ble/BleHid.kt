@@ -423,13 +423,14 @@ object BleHid {
             if (!admit(device, requestId)) return
             if (d.uuid == CCCD) {
                 val on = value != null && value.isNotEmpty() && (value[0].toInt() and 0x01) != 0
-                val mask = synchronized(lock) {
+                val (mask, changed) = synchronized(lock) {
                     val set = subscribed.getOrPut(device.address) { HashSet() }
-                    if (on) set.add(d.characteristic) else set.remove(d.characteristic)
-                    maskOf(set)
+                    val changed = if (on) set.add(d.characteristic) else set.remove(d.characteristic)
+                    maskOf(set) to changed
                 }
                 saveSubscriptions(device.address, mask)
-                if (d.characteristic === keyboardIn) {
+                // A host may enable notifications again after they were restored: already ready.
+                if (d.characteristic === keyboardIn && changed) {
                     if (on) {
                         markReady(device, restored = false)
                     } else {
