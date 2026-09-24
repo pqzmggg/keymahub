@@ -1,5 +1,5 @@
 [package]
-name = "keymanc-keymap"
+name = "keymahub-keymap"
 description = "USB HID usage <-> platform key code tables"
 edition.workspace = true
 license.workspace = true

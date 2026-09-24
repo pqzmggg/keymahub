@@ -7,8 +7,8 @@
 //! kmc ping <ip[:port]> [--count N]      round-trip latency to a receiver
 //! ```
 
-use keymanc_keymap as keymap;
-use keymanc_proto::{read_msg, write_msg, Button, Msg, DEFAULT_PORT, WHEEL_NOTCH, WIRE_VERSION};
+use keymahub_keymap as keymap;
+use keymahub_proto::{read_msg, write_msg, Button, Msg, DEFAULT_PORT, WHEEL_NOTCH, WIRE_VERSION};
 use std::io::{self, BufWriter, Write};
 use std::net::{SocketAddr, TcpListener, TcpStream, ToSocketAddrs};
 use std::thread;
@@ -308,7 +308,7 @@ fn demo(addr: &SocketAddr, only: Option<&str>) -> io::Result<()> {
 
     if run("text") {
         println!("text: ASCII, then Hangul toggle + 2-set 'gksrmf' (= 한글), toggle back");
-        s.type_text("Hello keymanc 123!\n")?;
+        s.type_text("Hello keymahub 123!\n")?;
         s.tap(keymap::HID_LANG1_HANGUL)?;
         s.type_text("gksrmf")?;
         s.tap(keymap::HID_LANG1_HANGUL)?;

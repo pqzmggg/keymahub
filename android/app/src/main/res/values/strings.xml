@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="a11y_description">keymanc가 다른 기기의 마우스 입력을 이 기기의 터치 제스처로 바꿔 전달합니다. 입력 내용을 수집하거나 외부로 보내지 않습니다.</string>
+    <string name="a11y_description">keymahub가 다른 기기의 마우스 입력을 이 기기의 터치 제스처로 바꿔 전달합니다. 입력 내용을 수집하거나 외부로 보내지 않습니다.</string>
 </resources>

@@ -4,7 +4,7 @@
 
 use crate::net;
 use crate::router::{Focus, Router, Verdict};
-use keymanc_proto::{Button, Msg};
+use keymahub_proto::{Button, Msg};
 use std::cell::RefCell;
 use std::net::SocketAddr;
 use std::sync::mpsc::{self, Sender};
@@ -71,11 +71,11 @@ fn vk_to_hid(vk: u32, sc: u32, extended: bool) -> Option<u16> {
     match vk as u16 {
         VK_PAUSE => return Some(0x48),
         VK_NUMLOCK => return Some(0x53),
-        VK_HANGUL => return Some(keymanc_keymap::HID_LANG1_HANGUL),
-        VK_HANJA => return Some(keymanc_keymap::HID_LANG2_HANJA),
+        VK_HANGUL => return Some(keymahub_keymap::HID_LANG1_HANGUL),
+        VK_HANJA => return Some(keymahub_keymap::HID_LANG2_HANJA),
         _ => {}
     }
-    keymanc_keymap::win_to_hid(sc as u16, extended)
+    keymahub_keymap::win_to_hid(sc as u16, extended)
 }
 
 unsafe extern "system" fn keyboard_proc(code: i32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
@@ -206,7 +206,7 @@ pub fn run(target: Option<SocketAddr>, name: String) {
 
     unsafe {
         let hinst = GetModuleHandleW(ptr::null());
-        let class = wide("keymanc-win-capture");
+        let class = wide("keymahub-win-capture");
         let wc = WNDCLASSW {
             lpfnWndProc: Some(wnd_proc),
             hInstance: hinst,

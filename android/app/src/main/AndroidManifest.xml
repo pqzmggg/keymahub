@@ -20,7 +20,7 @@
     <application
         android:allowBackup="false"
         android:icon="@android:drawable/sym_def_app_icon"
-        android:label="keymanc P0"
+        android:label="keymahub P0"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.Light.DarkActionBar">
 
@@ -46,9 +46,9 @@
             android:foregroundServiceType="connectedDevice" />
 
         <service
-            android:name=".a11y.KeymancAccessibilityService"
+            android:name=".a11y.KeymahubAccessibilityService"
             android:exported="true"
-            android:label="keymanc"
+            android:label="keymahub"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
             <intent-filter>
                 <action android:name="android.accessibilityservice.AccessibilityService" />
@@ -59,9 +59,9 @@
         </service>
 
         <service
-            android:name=".ime.KeymancIme"
+            android:name=".ime.KeymahubIme"
             android:exported="true"
-            android:label="keymanc"
+            android:label="keymahub"
             android:permission="android.permission.BIND_INPUT_METHOD">
             <intent-filter>
                 <action android:name="android.view.InputMethod" />

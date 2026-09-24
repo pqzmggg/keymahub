@@ -1,7 +1,7 @@
 //! Sender thread: owns the TCP connection to the receiver, coalesces mouse motion,
 //! reconnects on failure and measures round-trip time with Ping/Pong.
 
-use keymanc_proto::{read_msg, split_motion, write_msg, Msg, WIRE_VERSION};
+use keymahub_proto::{read_msg, split_motion, write_msg, Msg, WIRE_VERSION};
 use std::io::{self, BufReader, BufWriter, Write};
 use std::net::{SocketAddr, TcpStream};
 use std::sync::mpsc::{Receiver, RecvTimeoutError};
@@ -165,7 +165,7 @@ pub fn print_only(rx: Receiver<Msg>) {
             } => println!(
                 "{:>8.3}  key {:<14} {}{}",
                 base.elapsed().as_secs_f64(),
-                keymanc_keymap::name(usage),
+                keymahub_keymap::name(usage),
                 if down { "down" } else { "up" },
                 if repeat { " (repeat)" } else { "" }
             ),

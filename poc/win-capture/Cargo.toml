@@ -6,8 +6,8 @@ license.workspace = true
 version.workspace = true
 
 [dependencies]
-keymanc-proto.workspace = true
-keymanc-keymap.workspace = true
+keymahub-proto.workspace = true
+keymahub-keymap.workspace = true
 
 [target.'cfg(windows)'.dependencies.windows-sys]
 version = "0.61"
