@@ -15,8 +15,13 @@ import android.bluetooth.le.AdvertiseCallback
 import android.bluetooth.le.AdvertiseData
 import android.bluetooth.le.AdvertiseSettings
 import android.bluetooth.le.BluetoothLeAdvertiser
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.os.ParcelUuid
 import app.keymahub.R
 import android.os.SystemClock
@@ -60,6 +65,9 @@ object BleHid {
     @Volatile private var running = false
     /** False until this session's services are up: links reported earlier belong to the last session. */
     @Volatile private var accepting = false
+    private val main = Handler(Looper.getMainLooper())
+    /** Addresses using the HID service without being recognized as a target (see admit). */
+    private val strangers = HashSet<String>()
 
     private lateinit var keyboardIn: BluetoothGattCharacteristic
     private lateinit var mouseIn: BluetoothGattCharacteristic
@@ -195,6 +203,12 @@ object BleHid {
         advertisingMode = AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY
         advertise(withName = pairing)
         accepting = true
+        val filter = IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED)
+        if (Build.VERSION.SDK_INT >= 33) {
+            appContext?.registerReceiver(bondReceiver, filter, Context.RECEIVER_EXPORTED)
+        } else {
+            appContext?.registerReceiver(bondReceiver, filter)
+        }
         Hub.log("BLE HID ready: add this phone as a Bluetooth device on the target")
         return null
     }
@@ -203,6 +217,9 @@ object BleHid {
         if (!running) return
         running = false
         accepting = false
+        main.removeCallbacksAndMessages(null)
+        runCatching { appContext?.unregisterReceiver(bondReceiver) }
+        synchronized(lock) { strangers.clear() }
         pairing = false
         runCatching { advertiser?.stopAdvertising(advertiseCallback) }
         val s = server
@@ -374,7 +391,7 @@ object BleHid {
                     // can find the phone. Restart it, but not for a device that is pairing: stopping
                     // the advertising set while a first connection is being encrypted and paired
                     // drops that link. For those it restarts once the target is ready.
-                    if (known || device.bondState == BluetoothDevice.BOND_BONDED) advertise(withName = pairing)
+                    if (known || device.bondState == BluetoothDevice.BOND_BONDED) afterSettling { advertise(withName = pairing) }
                 }
                 BluetoothProfile.STATE_DISCONNECTED -> {
                     val name = nameOf(address)
@@ -384,6 +401,7 @@ object BleHid {
                         inFlight.remove(address)
                         lastSent.remove(address)
                         fastLinks.remove(address)?.let { runCatching { it.close() } }
+                        strangers.remove(address)
                         connected.remove(address) != null
                     }
                     if (!wasTarget) {
@@ -419,7 +437,8 @@ object BleHid {
             preparedWrite: Boolean, responseNeeded: Boolean, offset: Int, value: ByteArray?,
         ) {
             if (!admit(device, requestId)) return
-            if (d.uuid == CCCD) {
+            // Notification settings count for targets only; others just get an answer.
+            if (d.uuid == CCCD && synchronized(lock) { device.address in connected }) {
                 val on = value != null && value.isNotEmpty() && (value[0].toInt() and 0x01) != 0
                 val (mask, changed) = synchronized(lock) {
                     val set = subscribed.getOrPut(device.address) { HashSet() }
@@ -428,6 +447,9 @@ object BleHid {
                 }
                 saveSubscriptions(device.address, mask)
                 // A host may enable notifications again after they were restored: already ready.
+                if (d.characteristic === keyboardIn && !changed && on) {
+                    Hub.log("BLE HID: ${nameOf(device.address)} enabled input again")
+                }
                 if (d.characteristic === keyboardIn && changed) {
                     if (on) {
                         markReady(device, restored = false)
@@ -510,12 +532,30 @@ object BleHid {
      */
     private fun markReady(device: BluetoothDevice, restored: Boolean) {
         Hub.log("BLE HID: ${nameOf(device.address)} ready${if (restored) " (restored)" else ""}")
-        requestFastLink(device)
         listeners.forEach { it.onReady(device.address, nameOf(device.address)) }
-        // The link is settled: advertise again (some controllers stop on connect).
+        // A host that enabled notifications has set up the link; a restored one has only just
+        // connected and is still encrypting and opening its HID connection.
+        if (restored) afterSettling { tune(device) } else tune(device)
+    }
+
+    /** Short connection interval, and advertise again (some controllers stop on connect). */
+    private fun tune(device: BluetoothDevice) {
+        if (synchronized(lock) { device.address !in connected }) return
+        requestFastLink(device)
         advertisingMode = wantedMode()
         advertise(withName = pairing)
     }
+
+    /**
+     * Runs [block] once a new link has settled. Changing the connection parameters or restarting
+     * advertising while a host is still encrypting and opening its HID connection leaves the host
+     * stuck at "connecting" (and drops a link that is pairing).
+     */
+    private fun afterSettling(block: () -> Unit) {
+        main.postDelayed({ if (running) block() }, SETTLE_MS)
+    }
+
+    private const val SETTLE_MS = 3_000L
 
     // ---------------------------------------------------------------- subscriptions
     // HOGP: the device keeps each paired host's notification settings (CCCDs) across connections.
@@ -557,16 +597,39 @@ object BleHid {
         val bonded = device.bondState == BluetoothDevice.BOND_BONDED
         when {
             isBlocked(address) -> refuse(device, "disconnected by user")
-            !bonded && !pairing -> refuse(device, "not paired, pairing mode off")
-            else -> {
+            bonded || pairing -> {
                 synchronized(lock) { connected[address] = device }
                 Hub.log("BLE HID: ${nameOf(address)} connected${if (bonded) "" else " (pairing)"}")
                 if (bonded) restoreSubscriptions(device)
                 return true
             }
+            else -> {
+                // Not recognized: a paired host whose first requests still carry its private address
+                // (the link itself was recognized), or a device that will have to pair. Serve it, but
+                // don't make it a target; pairing is refused while pairing mode is off (bondReceiver).
+                if (synchronized(lock) { strangers.add(address) }) {
+                    Hub.log("BLE HID: $address using the HID service (not recognized yet)")
+                }
+                return true
+            }
         }
         runCatching { server?.sendResponse(device, requestId, INSUFFICIENT_AUTHORIZATION, 0, null) }
         return false
+    }
+
+    /** Refuses a device that starts pairing through the HID service while pairing mode is off. */
+    private val bondReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val device = if (Build.VERSION.SDK_INT >= 33) {
+                intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE, BluetoothDevice::class.java)
+            } else {
+                @Suppress("DEPRECATION") intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+            } ?: return
+            val state = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothDevice.BOND_NONE)
+            if (state != BluetoothDevice.BOND_BONDING || pairing || !running) return
+            // Only devices that used the HID service: not the phone's own new keyboard or mouse.
+            if (synchronized(lock) { device.address in strangers }) refuse(device, "not paired, pairing mode off")
+        }
     }
 
     /** ATT error "insufficient authorization" (BluetoothGatt has no constant for it before API 34). */
