@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         // Permanent once uploaded to Play: confirm before the first upload.
-        applicationId = "com.keymahub.app"
+        applicationId = "app.keymahub"
         minSdk = 26 // pointer capture, BLE peripheral
         targetSdk = 35
         // Release builds take these from the tag (see .github/workflows/release.yml).
