@@ -306,9 +306,10 @@ object BleHid {
     }
 
     private fun hidService() = BluetoothGattService(HID_SERVICE, BluetoothGattService.SERVICE_TYPE_PRIMARY).apply {
-        // HID Information: bcdHID 1.11, country 0, flags = normally connectable.
+        // HID Information: bcdHID 1.11, country 0, flags = remote wake + normally connectable, as
+        // real keyboards report: hosts use them to decide whether to wait for the keyboard to come back.
         addCharacteristic(characteristic(0x2A4A, BluetoothGattCharacteristic.PROPERTY_READ, ENC_READ)
-            .also { values[it] = byteArrayOf(0x11, 0x01, 0x00, 0x02) })
+            .also { values[it] = byteArrayOf(0x11, 0x01, 0x00, 0x03) })
         addCharacteristic(characteristic(0x2A4B, BluetoothGattCharacteristic.PROPERTY_READ, ENC_READ)
             .also { values[it] = HidDescriptors.COMBO }) // Report Map
         addCharacteristic(characteristic(0x2A4C, BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE, ENC_WRITE)
