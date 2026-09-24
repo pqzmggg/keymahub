@@ -75,10 +75,7 @@ object BleHid {
     /** Notifications sent but not yet confirmed by onNotificationSent, and when the last one went out. */
     private val inFlight = HashMap<String, Int>()
     private val lastSent = HashMap<String, Long>()
-    /**
-     * Client-role links: the phone's own connection attempts to paired targets (see [reconnect])
-     * and the way to ask a target for a short connection interval (see [requestFastLink]).
-     */
+    /** Client-role links over a target's link, only to ask it for a short connection interval. */
     private val fastLinks = HashMap<String, BluetoothGatt>()
     @Volatile private var appContext: Context? = null
     @Volatile private var advertisingMode = AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY
@@ -117,9 +114,13 @@ object BleHid {
     /** Connects to paired [address] again ("connect", "allow"), as on start; restarts a pending attempt. */
     fun reconnect(address: String) {
         if (!running) return
+        // The host has to connect: a link the phone opens is not taken as its keyboard (the host
+        // shows it as not connected) and keeps the host from connecting itself. Drop any such
+        // link and advertise quickly so the host finds the phone.
         closeLink(address)
-        val adapter = appContext?.getSystemService(BluetoothManager::class.java)?.adapter ?: return
-        reconnect(adapter.bondedDevices.orEmpty().filter { it.address == address })
+        Hub.log("BLE HID: waiting for ${nameOf(address)} to connect")
+        advertisingMode = AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY
+        advertise(withName = pairing)
     }
 
     private fun closeLink(address: String) {
@@ -194,7 +195,6 @@ object BleHid {
         advertisingMode = AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY
         advertise(withName = pairing)
         accepting = true
-        reconnect(adapter.bondedDevices.orEmpty())
         Hub.log("BLE HID ready: add this phone as a Bluetooth device on the target")
         return null
     }
@@ -393,9 +393,6 @@ object BleHid {
                     if (active == address) active = null
                     listeners.forEach { it.onGone(address) }
                     updateAdvertising()
-                    // Went out of range, or the host dropped it: wait for it to come back. Not after
-                    // "disconnect" (blocked) or "remove" (no longer known), nor when hosting stops.
-                    if (running && accepting) reconnect(listOf(device))
                 }
             }
         }
@@ -466,22 +463,6 @@ object BleHid {
      * gives access to requestConnectionPriority(HIGH), i.e. roughly 11-15 ms.
      */
     private fun requestFastLink(device: BluetoothDevice) = link(device, auto = false)
-
-    /**
-     * Hosting just started: connects to the paired targets instead of waiting for them. A BLE
-     * keyboard normally only advertises and the target connects, but some hosts (Android tablets
-     * in particular) stop doing so once the keyboard itself ended the link, as stopping hosting
-     * does. An auto-connect attempt waits in the background until the target is in range; the
-     * target then finds its keyboard connected and subscribes to it again.
-     */
-    private fun reconnect(bonded: Collection<BluetoothDevice>) {
-        val known = knownTargets().toSet()
-        for (device in bonded) {
-            if (device.address !in known || isBlocked(device.address)) continue
-            Hub.log("BLE HID: reconnecting to ${runCatching { device.name }.getOrNull() ?: device.address}")
-            link(device, auto = true)
-        }
-    }
 
     private fun link(device: BluetoothDevice, auto: Boolean) {
         val ctx = appContext ?: return
