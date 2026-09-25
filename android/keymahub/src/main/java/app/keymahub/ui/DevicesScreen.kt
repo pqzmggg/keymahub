@@ -86,7 +86,7 @@ fun DevicesScreen(
     }
     removing?.let { d ->
         ConfirmDialog(
-            title = stringResource(R.string.device_remove_confirm, d.name),
+            message = stringResource(R.string.device_remove_confirm, d.name),
             confirm = stringResource(R.string.device_remove),
             onDismiss = { removing = null },
             onConfirm = { removing = null; onRemove(d.address) },

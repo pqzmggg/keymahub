@@ -130,7 +130,6 @@
     <string name="settings_hotkeys">快捷键</string>
     <string name="hotkeys_mods_hint">按住这些键再按数字：1 为本手机，2–9 和 0 为设备 1–9。所有配置通用。</string>
     <string name="hotkeys_invalid">需包含 Ctrl/⌃、Alt/⌥ 或 Win/⌘。</string>
-    <string name="hotkeys_devices">设备 1–9</string>
     <string name="condition_devices">已连接的设备</string>
     <string name="condition_devices_off">不限</string>
     <string name="condition_devices_on">%1$s 连接时</string>
