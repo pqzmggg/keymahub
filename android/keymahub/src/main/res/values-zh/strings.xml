@@ -41,7 +41,7 @@
     <string name="profile_delete">删除配置</string>
     <string name="profile_delete_confirm">删除配置“%1$s”？</string>
     <string name="hotkeys_title">快捷键</string>
-    <string name="hotkeys_hint">主机开启时，点按当前配置文件中的设备即可将控制切换到该设备。数字对应的设备在 ⋯ 中选择。组合键在设置中更改。</string>
+    <string name="hotkeys_hint">主机开启时，点按当前配置文件中的设备即可将控制切换到该设备。数字对应的设备在 ⋯ 中选择。拖动设备可将其移到其他数字。组合键在设置中更改。</string>
     <string name="this_phone">本手机</string>
     <string name="slot_empty">空</string>
     <string name="state_controlling">控制中</string>
@@ -54,7 +54,7 @@
     <string name="assign_now_on">当前为 %1$s</string>
     <string name="assign_no_devices">还没有设备。</string>
     <string name="assign_swap_hint">如果该设备已在其他快捷键上，两者将互换。</string>
-    <string name="devices_title">设备</string>
+    <string name="devices_title">设备管理</string>
     <string name="device_rename">重命名</string>
     <string name="guide_intro">请在电脑或平板的蓝牙设置中添加本手机。新设备会使用当前配置中空闲的快捷键。</string>
     <string name="guide_windows">设置 → 蓝牙和其他设备 → 添加设备 → 蓝牙 → 选择本手机</string>
@@ -81,7 +81,7 @@
     <string name="hosting_off_hint">开启后，用本手机的键盘和鼠标控制您的设备。</string>
     <string name="settings_title">设置</string>
     <string name="profiles_title">配置</string>
-    <string name="profiles_hint">条件满足的配置会自动启用；多个满足时，排在上面的优先。拖动 ☰ 可调整顺序。都不满足时，使用您最后启用的配置。</string>
+    <string name="profiles_hint">条件满足的配置会自动启用；多个满足时，排在上面的优先。拖动配置可调整顺序。都不满足时，使用您最后启用的配置。</string>
     <string name="profile_in_use">使用中</string>
     <string name="profile_not_in_use">未使用</string>
     <string name="manual_banner">您手动启用了 %1$s，在条件变化前将代替 %2$s 使用。</string>
@@ -126,6 +126,7 @@
     <string name="profile_activate">启用</string>
     <string name="profile_edit">编辑</string>
     <string name="drag_handle">拖动以更改优先级</string>
+    <string name="drag_to_renumber">拖动以移到其他数字</string>
     <string name="profile_fallback">没有配置符合条件时使用</string>
     <string name="settings_hotkeys">快捷键</string>
     <string name="hotkeys_mods_hint">按住这些键再按数字：1 为本手机，2–9 和 0 为设备 1–9。所有配置通用。</string>
@@ -143,8 +144,8 @@
     <string name="mode_manual_hint">只使用您手动启用的配置。</string>
     <string name="conditions_rules_only">仅当配置启用方式为“按规则自动”时才使用这些条件（设置）。</string>
     <string name="profile_devices_connected">已连接 %1$d/%2$d 台设备</string>
-    <string name="profiles_hint_auto">使用已分配设备连接最多的配置，数量相同时排在上面的优先。拖动 ☰ 可调整顺序。没有设备连接时，使用您最后启用的配置。</string>
-    <string name="profiles_hint_manual">使用您手动启用的配置。拖动 ☰ 可调整顺序。</string>
+    <string name="profiles_hint_auto">使用已分配设备连接最多的配置，数量相同时排在上面的优先。拖动配置可调整顺序。没有设备连接时，使用您最后启用的配置。</string>
+    <string name="profiles_hint_manual">使用您手动启用的配置。拖动配置可调整顺序。</string>
     <string name="mode_fallback_note">两种自动方式下，没有符合的配置时都会使用您最后启用的配置。手动启用的配置在已连接设备变化前优先于自动选择。</string>
     <string name="device_connect">连接</string>
     <string name="device_connecting">正在连接 %1$s。设备开启且在附近时会自动连接。</string>

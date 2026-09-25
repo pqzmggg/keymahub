@@ -42,7 +42,7 @@
     <string name="profile_delete">Delete profile</string>
     <string name="profile_delete_confirm">Delete profile \"%1$s\"?</string>
     <string name="hotkeys_title">Hotkeys</string>
-    <string name="hotkeys_hint">While hosting, tap a device of the profile in use to move control to it. Choose the device on a number with ⋯. The modifier keys are set in Settings.</string>
+    <string name="hotkeys_hint">While hosting, tap a device of the profile in use to move control to it. Choose the device on a number with ⋯. Drag a device to move it to another number. The modifier keys are set in Settings.</string>
     <string name="this_phone">This phone</string>
     <string name="slot_empty">Empty</string>
     <string name="state_controlling">Controlling</string>
@@ -55,7 +55,7 @@
     <string name="assign_now_on">Now on %1$s</string>
     <string name="assign_no_devices">No devices yet.</string>
     <string name="assign_swap_hint">If the device is on another hotkey, the two swap.</string>
-    <string name="devices_title">Devices</string>
+    <string name="devices_title">Manage devices</string>
     <string name="device_rename">Rename</string>
     <string name="guide_intro">On your PC or tablet, add this phone from the Bluetooth settings. New devices go to the next free hotkey of the profile in use.</string>
     <string name="guide_windows">Settings → Bluetooth &amp; devices → Add device → Bluetooth → select this phone</string>
@@ -82,7 +82,7 @@
     <string name="hosting_off_hint">Turn on to use this phone\'s keyboard and mouse on your devices.</string>
     <string name="settings_title">Settings</string>
     <string name="profiles_title">Profiles</string>
-    <string name="profiles_hint">Profiles whose conditions match switch on by themselves; when several match, the higher one wins. Drag ☰ to reorder. When none match, the profile you activated last is used.</string>
+    <string name="profiles_hint">Profiles whose conditions match switch on by themselves; when several match, the higher one wins. Drag a profile to reorder. When none match, the profile you activated last is used.</string>
     <string name="profile_in_use">In use</string>
     <string name="profile_not_in_use">Not in use</string>
     <string name="manual_banner">You activated %1$s, so it is used instead of %2$s until the conditions change.</string>
@@ -127,6 +127,7 @@
     <string name="profile_activate">Activate</string>
     <string name="profile_edit">Edit</string>
     <string name="drag_handle">Drag to change priority</string>
+    <string name="drag_to_renumber">Drag to move to another number</string>
     <string name="profile_fallback">Used when no conditions match</string>
     <string name="settings_hotkeys">Hotkeys</string>
     <string name="hotkeys_mods_hint">Hold these keys and press a number: 1 for this phone, 2–9 and 0 for devices 1–9. The same in every profile.</string>
@@ -144,8 +145,8 @@
     <string name="mode_manual_hint">Uses only the profile you activate.</string>
     <string name="conditions_rules_only">These conditions are used only when profile activation is rule-based (Settings).</string>
     <string name="profile_devices_connected">%1$d of %2$d devices connected</string>
-    <string name="profiles_hint_auto">The profile with the most of its devices connected is used; ties go to the higher one. Drag ☰ to reorder. With none connected, the profile you activated last is used.</string>
-    <string name="profiles_hint_manual">The profile you activate is used. Drag ☰ to reorder.</string>
+    <string name="profiles_hint_auto">The profile with the most of its devices connected is used; ties go to the higher one. Drag a profile to reorder. With none connected, the profile you activated last is used.</string>
+    <string name="profiles_hint_manual">The profile you activate is used. Drag a profile to reorder.</string>
     <string name="mode_fallback_note">In both automatic modes, when nothing matches, the profile you activated last is used. Activating a profile by hand also overrides the automatic choice until the connected devices change.</string>
     <string name="device_connect">Connect</string>
     <string name="device_connecting">Connecting to %1$s. It connects when the device is on and nearby.</string>

@@ -41,7 +41,7 @@
     <string name="profile_delete">Eliminar perfil</string>
     <string name="profile_delete_confirm">¿Eliminar el perfil \"%1$s\"?</string>
     <string name="hotkeys_title">Atajos</string>
-    <string name="hotkeys_hint">Con el anfitrión activado, toca un dispositivo del perfil en uso para pasarle el control. Elige el dispositivo de cada número con ⋯. Las teclas modificadoras se cambian en Ajustes.</string>
+    <string name="hotkeys_hint">Con el anfitrión activado, toca un dispositivo del perfil en uso para pasarle el control. Elige el dispositivo de cada número con ⋯. Arrastra un dispositivo para moverlo a otro número. Las teclas modificadoras se cambian en Ajustes.</string>
     <string name="this_phone">Este teléfono</string>
     <string name="slot_empty">Vacío</string>
     <string name="state_controlling">Controlando</string>
@@ -54,7 +54,7 @@
     <string name="assign_now_on">Ahora en %1$s</string>
     <string name="assign_no_devices">Aún no hay dispositivos.</string>
     <string name="assign_swap_hint">Si el dispositivo está en otro atajo, los dos se intercambian.</string>
-    <string name="devices_title">Dispositivos</string>
+    <string name="devices_title">Gestionar dispositivos</string>
     <string name="device_rename">Cambiar nombre</string>
     <string name="guide_intro">En tu PC o tableta, añade este teléfono desde los ajustes de Bluetooth. Los dispositivos nuevos reciben el siguiente atajo libre del perfil en uso.</string>
     <string name="guide_windows">Configuración → Bluetooth y dispositivos → Agregar dispositivo → Bluetooth → elige este teléfono</string>
@@ -81,7 +81,7 @@
     <string name="hosting_off_hint">Actívalo para usar el teclado y el ratón de este teléfono en tus dispositivos.</string>
     <string name="settings_title">Ajustes</string>
     <string name="profiles_title">Perfiles</string>
-    <string name="profiles_hint">Los perfiles cuyas condiciones se cumplen se activan solos; si se cumplen varios, gana el de más arriba. Arrastra ☰ para reordenar. Si no se cumple ninguno, se usa el último perfil que activaste.</string>
+    <string name="profiles_hint">Los perfiles cuyas condiciones se cumplen se activan solos; si se cumplen varios, gana el de más arriba. Arrastra un perfil para reordenar. Si no se cumple ninguno, se usa el último perfil que activaste.</string>
     <string name="profile_in_use">En uso</string>
     <string name="profile_not_in_use">Sin usar</string>
     <string name="manual_banner">Activaste %1$s, así que se usa en lugar de %2$s hasta que cambien las condiciones.</string>
@@ -126,6 +126,7 @@
     <string name="profile_activate">Activar</string>
     <string name="profile_edit">Editar</string>
     <string name="drag_handle">Arrastra para cambiar la prioridad</string>
+    <string name="drag_to_renumber">Arrastra para moverlo a otro número</string>
     <string name="profile_fallback">Se usa cuando no se cumple ninguna condición</string>
     <string name="settings_hotkeys">Atajos</string>
     <string name="hotkeys_mods_hint">Mantén estas teclas y pulsa un número: 1 para este teléfono, 2–9 y 0 para los dispositivos 1–9. Igual en todos los perfiles.</string>
@@ -143,8 +144,8 @@
     <string name="mode_manual_hint">Usa solo el perfil que actives.</string>
     <string name="conditions_rules_only">Estas condiciones solo se usan cuando la activación de perfiles es por reglas (Ajustes).</string>
     <string name="profile_devices_connected">%1$d de %2$d dispositivos conectados</string>
-    <string name="profiles_hint_auto">Se usa el perfil con más de sus dispositivos conectados; en caso de empate, el de más arriba. Arrastra ☰ para reordenar. Si no hay ninguno conectado, se usa el último perfil que activaste.</string>
-    <string name="profiles_hint_manual">Se usa el perfil que actives. Arrastra ☰ para reordenar.</string>
+    <string name="profiles_hint_auto">Se usa el perfil con más de sus dispositivos conectados; en caso de empate, el de más arriba. Arrastra un perfil para reordenar. Si no hay ninguno conectado, se usa el último perfil que activaste.</string>
+    <string name="profiles_hint_manual">Se usa el perfil que actives. Arrastra un perfil para reordenar.</string>
     <string name="mode_fallback_note">En ambos modos automáticos, si no coincide ninguno, se usa el último perfil que activaste. Activar un perfil a mano también tiene prioridad sobre la elección automática hasta que cambien los dispositivos conectados.</string>
     <string name="device_connect">Conectar</string>
     <string name="device_connecting">Conectando con %1$s. Se conectará cuando el dispositivo esté encendido y cerca.</string>
