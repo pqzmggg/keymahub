@@ -33,6 +33,8 @@ data class UiPrefs(
     val showHud: Boolean = true,
     /** Show the on-screen keyboard while the physical one controls another device (Android 10+). */
     val touchKeyboard: Boolean = true,
+    /** Experiment: advertise with the phone's fixed public address (see BleHid.applyAddressMode). */
+    val publicAddress: Boolean = false,
 )
 
 object Hub {
@@ -91,6 +93,7 @@ object Hub {
                 dynamicColor = p.getBoolean("dynamic_color", true),
                 showHud = p.getBoolean("show_hud", true),
                 touchKeyboard = p.getBoolean("touch_keyboard", true),
+                publicAddress = p.getBoolean("public_address", false),
             )
             uiLoaded = true
         }
@@ -104,6 +107,7 @@ object Hub {
             .putBoolean("dynamic_color", u.dynamicColor)
             .putBoolean("show_hud", u.showHud)
             .putBoolean("touch_keyboard", u.touchKeyboard)
+            .putBoolean("public_address", u.publicAddress)
             .apply()
         _ui.value = u
     }

@@ -95,6 +95,13 @@ fun SettingsScreen(
             }
         }
 
+        SectionTitle(stringResource(R.string.settings_experiments))
+        Card(Modifier.fillMaxWidth()) {
+            Toggle(stringResource(R.string.public_address), stringResource(R.string.public_address_hint), ui.publicAddress) { on ->
+                onUi { it.copy(publicAddress = on) }
+            }
+        }
+
         Text(
             stringResource(R.string.version, version),
             style = MaterialTheme.typography.bodySmall,

@@ -120,7 +120,7 @@ class MainActivity : ComponentActivity() {
                 onMods = { m -> Hub.edit(this) { it.setMods(m) } },
                 language = remember(tick) { Locales.current(this) },
                 onBack = { route = "home" },
-                onUi = { change -> Hub.editUi(this, change) },
+                onUi = { change -> Hub.editUi(this, change); BleHid.applyAddressMode() },
                 onLanguage = { tag -> Locales.set(this, tag) },
             )
             else -> HomeScreen(
