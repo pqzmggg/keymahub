@@ -87,7 +87,7 @@
     <string name="manual_banner">%1$s を手動で有効にしたため、条件が変わるまで %2$s の代わりに使います。</string>
     <string name="manual_off">自動に戻す</string>
     <string name="conditions_title">有効になる条件</string>
-    <string name="conditions_hint">このプロファイルを有効にするデバイスを選びます。選ばない場合は、手動で有効にしたときだけ使われます。</string>
+    <string name="conditions_hint">プロファイルの切り替えが「ルールに基づく自動」のとき、選んだデバイスのどれかが接続されるとこのプロファイルが自動で有効になります。</string>
     <string name="condition_always">手動で有効にしたときのみ</string>
     <string name="hud_profile">プロファイル: %1$s</string>
     <string name="notif_pairing">ペアリングモードがオンです。PC やタブレットでこのスマホを追加してください。</string>
@@ -142,7 +142,6 @@
     <string name="mode_rules_hint">選んだデバイスのいずれかが接続されているプロファイルのうち、一覧で最も上のものを使います。</string>
     <string name="mode_manual">オフ</string>
     <string name="mode_manual_hint">手動で有効にしたプロファイルだけを使います。</string>
-    <string name="conditions_rules_only">これらの条件は、プロファイルの切り替えが「ルールに基づく自動」のときだけ使われます（設定）。</string>
     <string name="profile_devices_connected">%2$d 台中 %1$d 台接続</string>
     <string name="profiles_hint_auto">割り当てたデバイスが最も多く接続されているプロファイルを使い、同数なら上のものが優先です。プロファイルをドラッグして並べ替えます。接続がなければ、最後に有効にしたプロファイルを使います。</string>
     <string name="profiles_hint_manual">手動で有効にしたプロファイルを使います。プロファイルをドラッグして並べ替えられます。</string>
