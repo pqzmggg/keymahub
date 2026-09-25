@@ -112,7 +112,8 @@ private fun PairingCard(status: HubStatus, onPairing: (Boolean) -> Unit) {
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
+                // Room between the text and the switch.
+                Column(Modifier.weight(1f).padding(end = 12.dp)) {
                     Text(stringResource(R.string.pairing_title), style = MaterialTheme.typography.titleMedium)
                     Text(
                         if (on) stringResource(R.string.pairing_on, "%d:%02d".format(left / 60, left % 60))
