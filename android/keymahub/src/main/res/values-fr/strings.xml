@@ -41,7 +41,7 @@
     <string name="profile_delete">Supprimer le profil</string>
     <string name="profile_delete_confirm">Supprimer le profil « %1$s » ?</string>
     <string name="hotkeys_title">Raccourcis</string>
-    <string name="hotkeys_hint">Quand l\'hôte est activé, touchez un appareil du profil utilisé pour lui passer le contrôle. Choisissez l\'appareil de chaque numéro avec ⋯. Les touches de modification se règlent dans les paramètres.</string>
+    <string name="hotkeys_hint">Quand l\'hôte est activé, touchez un appareil du profil utilisé pour lui passer le contrôle. Choisissez l\'appareil de chaque numéro avec ⋯. Faites glisser ☰ pour déplacer un appareil vers un autre numéro. Les touches de modification se règlent dans les paramètres.</string>
     <string name="this_phone">Ce téléphone</string>
     <string name="slot_empty">Libre</string>
     <string name="state_controlling">En contrôle</string>
@@ -126,6 +126,7 @@
     <string name="profile_activate">Activer</string>
     <string name="profile_edit">Modifier</string>
     <string name="drag_handle">Faites glisser pour changer la priorité</string>
+    <string name="drag_to_renumber">Faites glisser pour le déplacer vers un autre numéro</string>
     <string name="profile_fallback">Utilisé quand aucune condition n\'est remplie</string>
     <string name="settings_hotkeys">Raccourcis</string>
     <string name="hotkeys_mods_hint">Maintenez ces touches et appuyez sur un chiffre : 1 pour ce téléphone, 2–9 et 0 pour les appareils 1–9. Identique dans tous les profils.</string>

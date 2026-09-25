@@ -62,6 +62,20 @@ class SettingsTest {
     }
 
     @Test
+    fun moveReceiverShiftsTheOthersLikeAList() {
+        var s = Settings().deviceConnected("A", "a").deviceConnected("B", "b").deviceConnected("C", "c")
+        val id = s.activeId
+        assertEquals(mapOf(1 to "A", 2 to "B", 3 to "C"), s.profile(id)!!.receivers)
+        s = s.moveReceiver(id, 3, 1) // C to the top: A and B move down
+        assertEquals(mapOf(1 to "C", 2 to "A", 3 to "B"), s.profile(id)!!.receivers)
+        s = s.moveReceiver(id, 1, 5) // C down past the empty slots 4 and 5
+        assertEquals(mapOf(1 to "A", 2 to "B", 5 to "C"), s.profile(id)!!.receivers)
+        s = s.moveReceiver(id, 4, 1) // an empty slot moves too
+        assertEquals(mapOf(2 to "A", 3 to "B", 5 to "C"), s.profile(id)!!.receivers)
+        assertEquals(s, s.moveReceiver(id, 2, 2))
+    }
+
+    @Test
     fun assignMovesAndSwaps() {
         var s = Settings().deviceConnected("A", "a").deviceConnected("B", "b")
         val id = s.activeId

@@ -41,7 +41,7 @@
     <string name="profile_delete">Eliminar perfil</string>
     <string name="profile_delete_confirm">¿Eliminar el perfil \"%1$s\"?</string>
     <string name="hotkeys_title">Atajos</string>
-    <string name="hotkeys_hint">Con el anfitrión activado, toca un dispositivo del perfil en uso para pasarle el control. Elige el dispositivo de cada número con ⋯. Las teclas modificadoras se cambian en Ajustes.</string>
+    <string name="hotkeys_hint">Con el anfitrión activado, toca un dispositivo del perfil en uso para pasarle el control. Elige el dispositivo de cada número con ⋯. Arrastra ☰ para mover un dispositivo a otro número. Las teclas modificadoras se cambian en Ajustes.</string>
     <string name="this_phone">Este teléfono</string>
     <string name="slot_empty">Vacío</string>
     <string name="state_controlling">Controlando</string>
@@ -126,6 +126,7 @@
     <string name="profile_activate">Activar</string>
     <string name="profile_edit">Editar</string>
     <string name="drag_handle">Arrastra para cambiar la prioridad</string>
+    <string name="drag_to_renumber">Arrastra para moverlo a otro número</string>
     <string name="profile_fallback">Se usa cuando no se cumple ninguna condición</string>
     <string name="settings_hotkeys">Atajos</string>
     <string name="hotkeys_mods_hint">Mantén estas teclas y pulsa un número: 1 para este teléfono, 2–9 y 0 para los dispositivos 1–9. Igual en todos los perfiles.</string>

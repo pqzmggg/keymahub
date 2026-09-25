@@ -41,7 +41,7 @@
     <string name="profile_delete">删除配置</string>
     <string name="profile_delete_confirm">删除配置“%1$s”？</string>
     <string name="hotkeys_title">快捷键</string>
-    <string name="hotkeys_hint">主机开启时，点按当前配置文件中的设备即可将控制切换到该设备。数字对应的设备在 ⋯ 中选择。组合键在设置中更改。</string>
+    <string name="hotkeys_hint">主机开启时，点按当前配置文件中的设备即可将控制切换到该设备。数字对应的设备在 ⋯ 中选择。拖动 ☰ 可将设备移到其他数字。组合键在设置中更改。</string>
     <string name="this_phone">本手机</string>
     <string name="slot_empty">空</string>
     <string name="state_controlling">控制中</string>
@@ -126,6 +126,7 @@
     <string name="profile_activate">启用</string>
     <string name="profile_edit">编辑</string>
     <string name="drag_handle">拖动以更改优先级</string>
+    <string name="drag_to_renumber">拖动以移到其他数字</string>
     <string name="profile_fallback">没有配置符合条件时使用</string>
     <string name="settings_hotkeys">快捷键</string>
     <string name="hotkeys_mods_hint">按住这些键再按数字：1 为本手机，2–9 和 0 为设备 1–9。所有配置通用。</string>

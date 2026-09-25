@@ -41,7 +41,7 @@
     <string name="profile_delete">プロファイルを削除</string>
     <string name="profile_delete_confirm">プロファイル「%1$s」を削除しますか？</string>
     <string name="hotkeys_title">ホットキー</string>
-    <string name="hotkeys_hint">ホスティング中は、使用中のプロファイルのデバイスをタップすると操作がそのデバイスに移ります。番号に割り当てるデバイスは ⋯ で選びます。一緒に押すキーは設定で変更します。</string>
+    <string name="hotkeys_hint">ホスティング中は、使用中のプロファイルのデバイスをタップすると操作がそのデバイスに移ります。番号に割り当てるデバイスは ⋯ で選びます。☰ をドラッグするとデバイスを別の番号に移せます。一緒に押すキーは設定で変更します。</string>
     <string name="this_phone">このスマホ</string>
     <string name="slot_empty">空き</string>
     <string name="state_controlling">操作中</string>
@@ -126,6 +126,7 @@
     <string name="profile_activate">有効にする</string>
     <string name="profile_edit">編集</string>
     <string name="drag_handle">ドラッグして優先順位を変更</string>
+    <string name="drag_to_renumber">ドラッグして別の番号に移動</string>
     <string name="profile_fallback">条件に合うプロファイルがないときに使用</string>
     <string name="settings_hotkeys">ホットキー</string>
     <string name="hotkeys_mods_hint">これらのキーを押しながら数字を押します。1 はこのスマホ、2〜9 と 0 はデバイス 1〜9。すべてのプロファイルで共通です。</string>

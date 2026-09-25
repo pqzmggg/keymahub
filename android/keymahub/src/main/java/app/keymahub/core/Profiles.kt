@@ -201,6 +201,21 @@ data class Settings(
         return withProfile(p.copy(receivers = r))
     }
 
+    /**
+     * Moves what is on receiver [from] (a device, or nothing) to receiver [to] of profile [id]; the
+     * receivers in between shift one place toward [from], as in a reordered list. The numbers and
+     * their hotkeys stay; the devices move between them.
+     */
+    fun moveReceiver(id: String, from: Int, to: Int): Settings {
+        require(from in 1 until Profile.SLOTS && to in 1 until Profile.SLOTS)
+        val p = profile(id) ?: return this
+        if (from == to) return this
+        val order = (1 until Profile.SLOTS).map { p.receivers[it] }.toMutableList()
+        order.add(to - 1, order.removeAt(from - 1))
+        val r = order.withIndex().mapNotNull { (i, a) -> a?.let { i + 1 to it } }.toMap()
+        return withProfile(p.copy(receivers = r))
+    }
+
     // ---------------------------------------------------------------- profiles
 
     /**

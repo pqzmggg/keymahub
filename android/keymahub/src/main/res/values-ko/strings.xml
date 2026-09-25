@@ -41,7 +41,7 @@
     <string name="profile_delete">프로필 삭제</string>
     <string name="profile_delete_confirm">\'%1$s\' 프로필을 삭제할까요?</string>
     <string name="hotkeys_title">단축키</string>
-    <string name="hotkeys_hint">호스팅 중에 사용 중인 프로필의 기기를 누르면 그 기기로 제어가 넘어갑니다. 번호에 둘 기기는 ⋯ 버튼에서 고릅니다. 함께 누르는 키는 설정에서 바꿉니다.</string>
+    <string name="hotkeys_hint">호스팅 중에 사용 중인 프로필의 기기를 누르면 그 기기로 제어가 넘어갑니다. 번호에 둘 기기는 ⋯ 버튼에서 고릅니다. ☰를 끌면 기기를 다른 번호로 옮깁니다. 함께 누르는 키는 설정에서 바꿉니다.</string>
     <string name="this_phone">이 폰</string>
     <string name="slot_empty">비어 있음</string>
     <string name="state_controlling">조작 중</string>
@@ -126,6 +126,7 @@
     <string name="profile_activate">활성화</string>
     <string name="profile_edit">편집</string>
     <string name="drag_handle">끌어서 우선순위 변경</string>
+    <string name="drag_to_renumber">끌어서 다른 번호로 옮기기</string>
     <string name="profile_fallback">조건이 맞는 프로필이 없을 때 사용</string>
     <string name="settings_hotkeys">단축키</string>
     <string name="hotkeys_mods_hint">이 키를 누른 채 숫자를 누르세요. 1은 이 폰, 2~9와 0은 기기 1~9번입니다. 모든 프로필에 똑같이 적용됩니다.</string>

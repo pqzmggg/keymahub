@@ -1,6 +1,9 @@
 package app.keymahub.ui
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +20,7 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
@@ -35,15 +39,23 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import app.keymahub.KeyLabels
 import app.keymahub.R
 import app.keymahub.core.ActivationMode
@@ -108,17 +120,25 @@ fun ProfileScreen(
         )
 
         SectionTitle(stringResource(R.string.hotkeys_title), stringResource(R.string.hotkeys_hint))
+        // Hotkeys follow the active profile, so only its devices can take control.
+        val canSelect = status.running && active
         Card(Modifier.fillMaxWidth()) {
-            for (slot in 0 until Profile.SLOTS) {
-                if (slot > 0) HorizontalDivider()
-                SlotRow(
-                    slot, profile, status,
-                    // Hotkeys follow the active profile, so only its devices can take control.
-                    onSelect = if (status.running && active) ({ onSelect(slot) }) else null,
-                    onAssign = { assignFor = slot },
-                    onClear = { onEdit { it.assign(profileId, slot, null) } },
-                )
-            }
+            SlotRow(0, profile, status, onSelect = if (canSelect) ({ onSelect(0) }) else null, onAssign = {}, onClear = {})
+            ReceiverList(
+                profile = profile,
+                status = status,
+                canSelect = canSelect,
+                onSelect = onSelect,
+                onAssign = { slot -> assignFor = slot },
+                onClear = { slot -> onEdit { it.assign(profileId, slot, null) } },
+                onMove = { from, to ->
+                    val controlled = if (canSelect && status.slot != 0) profile.addressOf(status.slot) else null
+                    onEdit { it.moveReceiver(profileId, from, to) }
+                    // The device in control moved to another number: control follows it there.
+                    val now = controlled?.let { a -> status.settings.moveReceiver(profileId, from, to).profile(profileId)?.slotOf(a) }
+                    if (now != null && now != status.slot) onSelect(now)
+                },
+            )
         }
         if (settings.profiles.size > 1) {
             TextButton(onClick = { deleting = true }, modifier = Modifier.align(Alignment.End)) {
@@ -215,6 +235,105 @@ private fun ConnectedCard(settings: Settings, chosen: Set<String>, onChange: (Se
 // ---------------------------------------------------------------- hotkeys and receivers
 
 /**
+ * The receivers (slots 1..9) under this phone's row. Dragging a row by its handle moves its device
+ * (or its emptiness) to another number: the rows in between make room as it passes, and the new
+ * order is saved on release. The numbers and hotkeys stay where they are.
+ */
+@Composable
+private fun ReceiverList(
+    profile: Profile,
+    status: HubStatus,
+    canSelect: Boolean,
+    onSelect: (slot: Int) -> Unit,
+    onAssign: (slot: Int) -> Unit,
+    onClear: (slot: Int) -> Unit,
+    onMove: (from: Int, to: Int) -> Unit,
+) {
+    val slots = (1 until Profile.SLOTS).toList()
+    val heights = remember { mutableStateMapOf<Int, Int>() }
+    var dragSlot by remember { mutableStateOf<Int?>(null) }
+    var dragOffset by remember { mutableFloatStateOf(0f) }
+
+    fun height(i: Int) = (heights[slots[i]] ?: 0).toFloat()
+
+    /** Where the dragged row would land now (-1: nothing dragged). Reads live state only. */
+    fun target(): Int {
+        val from = slots.indexOf(dragSlot)
+        if (from < 0) return -1
+        val tops = FloatArray(slots.size)
+        var y = 0f
+        for (i in slots.indices) {
+            tops[i] = y
+            y += height(i)
+        }
+        val center = tops[from] + dragOffset + height(from) / 2
+        return slots.indices.count { it != from && tops[it] + height(it) / 2 < center }
+    }
+
+    val from = slots.indexOf(dragSlot)
+    val target = target()
+    slots.forEachIndexed { index, slot -> key(slot) {
+        val dragging = index == from
+        val shift = when {
+            from < 0 || dragging -> 0f
+            index in (from + 1)..target -> -height(from)
+            index in target until from -> height(from)
+            else -> 0f
+        }
+        val animatedShift by animateFloatAsState(shift, label = "shift")
+        // The number and hotkey belong to the place in the list, the rest to the dragged device.
+        val shown = if (from >= 0 && target >= 0) slots[slotShownAt(index, from, target)] else slot
+        Column(
+            Modifier
+                .onSizeChanged { heights[slot] = it.height }
+                .zIndex(if (dragging) 1f else 0f)
+                .graphicsLayer { translationY = if (dragging) dragOffset else animatedShift }
+                .then(if (dragging) Modifier.shadow(8.dp).background(MaterialTheme.colorScheme.surfaceContainerHighest) else Modifier),
+        ) {
+            HorizontalDivider()
+            SlotRow(
+                slot, profile, status,
+                onSelect = if (canSelect) ({ onSelect(slot) }) else null,
+                onAssign = { onAssign(slot) },
+                onClear = { onClear(slot) },
+                numberSlot = if (dragging) slots[target] else shown,
+                handle = Modifier.pointerInput(slot, profile) {
+                    detectDragGestures(
+                        onDragStart = {
+                            dragSlot = slot
+                            dragOffset = 0f
+                        },
+                        onDragEnd = {
+                            val to = target()
+                            if (to >= 0 && slots[to] != slot) onMove(slot, slots[to])
+                            dragSlot = null
+                            dragOffset = 0f
+                        },
+                        onDragCancel = {
+                            dragSlot = null
+                            dragOffset = 0f
+                        },
+                    ) { change, amount ->
+                        change.consume()
+                        dragOffset += amount.y
+                    }
+                },
+            )
+        }
+    } }
+}
+
+/**
+ * While a row moves from [from] to [to], which row's number the row at [index] shows: the others
+ * shift one place, so each takes its neighbour's number (and hotkey) as it makes room.
+ */
+private fun slotShownAt(index: Int, from: Int, to: Int): Int = when {
+    index in (from + 1)..to -> index - 1
+    index in to until from -> index + 1
+    else -> index
+}
+
+/**
  * One hotkey of [profile]: slot 0 is this phone, 1..9 a receiver. Tapping it moves control there
  * ([onSelect], null while that is not possible); tapping an empty slot picks its device. The ⋯
  * button holds the device choices.
@@ -227,9 +346,13 @@ private fun SlotRow(
     onSelect: (() -> Unit)?,
     onAssign: () -> Unit,
     onClear: () -> Unit,
+    /** The number (and hotkey) to show; differs from [slot] while rows are being dragged. */
+    numberSlot: Int = slot,
+    /** The drag handle's gestures; null for this phone, which stays first. */
+    handle: Modifier? = null,
 ) {
     val settings = status.settings
-    val hotkey = settings.hotkey(slot)
+    val hotkey = settings.hotkey(numberSlot)
     val address = profile.addressOf(slot)
     val active = status.running && settings.activeId == profile.id && status.slot == slot
     val connected = address != null && address in status.ready
@@ -253,10 +376,21 @@ private fun SlotRow(
     Row(
         Modifier.fillMaxWidth()
             .clickable(enabled = tap != null) { tap?.invoke() }
-            .padding(start = 16.dp, end = 4.dp, top = 4.dp, bottom = 4.dp)
+            .padding(start = 4.dp, end = 4.dp, top = 4.dp, bottom = 4.dp)
             .heightIn(min = 52.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        if (handle != null) {
+            Box(handle.padding(horizontal = 8.dp, vertical = 12.dp)) {
+                Icon(
+                    Icons.Default.Menu,
+                    contentDescription = stringResource(R.string.drag_to_renumber),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        } else {
+            Spacer(Modifier.width(40.dp)) // lines up with the handles below
+        }
         Badge(KeyLabels.key(hotkey.code), highlighted = active)
         Spacer(Modifier.width(16.dp))
         Column(Modifier.weight(1f)) {

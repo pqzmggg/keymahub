@@ -42,7 +42,7 @@
     <string name="profile_delete">Delete profile</string>
     <string name="profile_delete_confirm">Delete profile \"%1$s\"?</string>
     <string name="hotkeys_title">Hotkeys</string>
-    <string name="hotkeys_hint">While hosting, tap a device of the profile in use to move control to it. Choose the device on a number with ⋯. The modifier keys are set in Settings.</string>
+    <string name="hotkeys_hint">While hosting, tap a device of the profile in use to move control to it. Choose the device on a number with ⋯. Drag ☰ to move a device to another number. The modifier keys are set in Settings.</string>
     <string name="this_phone">This phone</string>
     <string name="slot_empty">Empty</string>
     <string name="state_controlling">Controlling</string>
@@ -127,6 +127,7 @@
     <string name="profile_activate">Activate</string>
     <string name="profile_edit">Edit</string>
     <string name="drag_handle">Drag to change priority</string>
+    <string name="drag_to_renumber">Drag to move to another number</string>
     <string name="profile_fallback">Used when no conditions match</string>
     <string name="settings_hotkeys">Hotkeys</string>
     <string name="hotkeys_mods_hint">Hold these keys and press a number: 1 for this phone, 2–9 and 0 for devices 1–9. The same in every profile.</string>
