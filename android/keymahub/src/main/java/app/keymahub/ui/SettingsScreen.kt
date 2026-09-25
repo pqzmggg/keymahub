@@ -141,7 +141,8 @@ private fun Toggle(title: String, hint: String, on: Boolean, onChange: (Boolean)
         Modifier.fillMaxWidth().clickable { onChange(!on) }.padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(Modifier.weight(1f)) {
+        // Room between the text and the switch.
+        Column(Modifier.weight(1f).padding(end = 16.dp)) {
             Text(title, style = MaterialTheme.typography.titleMedium)
             Text(hint, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
