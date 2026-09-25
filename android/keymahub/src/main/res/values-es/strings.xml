@@ -87,7 +87,7 @@
     <string name="manual_banner">Activaste %1$s, así que se usa en lugar de %2$s hasta que cambien las condiciones.</string>
     <string name="manual_off">Volver a automático</string>
     <string name="conditions_title">Condiciones de activación</string>
-    <string name="conditions_hint">Elige los dispositivos que activan este perfil. Sin ninguno, el perfil solo se usa cuando lo activas.</string>
+    <string name="conditions_hint">Cuando la activación de perfiles es por reglas, este perfil se activa solo mientras esté conectado alguno de los dispositivos elegidos.</string>
     <string name="condition_always">Solo al activarlo</string>
     <string name="hud_profile">Perfil: %1$s</string>
     <string name="notif_pairing">El modo de emparejamiento está activado. Añade este teléfono en tu PC o tableta.</string>
@@ -141,7 +141,6 @@
     <string name="mode_rules_hint">Usa el primer perfil de la lista con alguno de sus dispositivos elegidos conectado.</string>
     <string name="mode_manual">Desactivada</string>
     <string name="mode_manual_hint">Usa solo el perfil que actives.</string>
-    <string name="conditions_rules_only">Estas condiciones solo se usan cuando la activación de perfiles es por reglas (Ajustes).</string>
     <string name="profile_devices_connected">%1$d de %2$d dispositivos conectados</string>
     <string name="profiles_hint_auto">Se usa el perfil con más de sus dispositivos conectados; en caso de empate, el de más arriba. Arrastra ☰ para reordenar. Si no hay ninguno conectado, se usa el último perfil que activaste.</string>
     <string name="profiles_hint_manual">Se usa el perfil que actives. Arrastra ☰ para reordenar.</string>

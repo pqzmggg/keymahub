@@ -88,7 +88,7 @@
     <string name="manual_banner">You activated %1$s, so it is used instead of %2$s until the conditions change.</string>
     <string name="manual_off">Back to automatic</string>
     <string name="conditions_title">Activation conditions</string>
-    <string name="conditions_hint">Choose the devices that switch this profile on. Without any, the profile is used only when you activate it.</string>
+    <string name="conditions_hint">When profile activation is Rule-based, this profile switches on by itself while one of the chosen devices is connected.</string>
     <string name="condition_always">Only when activated</string>
     <string name="hud_profile">Profile: %1$s</string>
     <string name="notif_pairing">Pairing mode is on. Add this phone on your PC or tablet.</string>
@@ -142,7 +142,6 @@
     <string name="mode_rules_hint">Uses the first profile, in list order, one of whose chosen devices is connected.</string>
     <string name="mode_manual">Off</string>
     <string name="mode_manual_hint">Uses only the profile you activate.</string>
-    <string name="conditions_rules_only">These conditions are used only when profile activation is rule-based (Settings).</string>
     <string name="profile_devices_connected">%1$d of %2$d devices connected</string>
     <string name="profiles_hint_auto">The profile with the most of its devices connected is used; ties go to the higher one. Drag ☰ to reorder. With none connected, the profile you activated last is used.</string>
     <string name="profiles_hint_manual">The profile you activate is used. Drag ☰ to reorder.</string>

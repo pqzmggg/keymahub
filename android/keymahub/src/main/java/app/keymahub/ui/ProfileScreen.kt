@@ -20,7 +20,6 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -46,7 +45,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.keymahub.KeyLabels
 import app.keymahub.R
-import app.keymahub.core.ActivationMode
 import app.keymahub.core.HubStatus
 import app.keymahub.core.Profile
 import app.keymahub.core.Settings
@@ -91,16 +89,6 @@ fun ProfileScreen(
         )
 
         SectionTitle(stringResource(R.string.conditions_title), stringResource(R.string.conditions_hint))
-        if (settings.mode != ActivationMode.RULES) {
-            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)) {
-                Text(
-                    stringResource(R.string.conditions_rules_only),
-                    Modifier.padding(12.dp),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onTertiaryContainer,
-                )
-            }
-        }
         ConnectedCard(
             settings = settings,
             chosen = profile.whenConnected,
