@@ -134,10 +134,11 @@ fun NameDialog(title: String, initial: String, onDismiss: () -> Unit, onConfirm:
 }
 
 @Composable
-fun ConfirmDialog(title: String, confirm: String, onDismiss: () -> Unit, onConfirm: () -> Unit) {
+fun ConfirmDialog(message: String, confirm: String, onDismiss: () -> Unit, onConfirm: () -> Unit) {
+    // A whole question, so body text: the title slot's headline size is far larger than the rest of the app.
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(title) },
+        text = { Text(message, style = MaterialTheme.typography.bodyLarge) },
         confirmButton = { TextButton(onClick = onConfirm) { Text(confirm) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )

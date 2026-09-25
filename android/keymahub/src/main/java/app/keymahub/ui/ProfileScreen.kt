@@ -137,7 +137,7 @@ fun ProfileScreen(
     }
     if (deleting) {
         ConfirmDialog(
-            title = stringResource(R.string.profile_delete_confirm, profileName(profile)),
+            message = stringResource(R.string.profile_delete_confirm, profileName(profile)),
             confirm = stringResource(R.string.action_delete),
             onDismiss = { deleting = false },
             onConfirm = { deleting = false; onEdit { it.deleteProfile(profileId) }; onBack() },
