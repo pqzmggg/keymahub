@@ -124,7 +124,6 @@
     <string name="touch_keyboard">Clavier à l\'écran pendant le contrôle</string>
     <string name="touch_keyboard_hint">Android masque le clavier à l\'écran quand un clavier physique est connecté. Cette option le réaffiche pendant que le clavier physique contrôle un autre appareil, pour pouvoir encore saisir sur ce téléphone.</string>
     <string name="profile_activate">Activer</string>
-    <string name="profile_edit">Modifier</string>
     <string name="drag_handle">Faites glisser pour changer la priorité</string>
     <string name="drag_to_renumber">Faites glisser pour le déplacer vers un autre numéro</string>
     <string name="profile_fallback">Utilisé quand aucune condition n\'est remplie</string>

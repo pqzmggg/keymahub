@@ -124,7 +124,6 @@
     <string name="touch_keyboard">다른 기기 조작 중 화면 키보드</string>
     <string name="touch_keyboard_hint">물리 키보드가 연결돼 있으면 Android는 화면 키보드를 숨깁니다. 물리 키보드가 다른 기기를 조작하는 동안에는 화면 키보드를 다시 보여 줘서 이 폰에서도 입력할 수 있게 합니다.</string>
     <string name="profile_activate">활성화</string>
-    <string name="profile_edit">편집</string>
     <string name="drag_handle">끌어서 우선순위 변경</string>
     <string name="drag_to_renumber">끌어서 다른 번호로 옮기기</string>
     <string name="profile_fallback">조건이 맞는 프로필이 없을 때 사용</string>

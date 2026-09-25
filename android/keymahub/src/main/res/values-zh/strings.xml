@@ -124,7 +124,6 @@
     <string name="touch_keyboard">控制其他设备时的屏幕键盘</string>
     <string name="touch_keyboard_hint">连接实体键盘时，Android 会隐藏屏幕键盘。实体键盘控制其他设备期间，会重新显示屏幕键盘，方便您在本手机上输入。</string>
     <string name="profile_activate">启用</string>
-    <string name="profile_edit">编辑</string>
     <string name="drag_handle">拖动以更改优先级</string>
     <string name="drag_to_renumber">拖动以移到其他数字</string>
     <string name="profile_fallback">没有配置符合条件时使用</string>
