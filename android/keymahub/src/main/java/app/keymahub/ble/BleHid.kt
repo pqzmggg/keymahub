@@ -332,6 +332,7 @@ object BleHid {
         runCatching { advertisingSet?.let { _ -> advertiser?.stopAdvertisingSet(advertisingCallback) } }
         advertisingSet = null
         creatingSet = false
+        publicRefused = false
         runCatching { server?.close() }
         server = null
         synchronized(lock) {
@@ -381,7 +382,32 @@ object BleHid {
         advertise()
         val manager = appContext?.getSystemService(BluetoothManager::class.java) ?: return
         val d = remote(address) ?: return
-        if (isLinkUp(manager, d)) rejoin(d)
+        if (isLinkUp(manager, d)) rejoin(d) else if (d.bondState == BluetoothDevice.BOND_BONDED) openLink(d)
+    }
+
+    /**
+     * Experiment: the phone opens the link itself (connecting when the host advertises). Some hosts
+     * (Lenovo tablet) open their HID connection only over a link that is already up when they start
+     * it, and not over a new one they make themselves.
+     */
+    private fun openLink(device: BluetoothDevice) {
+        val ctx = appContext ?: return
+        val address = device.address
+        synchronized(lock) { if (address in fastLinks) return }
+        Hub.log("BLE HID: opening a link to ${nameOf(address)} (experiment)")
+        val gatt = device.connectGatt(ctx, true, object : BluetoothGattCallback() {
+            override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
+                when (newState) {
+                    BluetoothProfile.STATE_CONNECTED -> {
+                        Hub.log("BLE HID: link to ${nameOf(address)} opened by the phone")
+                        gatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH)
+                    }
+                    BluetoothProfile.STATE_DISCONNECTED ->
+                        Hub.log("BLE HID: phone's link to ${nameOf(address)} down${statusText(status)}")
+                }
+            }
+        }, BluetoothDevice.TRANSPORT_LE) ?: return
+        synchronized(lock) { fastLinks[address] = gatt }
     }
 
     private fun closeLink(address: String) {
@@ -761,17 +787,70 @@ object BleHid {
         }
         if (creatingSet) return
         creatingSet = true
-        val params = AdvertisingSetParameters.Builder()
+        val builder = AdvertisingSetParameters.Builder()
             .setLegacyMode(true) // every host can see it
             .setConnectable(true)
             .setScannable(true)
             .setInterval(AdvertisingSetParameters.INTERVAL_LOW) // ~100 ms: hosts find the phone quickly
             .setTxPowerLevel(AdvertisingSetParameters.TX_POWER_MEDIUM)
-            .build()
+        val usePublic = Hub.ui.value.publicAddress && !publicRefused && requestPublicAddress(builder)
+        setIsPublic = usePublic
         val data = AdvertiseData.Builder().addServiceUuid(ParcelUuid(HID_SERVICE)).build()
-        runCatching { advertiser?.startAdvertisingSet(params, data, scanResponse(pairing), null, null, advertisingCallback) }
-            .onFailure { creatingSet = false; Hub.log("BLE HID: advertising failed: $it") }
+        runCatching { advertiser?.startAdvertisingSet(builder.build(), data, scanResponse(pairing), null, null, advertisingCallback) }
+            .onFailure {
+                creatingSet = false
+                Hub.log("BLE HID: advertising failed: $it")
+                if (usePublic) refusePublicAddress()
+            }
     }
+
+    // ---------------------------------------------------------------- experiment: fixed address
+
+    /**
+     * Experiment for hosts that do not reconnect (Lenovo tablet): by default the phone advertises
+     * with a private address that keeps changing, and such a host keeps it as a pairing-time address
+     * mapped to the phone's identity, which its HID connection may never match again. Advertising
+     * with the phone's public address gives the host one address for everything (as real keyboards
+     * have); the host has to pair again. The call is a system API: it may be refused, then the
+     * phone advertises as before and the log says so.
+     */
+    private fun requestPublicAddress(builder: AdvertisingSetParameters.Builder): Boolean {
+        if (Build.VERSION.SDK_INT < 34) {
+            Hub.log("BLE HID: fixed address needs Android 14")
+            return false
+        }
+        return runCatching {
+            builder.javaClass.getMethod("setOwnAddressType", Int::class.javaPrimitiveType).invoke(builder, ADDRESS_TYPE_PUBLIC)
+        }.onSuccess { Hub.log("BLE HID: asking to advertise with the fixed (public) address") }
+            .onFailure { Hub.log("BLE HID: fixed address not available: ${it.cause ?: it}") }
+            .isSuccess
+    }
+
+    /** The fixed address was refused: advertise as before. */
+    private fun refusePublicAddress() {
+        publicRefused = true
+        Hub.log("BLE HID: fixed address refused by the system; advertising with a private address")
+        main.post(::advertise)
+    }
+
+    /** The setting changed: a different address needs a new advertising set. */
+    fun applyAddressMode() {
+        val want = Hub.ui.value.publicAddress
+        if (!want) publicRefused = false
+        val set = advertisingSet ?: return
+        if (setIsPublic == (want && !publicRefused)) return
+        Hub.log("BLE HID: address mode changed, restarting advertising")
+        runCatching { advertiser?.stopAdvertisingSet(advertisingCallback) }
+        advertisingSet = null
+        creatingSet = false
+        advertise()
+    }
+
+    /** Whether the current advertising set asked for the public address. */
+    @Volatile private var setIsPublic = false
+    /** The system refused the public address this Bluetooth-on period. */
+    @Volatile private var publicRefused = false
+    private const val ADDRESS_TYPE_PUBLIC = 0
 
     private fun scanResponse(withName: Boolean) = AdvertiseData.Builder().setIncludeDeviceName(withName).build()
 
@@ -780,10 +859,11 @@ object BleHid {
             creatingSet = false
             if (status != ADVERTISE_SUCCESS || set == null) {
                 Hub.log("BLE HID: advertising failed ($status)")
+                if (setIsPublic) refusePublicAddress()
                 return
             }
             advertisingSet = set
-            Hub.log("BLE HID: advertising")
+            Hub.log(if (setIsPublic) "BLE HID: advertising (fixed address)" else "BLE HID: advertising")
             if (!running) set.enableAdvertising(false, 0, 0) // hosting stopped meanwhile
         }
 

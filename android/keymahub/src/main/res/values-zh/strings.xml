@@ -156,4 +156,7 @@
     <plurals name="receiver_count">
         <item quantity="other">%1$d 台设备</item>
     </plurals>
+    <string name="settings_experiments">实验</string>
+    <string name="public_address">使用固定地址广播</string>
+    <string name="public_address_hint">用于无法重新连接的平板电脑的实验。开启后，请在平板电脑的蓝牙设备中删除此手机并重新配对。如果手机不允许，诊断日志中会显示。</string>
 </resources>

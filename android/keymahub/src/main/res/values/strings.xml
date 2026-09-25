@@ -159,4 +159,7 @@
         <item quantity="one">%1$d device</item>
         <item quantity="other">%1$d devices</item>
     </plurals>
+    <string name="settings_experiments">Experiments</string>
+    <string name="public_address">Advertise with a fixed address</string>
+    <string name="public_address_hint">For a tablet that does not reconnect. After turning this on, remove this phone from the tablet\'s Bluetooth devices and pair again. If the phone does not allow it, the diagnostic log says so.</string>
 </resources>

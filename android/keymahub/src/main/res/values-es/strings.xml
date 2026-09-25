@@ -160,4 +160,7 @@
         <item quantity="many">%1$d dispositivos</item>
         <item quantity="other">%1$d dispositivos</item>
     </plurals>
+    <string name="settings_experiments">Experimentos</string>
+    <string name="public_address">Anunciar con una dirección fija</string>
+    <string name="public_address_hint">Para una tableta que no se vuelve a conectar. Tras activarlo, elimina este teléfono de los dispositivos Bluetooth de la tableta y vuelve a vincularlo. Si el teléfono no lo permite, el registro de diagnóstico lo indica.</string>
 </resources>

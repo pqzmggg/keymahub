@@ -156,4 +156,7 @@
     <plurals name="receiver_count">
         <item quantity="other">デバイス %1$d 台</item>
     </plurals>
+    <string name="settings_experiments">実験</string>
+    <string name="public_address">固定アドレスでアドバタイズ</string>
+    <string name="public_address_hint">再接続しないタブレット向けの実験です。オンにしたら、タブレットのBluetoothデバイスからこのスマートフォンを削除して、もう一度ペアリングしてください。スマートフォンが許可しない場合は診断ログに表示されます。</string>
 </resources>
