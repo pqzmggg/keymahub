@@ -34,7 +34,6 @@ import app.keymahub.Locales
 import app.keymahub.R
 import app.keymahub.core.Hotkeys
 import app.keymahub.core.Mods
-import app.keymahub.core.Settings
 import app.keymahub.core.ThemeMode
 import app.keymahub.core.UiPrefs
 
@@ -141,7 +140,8 @@ private fun Toggle(title: String, hint: String, on: Boolean, onChange: (Boolean)
         Modifier.fillMaxWidth().clickable { onChange(!on) }.padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(Modifier.weight(1f)) {
+        // Room between the text and the switch.
+        Column(Modifier.weight(1f).padding(end = 16.dp)) {
             Text(title, style = MaterialTheme.typography.titleMedium)
             Text(hint, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
@@ -169,14 +169,7 @@ private fun HotkeyCard(mods: Int, onMods: (Int) -> Unit) {
                     )
                 }
             }
-            if (valid) {
-                val one = Settings(mods = pending)
-                Text("${KeyLabels.hotkey(one.hotkey(0))}   ${stringResource(R.string.this_phone)}", style = MaterialTheme.typography.bodyMedium)
-                Text(
-                    "${KeyLabels.hotkey(one.hotkey(1))} … ${KeyLabels.key(Hotkeys.code(9))}   ${stringResource(R.string.hotkeys_devices)}",
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            } else {
+            if (!valid) {
                 Text(stringResource(R.string.hotkeys_invalid), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
             }
         }
