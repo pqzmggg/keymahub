@@ -122,9 +122,9 @@ class HubService : Service(), BleHid.Listener {
         pointerCapture?.stop()
         hud?.remove()
         sender?.shutdown()
+        // Off the main thread: it waits for a start still in progress. Hosts are let go (see BleHid.stop).
         Thread { BleHid.stop() }.start()
-        // Hosts stay connected while hosting is off (see BleHid.stop).
-        Hub.update { it.copy(running = false, slot = 0, ready = BleHid.readyTargets(), pairingUntil = 0) }
+        Hub.update { it.copy(running = false, slot = 0, ready = emptySet(), pairingUntil = 0) }
         Hub.log("stopped")
         super.onDestroy()
     }
