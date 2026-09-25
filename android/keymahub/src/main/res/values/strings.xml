@@ -42,7 +42,7 @@
     <string name="profile_delete">Delete profile</string>
     <string name="profile_delete_confirm">Delete profile \"%1$s\"?</string>
     <string name="hotkeys_title">Hotkeys</string>
-    <string name="hotkeys_hint">Tap a number to choose the device on it. The modifier keys are set in Settings.</string>
+    <string name="hotkeys_hint">While hosting, tap a device of the profile in use to move control to it. Choose the device on a number with ⋯. The modifier keys are set in Settings.</string>
     <string name="this_phone">This phone</string>
     <string name="slot_empty">Empty</string>
     <string name="state_controlling">Controlling</string>

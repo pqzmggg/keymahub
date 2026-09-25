@@ -41,7 +41,7 @@
     <string name="profile_delete">Supprimer le profil</string>
     <string name="profile_delete_confirm">Supprimer le profil « %1$s » ?</string>
     <string name="hotkeys_title">Raccourcis</string>
-    <string name="hotkeys_hint">Touchez un numéro pour choisir son appareil. Les touches de modification se règlent dans les paramètres.</string>
+    <string name="hotkeys_hint">Quand l\'hôte est activé, touchez un appareil du profil utilisé pour lui passer le contrôle. Choisissez l\'appareil de chaque numéro avec ⋯. Les touches de modification se règlent dans les paramètres.</string>
     <string name="this_phone">Ce téléphone</string>
     <string name="slot_empty">Libre</string>
     <string name="state_controlling">En contrôle</string>

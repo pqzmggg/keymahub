@@ -41,7 +41,7 @@
     <string name="profile_delete">Eliminar perfil</string>
     <string name="profile_delete_confirm">¿Eliminar el perfil \"%1$s\"?</string>
     <string name="hotkeys_title">Atajos</string>
-    <string name="hotkeys_hint">Toca un número para elegir su dispositivo. Las teclas modificadoras se cambian en Ajustes.</string>
+    <string name="hotkeys_hint">Con el anfitrión activado, toca un dispositivo del perfil en uso para pasarle el control. Elige el dispositivo de cada número con ⋯. Las teclas modificadoras se cambian en Ajustes.</string>
     <string name="this_phone">Este teléfono</string>
     <string name="slot_empty">Vacío</string>
     <string name="state_controlling">Controlando</string>

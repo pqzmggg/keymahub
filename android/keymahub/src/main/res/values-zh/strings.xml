@@ -41,7 +41,7 @@
     <string name="profile_delete">删除配置</string>
     <string name="profile_delete_confirm">删除配置“%1$s”？</string>
     <string name="hotkeys_title">快捷键</string>
-    <string name="hotkeys_hint">点按数字可选择该数字对应的设备。组合键在设置中更改。</string>
+    <string name="hotkeys_hint">主机开启时，点按当前配置文件中的设备即可将控制切换到该设备。数字对应的设备在 ⋯ 中选择。组合键在设置中更改。</string>
     <string name="this_phone">本手机</string>
     <string name="slot_empty">空</string>
     <string name="state_controlling">控制中</string>

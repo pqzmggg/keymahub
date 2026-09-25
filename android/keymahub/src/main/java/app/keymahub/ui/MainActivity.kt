@@ -88,6 +88,7 @@ class MainActivity : ComponentActivity() {
                 status = status,
                 onBack = { route = "home" },
                 onEdit = onEdit,
+                onSelect = { slot -> HubService.select(this, slot) },
             )
             route == "devices" -> DevicesScreen(
                 status = status,

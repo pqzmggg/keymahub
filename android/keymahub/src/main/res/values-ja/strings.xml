@@ -41,7 +41,7 @@
     <string name="profile_delete">プロファイルを削除</string>
     <string name="profile_delete_confirm">プロファイル「%1$s」を削除しますか？</string>
     <string name="hotkeys_title">ホットキー</string>
-    <string name="hotkeys_hint">番号をタップして、その番号に割り当てるデバイスを選びます。一緒に押すキーは設定で変更します。</string>
+    <string name="hotkeys_hint">ホスティング中は、使用中のプロファイルのデバイスをタップすると操作がそのデバイスに移ります。番号に割り当てるデバイスは ⋯ で選びます。一緒に押すキーは設定で変更します。</string>
     <string name="this_phone">このスマホ</string>
     <string name="slot_empty">空き</string>
     <string name="state_controlling">操作中</string>

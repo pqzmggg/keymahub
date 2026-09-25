@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -16,6 +17,7 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -56,6 +58,8 @@ fun ProfileScreen(
     status: HubStatus,
     onBack: () -> Unit,
     onEdit: ((Settings) -> Settings) -> Unit,
+    /** Moves control to a slot of the active profile (0 = this phone). */
+    onSelect: (slot: Int) -> Unit,
 ) {
     val settings = status.settings
     val profile = settings.profile(profileId)
@@ -109,6 +113,8 @@ fun ProfileScreen(
                 if (slot > 0) HorizontalDivider()
                 SlotRow(
                     slot, profile, status,
+                    // Hotkeys follow the active profile, so only its devices can take control.
+                    onSelect = if (status.running && active) ({ onSelect(slot) }) else null,
                     onAssign = { assignFor = slot },
                     onClear = { onEdit { it.assign(profileId, slot, null) } },
                 )
@@ -202,9 +208,20 @@ private fun ConnectedCard(settings: Settings, chosen: Set<String>, onChange: (Se
 
 // ---------------------------------------------------------------- hotkeys and receivers
 
-/** One hotkey of [profile]: slot 0 is this phone, 1..9 a receiver. */
+/**
+ * One hotkey of [profile]: slot 0 is this phone, 1..9 a receiver. Tapping it moves control there
+ * ([onSelect], null while that is not possible); tapping an empty slot picks its device. The ⋯
+ * button holds the device choices.
+ */
 @Composable
-private fun SlotRow(slot: Int, profile: Profile, status: HubStatus, onAssign: () -> Unit, onClear: () -> Unit) {
+private fun SlotRow(
+    slot: Int,
+    profile: Profile,
+    status: HubStatus,
+    onSelect: (() -> Unit)?,
+    onAssign: () -> Unit,
+    onClear: () -> Unit,
+) {
     val settings = status.settings
     val hotkey = settings.hotkey(slot)
     val address = profile.addressOf(slot)
@@ -223,33 +240,46 @@ private fun SlotRow(slot: Int, profile: Profile, status: HubStatus, onAssign: ()
         connected -> stringResource(R.string.state_connected)
         else -> stringResource(R.string.state_not_connected)
     }
-    Box {
-        Row(
-            Modifier.fillMaxWidth()
-                .clickable(enabled = slot != 0) { menu = true }
-                .padding(horizontal = 16.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Badge(KeyLabels.key(hotkey.code), highlighted = active)
-            Spacer(Modifier.width(16.dp))
-            Column(Modifier.weight(1f)) {
-                Text(
-                    title,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = if (slot != 0 && address == null) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
-                )
-                Text(
-                    listOfNotNull(KeyLabels.hotkey(hotkey), state).joinToString(" · "),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (active || connected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+    val tap: (() -> Unit)? = when {
+        slot != 0 && address == null -> onAssign
+        else -> onSelect
+    }
+    Row(
+        Modifier.fillMaxWidth()
+            .clickable(enabled = tap != null) { tap?.invoke() }
+            .padding(start = 16.dp, end = 4.dp, top = 4.dp, bottom = 4.dp)
+            .heightIn(min = 52.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Badge(KeyLabels.key(hotkey.code), highlighted = active)
+        Spacer(Modifier.width(16.dp))
+        Column(Modifier.weight(1f)) {
+            Text(
+                title,
+                style = MaterialTheme.typography.titleMedium,
+                color = if (slot != 0 && address == null) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                listOfNotNull(KeyLabels.hotkey(hotkey), state).joinToString(" · "),
+                style = MaterialTheme.typography.bodySmall,
+                color = if (active || connected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
-        DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-            DropdownMenuItem(text = { Text(stringResource(R.string.assign_device)) }, onClick = { menu = false; onAssign() })
-            if (address != null) {
-                DropdownMenuItem(text = { Text(stringResource(R.string.unassign)) }, onClick = { menu = false; onClear() })
+        if (slot != 0) {
+            Box {
+                IconButton(onClick = { menu = true }) {
+                    Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.menu))
+                }
+                DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                    DropdownMenuItem(text = { Text(stringResource(R.string.assign_device)) }, onClick = { menu = false; onAssign() })
+                    if (address != null) {
+                        DropdownMenuItem(text = { Text(stringResource(R.string.unassign)) }, onClick = { menu = false; onClear() })
+                    }
+                }
             }
+        } else {
+            // Keeps this phone's row as tall as the others.
+            Spacer(Modifier.width(48.dp))
         }
     }
 }
