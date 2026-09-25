@@ -149,7 +149,13 @@ fun ProfileScreen(
             profile = profile,
             settings = settings,
             onDismiss = { assignFor = null },
-            onPick = { address -> assignFor = null; onEdit { it.assign(profileId, slot, address) } },
+            onPick = { address ->
+                assignFor = null
+                val controlled = if (status.running && settings.activeId == profileId && status.slot != 0) profile.addressOf(status.slot) else null
+                onEdit { it.assign(profileId, slot, address) }
+                // The device in control moved to another number: control follows it there.
+                if (address != null && address == controlled && slot != status.slot) onSelect(slot)
+            },
         )
     }
 }
