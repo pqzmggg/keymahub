@@ -124,7 +124,6 @@
     <string name="touch_keyboard">他のデバイス操作中の画面キーボード</string>
     <string name="touch_keyboard_hint">物理キーボードが接続されていると、Android は画面キーボードを表示しません。物理キーボードで他のデバイスを操作している間は画面キーボードを表示し、このスマホでも入力できるようにします。</string>
     <string name="profile_activate">有効にする</string>
-    <string name="profile_edit">編集</string>
     <string name="drag_handle">ドラッグして優先順位を変更</string>
     <string name="drag_to_renumber">ドラッグして別の番号に移動</string>
     <string name="profile_fallback">条件に合うプロファイルがないときに使用</string>

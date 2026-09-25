@@ -24,7 +24,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
@@ -337,12 +336,14 @@ private fun ProfileRow(
     val active = p.id == settings.activeId
     val lit = active && running
     val dim = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+    // Tapping the row opens the profile.
     Card(
-        modifier.fillMaxWidth(),
+        onClick = onOpen,
+        modifier = modifier.fillMaxWidth(),
         colors = if (lit) CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer) else CardDefaults.cardColors(),
         elevation = CardDefaults.cardElevation(defaultElevation = if (dragging) 8.dp else 1.dp),
     ) {
-        Row(Modifier.padding(end = 4.dp, top = 8.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.padding(end = 12.dp, top = 8.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(handle.padding(horizontal = 8.dp, vertical = 12.dp)) {
                 Icon(
                     Icons.Default.Menu,
@@ -393,9 +394,6 @@ private fun ProfileRow(
                 FilledTonalButton(onClick = onActivate, enabled = running, contentPadding = PaddingValues(horizontal = 12.dp)) {
                     Text(stringResource(R.string.profile_activate), maxLines = 1)
                 }
-            }
-            IconButton(onClick = onOpen) {
-                Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.profile_edit))
             }
         }
     }

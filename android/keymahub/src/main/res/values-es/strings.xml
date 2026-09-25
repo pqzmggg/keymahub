@@ -124,7 +124,6 @@
     <string name="touch_keyboard">Teclado en pantalla al controlar otro dispositivo</string>
     <string name="touch_keyboard_hint">Android oculta el teclado en pantalla cuando hay un teclado físico conectado. Esto lo vuelve a mostrar mientras el teclado físico controla otro dispositivo, para que puedas seguir escribiendo en este teléfono.</string>
     <string name="profile_activate">Activar</string>
-    <string name="profile_edit">Editar</string>
     <string name="drag_handle">Arrastra para cambiar la prioridad</string>
     <string name="drag_to_renumber">Arrastra para moverlo a otro número</string>
     <string name="profile_fallback">Se usa cuando no se cumple ninguna condición</string>
