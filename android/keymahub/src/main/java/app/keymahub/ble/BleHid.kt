@@ -179,6 +179,8 @@ object BleHid {
         running = true
         advertise()
         rejoinLinks(manager)
+        // Hosts that became ready while hosting was off were not tuned then.
+        for (address in hosts.ready()) synchronized(lock) { devices[address] }?.let { d -> main.postDelayed({ tune(d) }, SETTLE_MS) }
         Hub.log("BLE HID: hosting (${hosts.ready().size} ready)")
         return null
     }
