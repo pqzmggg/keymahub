@@ -41,7 +41,7 @@
     <string name="profile_delete">プロファイルを削除</string>
     <string name="profile_delete_confirm">プロファイル「%1$s」を削除しますか？</string>
     <string name="hotkeys_title">ホットキー</string>
-    <string name="hotkeys_hint">ホスティング中は、使用中のプロファイルのデバイスをタップすると操作がそのデバイスに移ります。番号に割り当てるデバイスは ⋯ で選びます。☰ をドラッグするとデバイスを別の番号に移せます。一緒に押すキーは設定で変更します。</string>
+    <string name="hotkeys_hint">ホスティング中は、使用中のプロファイルのデバイスをタップすると操作がそのデバイスに移ります。番号に割り当てるデバイスは ⋯ で選びます。デバイスをドラッグすると別の番号に移せます。一緒に押すキーは設定で変更します。</string>
     <string name="this_phone">このスマホ</string>
     <string name="slot_empty">空き</string>
     <string name="state_controlling">操作中</string>
@@ -54,7 +54,7 @@
     <string name="assign_now_on">現在 %1$s</string>
     <string name="assign_no_devices">まだデバイスがありません。</string>
     <string name="assign_swap_hint">別のホットキーにあるデバイスを選ぶと、2 つが入れ替わります。</string>
-    <string name="devices_title">デバイス</string>
+    <string name="devices_title">デバイス管理</string>
     <string name="device_rename">名前を変更</string>
     <string name="guide_intro">PC やタブレットの Bluetooth 設定からこのスマホを追加してください。新しいデバイスは使用中のプロファイルの空いているホットキーに入ります。</string>
     <string name="guide_windows">設定 → Bluetooth とデバイス → デバイスの追加 → Bluetooth → このスマホを選択</string>
@@ -81,7 +81,7 @@
     <string name="hosting_off_hint">オンにすると、このスマホのキーボードとマウスでデバイスを操作します。</string>
     <string name="settings_title">設定</string>
     <string name="profiles_title">プロファイル</string>
-    <string name="profiles_hint">条件に合うプロファイルは自動で有効になり、複数合う場合は上にあるものが優先されます。☰ をドラッグして並べ替えます。どれも合わない場合は、最後に有効にしたプロファイルを使います。</string>
+    <string name="profiles_hint">条件に合うプロファイルは自動で有効になり、複数合う場合は上にあるものが優先されます。プロファイルをドラッグして並べ替えます。どれも合わない場合は、最後に有効にしたプロファイルを使います。</string>
     <string name="profile_in_use">使用中</string>
     <string name="profile_not_in_use">未使用</string>
     <string name="manual_banner">%1$s を手動で有効にしたため、条件が変わるまで %2$s の代わりに使います。</string>
@@ -144,8 +144,8 @@
     <string name="mode_manual_hint">手動で有効にしたプロファイルだけを使います。</string>
     <string name="conditions_rules_only">これらの条件は、プロファイルの切り替えが「ルールに基づく自動」のときだけ使われます（設定）。</string>
     <string name="profile_devices_connected">%2$d 台中 %1$d 台接続</string>
-    <string name="profiles_hint_auto">割り当てたデバイスが最も多く接続されているプロファイルを使い、同数なら上のものが優先です。☰ をドラッグして並べ替えます。接続がなければ、最後に有効にしたプロファイルを使います。</string>
-    <string name="profiles_hint_manual">手動で有効にしたプロファイルを使います。☰ をドラッグして並べ替えられます。</string>
+    <string name="profiles_hint_auto">割り当てたデバイスが最も多く接続されているプロファイルを使い、同数なら上のものが優先です。プロファイルをドラッグして並べ替えます。接続がなければ、最後に有効にしたプロファイルを使います。</string>
+    <string name="profiles_hint_manual">手動で有効にしたプロファイルを使います。プロファイルをドラッグして並べ替えられます。</string>
     <string name="mode_fallback_note">どちらの自動モードでも、合うプロファイルがない場合は最後に有効にしたプロファイルを使います。手動で有効にすると、接続中のデバイスが変わるまで自動の選択より優先されます。</string>
     <string name="device_connect">接続</string>
     <string name="device_connecting">%1$s に接続しています。デバイスの電源が入っていて近くにあれば接続されます。</string>
