@@ -41,7 +41,7 @@
     <string name="profile_delete">프로필 삭제</string>
     <string name="profile_delete_confirm">\'%1$s\' 프로필을 삭제할까요?</string>
     <string name="hotkeys_title">단축키</string>
-    <string name="hotkeys_hint">번호를 누르면 그 번호에 둘 기기를 고를 수 있습니다. 함께 누르는 키는 설정에서 바꿉니다.</string>
+    <string name="hotkeys_hint">호스팅 중에 사용 중인 프로필의 기기를 누르면 그 기기로 제어가 넘어갑니다. 번호에 둘 기기는 ⋯ 버튼에서 고릅니다. 함께 누르는 키는 설정에서 바꿉니다.</string>
     <string name="this_phone">이 폰</string>
     <string name="slot_empty">비어 있음</string>
     <string name="state_controlling">조작 중</string>
@@ -117,10 +117,10 @@
     <string name="show_hud">전환 팝업</string>
     <string name="show_hud_hint">어느 기기로 전환했는지 잠깐 표시</string>
     <string name="version">버전 %1$s</string>
-    <string name="report_menu">진단 로그 보내기</string>
-    <string name="report_message">문제를 확인하는 데 쓰이는 로그입니다. 앱 동작 기록과 기기 이름이 들어 있고, 입력한 내용은 들어 있지 않습니다. 보내기를 누르면 개발자 주소가 채워진 이메일 앱이 열립니다.</string>
-    <string name="report_send">이메일로 보내기</string>
-    <string name="report_no_app">이메일 앱이 없습니다.</string>
+    <string name="report_menu">진단 로그</string>
+    <string name="report_message">문제를 확인하는 데 쓰이는 로그입니다. 앱 동작 기록과 기기 이름이 들어 있고, 입력한 내용은 들어 있지 않습니다. 복사해서 문제를 알릴 곳에 붙여 넣으세요.</string>
+    <string name="report_copy">복사</string>
+    <string name="report_copied">로그를 클립보드에 복사했습니다.</string>
     <string name="touch_keyboard">다른 기기 조작 중 화면 키보드</string>
     <string name="touch_keyboard_hint">물리 키보드가 연결돼 있으면 Android는 화면 키보드를 숨깁니다. 물리 키보드가 다른 기기를 조작하는 동안에는 화면 키보드를 다시 보여 줘서 이 폰에서도 입력할 수 있게 합니다.</string>
     <string name="profile_activate">활성화</string>

@@ -219,8 +219,22 @@ object BleHid {
             val up = targets.filter { isLinkUp(manager, it) }
             if (up.isNotEmpty()) {
                 Hub.log("BLE HID: still linked after stopping (kept by the system or another app; the host may still show the keyboard connected): ${up.joinToString { nameOf(it.address) }}")
+                watchKeptLinks(manager, up, SystemClock.uptimeMillis() - 2_000)
             }
         }, 2_000)
+    }
+
+    /** Diagnostics: logs when links kept up after stopping finally drop (checked every 10 s, for 10 minutes). */
+    private fun watchKeptLinks(manager: BluetoothManager, links: List<BluetoothDevice>, since: Long) {
+        main.postDelayed({
+            if (running) return@postDelayed
+            val elapsed = (SystemClock.uptimeMillis() - since) / 1000
+            val (up, down) = links.partition { isLinkUp(manager, it) }
+            for (d in down) Hub.log("BLE HID: link to ${nameOf(d.address)} dropped ${elapsed}s after stopping")
+            if (up.isEmpty()) return@postDelayed
+            if (elapsed < 600) watchKeptLinks(manager, up, since)
+            else Hub.log("BLE HID: still linked 10 min after stopping: ${up.joinToString { nameOf(it.address) }}")
+        }, 10_000)
     }
 
     /**
@@ -539,7 +553,8 @@ object BleHid {
                         strangers.remove(address)
                         traced.remove(address)
                     }
-                    if (wasTarget) Hub.log("BLE HID: ${nameOf(address)} disconnected${statusText(status)}")
+                    // Known hosts too: shows when a link kept up after hosting stopped finally drops.
+                    if (wasTarget || hosts.knows(address)) Hub.log("BLE HID: ${nameOf(address)} disconnected${statusText(status)}")
                     if (change == Change.GONE) gone(address)
                     advertise() // hosts reconnect to it (a no-op while not hosting)
                 }

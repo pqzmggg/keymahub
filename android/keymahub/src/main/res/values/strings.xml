@@ -42,7 +42,7 @@
     <string name="profile_delete">Delete profile</string>
     <string name="profile_delete_confirm">Delete profile \"%1$s\"?</string>
     <string name="hotkeys_title">Hotkeys</string>
-    <string name="hotkeys_hint">Tap a number to choose the device on it. The modifier keys are set in Settings.</string>
+    <string name="hotkeys_hint">While hosting, tap a device of the profile in use to move control to it. Choose the device on a number with ⋯. The modifier keys are set in Settings.</string>
     <string name="this_phone">This phone</string>
     <string name="slot_empty">Empty</string>
     <string name="state_controlling">Controlling</string>
@@ -118,10 +118,10 @@
     <string name="show_hud">Switch popup</string>
     <string name="show_hud_hint">Briefly show which device you switched to</string>
     <string name="version">Version %1$s</string>
-    <string name="report_menu">Send diagnostic log</string>
-    <string name="report_message">This log helps the developer look into problems. It has the app\'s events and device names, never what you type. Sending opens your email app addressed to the developer.</string>
-    <string name="report_send">Send by email</string>
-    <string name="report_no_app">No email app found.</string>
+    <string name="report_menu">Diagnostic log</string>
+    <string name="report_message">This log helps look into problems. It has the app\'s events and device names, never what you type. Copy it and paste it where you report the problem.</string>
+    <string name="report_copy">Copy</string>
+    <string name="report_copied">Log copied to the clipboard.</string>
     <string name="touch_keyboard">On-screen keyboard while controlling</string>
     <string name="touch_keyboard_hint">Android hides the on-screen keyboard while a physical keyboard is connected. This shows it again while the physical keyboard controls another device, so you can still type on this phone.</string>
     <string name="profile_activate">Activate</string>

@@ -52,6 +52,15 @@ class HubService : Service(), BleHid.Listener {
                 val on = intent.getBooleanExtra(EXTRA_ON, true)
                 if (ready) setPairing(on) else pendingPairing = on
             }
+            ACTION_SELECT -> {
+                // Only while hosting: a switch never starts it.
+                if (!started) {
+                    stopSelf()
+                    return START_NOT_STICKY
+                }
+                if (ready) capture?.select(intent.getIntExtra(EXTRA_SLOT, 0))
+                return START_STICKY
+            }
         }
         if (started) return START_STICKY
         started = true
@@ -258,7 +267,9 @@ class HubService : Service(), BleHid.Listener {
         private const val NOTIFICATION_ID = 1
         private const val ACTION_STOP = "app.keymahub.STOP"
         private const val ACTION_PAIR = "app.keymahub.PAIR"
+        private const val ACTION_SELECT = "app.keymahub.SELECT"
         private const val EXTRA_ON = "on"
+        private const val EXTRA_SLOT = "slot"
         const val PAIRING_MS = 3 * 60_000L
 
         @Volatile
@@ -274,6 +285,15 @@ class HubService : Service(), BleHid.Listener {
             if (problem != null) Hub.update { it.copy(problem = problem) }
             // May be refused if the app is no longer allowed to start services; nothing to stop then.
             runCatching { context.startService(Intent(context, HubService::class.java).setAction(ACTION_STOP)) }
+        }
+
+        /**
+         * Moves control to [slot] of the active profile (0 = this phone), as its hotkey does: a
+         * device that is not connected is refused with the same notice. Only while hosting.
+         */
+        fun select(context: Context, slot: Int) {
+            if (!running) return
+            runCatching { context.startService(Intent(context, HubService::class.java).setAction(ACTION_SELECT).putExtra(EXTRA_SLOT, slot)) }
         }
 
         /** Turns pairing mode on (starting hosting if needed) or off. */
