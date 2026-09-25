@@ -117,10 +117,10 @@
     <string name="show_hud">切り替えポップアップ</string>
     <string name="show_hud_hint">切り替えたデバイスを一瞬表示</string>
     <string name="version">バージョン %1$s</string>
-    <string name="report_menu">診断ログを送信</string>
-    <string name="report_message">問題の調査に使うログです。アプリの動作記録とデバイス名が含まれ、入力した内容は含まれません。送信すると、開発者宛てのメールアプリが開きます。</string>
-    <string name="report_send">メールで送信</string>
-    <string name="report_no_app">メールアプリが見つかりません。</string>
+    <string name="report_menu">診断ログ</string>
+    <string name="report_message">問題の調査に使うログです。アプリの動作記録とデバイス名が含まれ、入力した内容は含まれません。コピーして、問題を報告する場所に貼り付けてください。</string>
+    <string name="report_copy">コピー</string>
+    <string name="report_copied">ログをクリップボードにコピーしました。</string>
     <string name="touch_keyboard">他のデバイス操作中の画面キーボード</string>
     <string name="touch_keyboard_hint">物理キーボードが接続されていると、Android は画面キーボードを表示しません。物理キーボードで他のデバイスを操作している間は画面キーボードを表示し、このスマホでも入力できるようにします。</string>
     <string name="profile_activate">有効にする</string>

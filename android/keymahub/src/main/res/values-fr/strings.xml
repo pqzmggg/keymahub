@@ -117,10 +117,10 @@
     <string name="show_hud">Annonce de changement</string>
     <string name="show_hud_hint">Affiche brièvement l\'appareil choisi</string>
     <string name="version">Version %1$s</string>
-    <string name="report_menu">Envoyer le journal de diagnostic</string>
-    <string name="report_message">Ce journal aide le développeur à analyser les problèmes. Il contient les événements de l\'appli et les noms des appareils, jamais ce que vous tapez. L\'envoi ouvre votre appli de messagerie adressée au développeur.</string>
-    <string name="report_send">Envoyer par e-mail</string>
-    <string name="report_no_app">Aucune appli de messagerie trouvée.</string>
+    <string name="report_menu">Journal de diagnostic</string>
+    <string name="report_message">Ce journal aide à analyser les problèmes. Il contient les événements de l\'appli et les noms des appareils, jamais ce que vous tapez. Copiez-le et collez-le là où vous signalez le problème.</string>
+    <string name="report_copy">Copier</string>
+    <string name="report_copied">Journal copié dans le presse-papiers.</string>
     <string name="touch_keyboard">Clavier à l\'écran pendant le contrôle</string>
     <string name="touch_keyboard_hint">Android masque le clavier à l\'écran quand un clavier physique est connecté. Cette option le réaffiche pendant que le clavier physique contrôle un autre appareil, pour pouvoir encore saisir sur ce téléphone.</string>
     <string name="profile_activate">Activer</string>

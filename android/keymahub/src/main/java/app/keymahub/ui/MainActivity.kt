@@ -1,7 +1,8 @@
 package app.keymahub.ui
 
 import android.Manifest
-import android.content.ActivityNotFoundException
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -129,7 +130,7 @@ class MainActivity : ComponentActivity() {
                 onOpenProfile = { id -> route = "profile:$id" },
                 onDevices = { route = "devices" },
                 onSettings = { route = "settings" },
-                onSendLog = ::sendLog,
+                onCopyLog = ::copyLog,
             )
         }
     }
@@ -159,27 +160,17 @@ class MainActivity : ComponentActivity() {
         )
     }
 
-    /** Opens the user's mail app with the log addressed to the developer; the user presses send there. */
-    private fun sendLog(log: String) {
+    /** Copies the log, with the app and phone it came from, to the clipboard. */
+    private fun copyLog(log: String) {
         val version = runCatching { packageManager.getPackageInfo(packageName, 0).versionName }.getOrNull().orEmpty()
-        val body = buildString {
+        val text = buildString {
             append("KeymaHub $version\n")
             append("${Build.MANUFACTURER} ${Build.MODEL}, Android ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})\n\n")
             append(log)
         }
-        val mail = Intent(Intent.ACTION_SEND).apply {
-            type = "message/rfc822"
-            putExtra(Intent.EXTRA_EMAIL, arrayOf(SUPPORT_EMAIL))
-            putExtra(Intent.EXTRA_SUBJECT, "KeymaHub diagnostic log ($version, ${Build.MODEL})")
-            putExtra(Intent.EXTRA_TEXT, body)
-            // Only mail apps: the selector limits the chooser to apps that handle mailto.
-            selector = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:"))
-        }
-        try {
-            startActivity(mail)
-        } catch (e: ActivityNotFoundException) {
-            Toast.makeText(this, R.string.report_no_app, Toast.LENGTH_LONG).show()
-        }
+        getSystemService(ClipboardManager::class.java)?.setPrimaryClip(ClipData.newPlainText("KeymaHub log", text))
+        // Android 13+ confirms copies itself.
+        if (Build.VERSION.SDK_INT < 33) Toast.makeText(this, R.string.report_copied, Toast.LENGTH_SHORT).show()
     }
 
     private fun granted(p: String) = checkSelfPermission(p) == PackageManager.PERMISSION_GRANTED
@@ -220,7 +211,6 @@ class MainActivity : ComponentActivity() {
     )
 
     private companion object {
-        const val SUPPORT_EMAIL = "pqzmggg@gmail.com"
         val BLUETOOTH = arrayOf(Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_ADVERTISE)
     }
 }

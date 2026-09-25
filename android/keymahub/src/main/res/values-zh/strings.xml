@@ -117,10 +117,10 @@
     <string name="show_hud">切换提示</string>
     <string name="show_hud_hint">短暂显示切换到的设备</string>
     <string name="version">版本 %1$s</string>
-    <string name="report_menu">发送诊断日志</string>
-    <string name="report_message">此日志用于排查问题，包含应用运行记录和设备名称，不包含您输入的内容。点按发送将打开已填好开发者地址的邮件应用。</string>
-    <string name="report_send">通过邮件发送</string>
-    <string name="report_no_app">未找到邮件应用。</string>
+    <string name="report_menu">诊断日志</string>
+    <string name="report_message">此日志用于排查问题，包含应用运行记录和设备名称，不包含您输入的内容。复制后粘贴到您报告问题的地方。</string>
+    <string name="report_copy">复制</string>
+    <string name="report_copied">日志已复制到剪贴板。</string>
     <string name="touch_keyboard">控制其他设备时的屏幕键盘</string>
     <string name="touch_keyboard_hint">连接实体键盘时，Android 会隐藏屏幕键盘。实体键盘控制其他设备期间，会重新显示屏幕键盘，方便您在本手机上输入。</string>
     <string name="profile_activate">启用</string>

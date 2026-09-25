@@ -117,10 +117,10 @@
     <string name="show_hud">Aviso de cambio</string>
     <string name="show_hud_hint">Muestra brevemente a qué dispositivo cambiaste</string>
     <string name="version">Versión %1$s</string>
-    <string name="report_menu">Enviar registro de diagnóstico</string>
-    <string name="report_message">Este registro ayuda al desarrollador a investigar problemas. Incluye los eventos de la app y los nombres de los dispositivos, nunca lo que escribes. Al enviar se abre tu app de correo con la dirección del desarrollador.</string>
-    <string name="report_send">Enviar por correo</string>
-    <string name="report_no_app">No se encontró ninguna app de correo.</string>
+    <string name="report_menu">Registro de diagnóstico</string>
+    <string name="report_message">Este registro ayuda a investigar problemas. Incluye los eventos de la app y los nombres de los dispositivos, nunca lo que escribes. Cópialo y pégalo donde informes del problema.</string>
+    <string name="report_copy">Copiar</string>
+    <string name="report_copied">Registro copiado al portapapeles.</string>
     <string name="touch_keyboard">Teclado en pantalla al controlar otro dispositivo</string>
     <string name="touch_keyboard_hint">Android oculta el teclado en pantalla cuando hay un teclado físico conectado. Esto lo vuelve a mostrar mientras el teclado físico controla otro dispositivo, para que puedas seguir escribiendo en este teléfono.</string>
     <string name="profile_activate">Activar</string>

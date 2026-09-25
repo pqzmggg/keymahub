@@ -82,8 +82,8 @@ fun HomeScreen(
     onOpenProfile: (String) -> Unit,
     onDevices: () -> Unit,
     onSettings: () -> Unit,
-    /** Opens an email to the developer with [log] (the user sends it from their mail app). */
-    onSendLog: (log: String) -> Unit,
+    /** Copies [log] to the clipboard. */
+    onCopyLog: (log: String) -> Unit,
 ) {
     val settings = status.settings
     var menu by remember { mutableStateOf(false) }
@@ -203,9 +203,9 @@ fun HomeScreen(
                 }
             },
             confirmButton = {
-                Button(onClick = { showLog = false; onSendLog(log) }) { Text(stringResource(R.string.report_send)) }
+                Button(onClick = { onCopyLog(log) }) { Text(stringResource(R.string.report_copy)) }
             },
-            dismissButton = { TextButton(onClick = { showLog = false }) { Text(stringResource(R.string.action_cancel)) } },
+            dismissButton = { TextButton(onClick = { showLog = false }) { Text(stringResource(R.string.action_close)) } },
         )
     }
 }
