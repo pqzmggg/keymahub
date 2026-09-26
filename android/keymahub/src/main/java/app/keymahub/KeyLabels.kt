@@ -15,12 +15,14 @@ object KeyLabels {
     /** The Meta modifier: the Windows key on PC keyboards, Command on Mac ones. */
     const val META = "Win/⌘"
 
-    fun hotkey(h: Hotkey): String = buildList {
-        if (h.mods and Mods.CTRL != 0) add(CTRL)
-        if (h.mods and Mods.ALT != 0) add(ALT)
-        if (h.mods and Mods.SHIFT != 0) add("Shift")
-        if (h.mods and Mods.META != 0) add(META)
-        add(key(h.code))
+    fun hotkey(h: Hotkey): String = listOf(mods(h.mods), key(h.code)).filter { it.isNotEmpty() }.joinToString("+")
+
+    /** The modifier keys of [mods] ([Mods] bits), e.g. "Alt/⌥+Shift". */
+    fun mods(mods: Int): String = buildList {
+        if (mods and Mods.CTRL != 0) add(CTRL)
+        if (mods and Mods.ALT != 0) add(ALT)
+        if (mods and Mods.SHIFT != 0) add("Shift")
+        if (mods and Mods.META != 0) add(META)
     }.joinToString("+")
 
     /** Short name of evdev key [code], e.g. "2", "F5", "Num 3". */
