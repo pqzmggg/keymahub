@@ -194,11 +194,6 @@ private fun ConnectedCard(settings: Settings, chosen: Set<String>, onChange: (Se
                 )
             }
             if (open || chosen.isNotEmpty()) {
-                Text(
-                    stringResource(R.string.condition_devices_hint),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
                 if (settings.devices.isEmpty()) {
                     Text(stringResource(R.string.assign_no_devices), style = MaterialTheme.typography.bodyMedium)
                 }

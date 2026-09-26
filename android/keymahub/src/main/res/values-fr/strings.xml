@@ -78,10 +78,8 @@
     <string name="problem_gatt">Impossible de démarrer le service de clavier Bluetooth. Désactivez puis réactivez le Bluetooth et réessayez.</string>
     <string name="action_back">Retour</string>
     <string name="hosting_title">Hôte</string>
-    <string name="hosting_off_hint">Activez pour utiliser le clavier et la souris de ce téléphone sur vos appareils.</string>
     <string name="settings_title">Paramètres</string>
     <string name="profiles_title">Profils</string>
-    <string name="profiles_hint">Les profils dont les conditions sont remplies s\'activent d\'eux-mêmes ; si plusieurs correspondent, le plus haut l\'emporte. Faites glisser un profil pour réordonner. Si aucun ne correspond, le dernier profil activé est utilisé.</string>
     <string name="profile_in_use">Utilisé</string>
     <string name="profile_not_in_use">Non utilisé</string>
     <string name="manual_banner">Vous avez activé %1$s : il est utilisé à la place de %2$s jusqu\'à ce que les conditions changent.</string>
@@ -99,7 +97,6 @@
     <string name="state_disconnected_by_user">Déconnecté (pas de reconnexion)</string>
     <string name="last_used">Dernière utilisation : %1$s</string>
     <string name="last_used_never">Jamais utilisé</string>
-    <string name="device_rename_hint">Nom de cet appareil dans KeymaHub.</string>
     <string name="device_disconnect">Déconnecter</string>
     <string name="device_allow">Autoriser la connexion</string>
     <string name="device_remove">Supprimer</string>
@@ -133,7 +130,6 @@
     <string name="condition_devices">Appareils connectés</string>
     <string name="condition_devices_off">Peu importe</string>
     <string name="condition_devices_on">Quand %1$s est connecté</string>
-    <string name="condition_devices_hint">S\'applique tant qu\'un des appareils cochés est connecté. Quand le mode hôte est actif, les appareils associés à proximité se reconnectent d\'eux-mêmes.</string>
     <string name="settings_activation">Activation automatique des profils</string>
     <string name="mode_auto">Entièrement automatique</string>
     <string name="mode_auto_hint">Utilise le profil dont le plus d\'appareils sont connectés ; en cas d\'égalité, le plus haut l\'emporte.</string>
@@ -142,8 +138,7 @@
     <string name="mode_manual">Désactivée</string>
     <string name="mode_manual_hint">Utilise uniquement le profil que vous activez.</string>
     <string name="profile_devices_connected">%1$d appareil(s) connecté(s) sur %2$d</string>
-    <string name="profiles_hint_auto">Le profil dont le plus d\'appareils sont connectés est utilisé ; en cas d\'égalité, le plus haut. Faites glisser un profil pour réordonner. Si aucun n\'est connecté, le dernier profil activé est utilisé.</string>
-    <string name="profiles_hint_manual">Le profil que vous activez est utilisé. Faites glisser un profil pour réordonner.</string>
+    <string name="profiles_order_note">Plus un profil est haut dans la liste, plus il est prioritaire. Faites glisser les profils pour les réordonner.</string>
     <string name="mode_fallback_note">Dans les deux modes automatiques, si rien ne correspond, le dernier profil activé est utilisé. Activer un profil à la main l\'emporte aussi sur le choix automatique jusqu\'à ce que les appareils connectés changent.</string>
     <string name="device_connect">Connecter</string>
     <string name="device_connecting">Connexion à %1$s. Elle se fera quand l\'appareil sera allumé et à proximité.</string>
