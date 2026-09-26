@@ -23,7 +23,7 @@ object ProfileShortcuts {
             val shown = profiles.take(max)
             val shortcuts = shown.mapIndexed { rank, p ->
                 ShortcutInfoCompat.Builder(context, PREFIX + p.id)
-                    .setShortLabel(p.name)
+                    .setShortLabel(context.getString(R.string.shortcut_activate_short, p.name))
                     .setLongLabel(context.getString(R.string.shortcut_activate_profile, p.name))
                     .setIcon(IconCompat.createWithResource(context, R.mipmap.ic_launcher))
                     .setRank(rank)
