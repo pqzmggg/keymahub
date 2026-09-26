@@ -1,6 +1,5 @@
 package app.keymahub.ui
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -12,11 +11,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -36,7 +33,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.font.FontWeight
@@ -96,46 +92,11 @@ fun TopBar(title: String, onBack: () -> Unit, actions: @Composable () -> Unit = 
     }
 }
 
-/** A section heading; [help] goes behind a (?) button next to it. */
 @Composable
-fun SectionTitle(text: String, help: String? = null) {
-    Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+fun SectionTitle(text: String, hint: String? = null) {
+    Column(Modifier.padding(top = 8.dp)) {
         Text(text, style = MaterialTheme.typography.titleMedium)
-        help?.let { HelpButton(text, it) }
-    }
-}
-
-/** A (?) button that opens [paragraphs] in a popup titled [title]. */
-@Composable
-fun HelpButton(title: String, vararg paragraphs: String) = HelpButton(title) {
-    for (p in paragraphs) Text(p, style = MaterialTheme.typography.bodyMedium)
-}
-
-/** A (?) button that opens [content] in a popup titled [title]. */
-@Composable
-fun HelpButton(title: String, content: @Composable ColumnScope.() -> Unit) {
-    var open by remember { mutableStateOf(false) }
-    IconButton(onClick = { open = true }) {
-        Surface(
-            shape = CircleShape,
-            border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.onSurfaceVariant),
-            color = Color.Transparent,
-            modifier = Modifier.size(22.dp),
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Text("?", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        }
-    }
-    if (open) {
-        AlertDialog(
-            onDismissRequest = { open = false },
-            title = { Text(title) },
-            text = {
-                Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp), content = content)
-            },
-            confirmButton = { TextButton(onClick = { open = false }) { Text(stringResource(R.string.action_close)) } },
-        )
+        hint?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
     }
 }
 

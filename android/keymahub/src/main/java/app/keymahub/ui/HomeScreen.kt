@@ -1,7 +1,9 @@
 package app.keymahub.ui
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.OutlinedTextField
@@ -11,8 +13,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -48,6 +52,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
@@ -117,6 +122,17 @@ fun HomeScreen(
             }
         }
         ModeRow(settings.mode) { m -> onEdit { it.setMode(m) } }
+        Text(
+            stringResource(
+                when (settings.mode) {
+                    ActivationMode.AUTO -> R.string.profiles_hint_auto
+                    ActivationMode.RULES -> R.string.profiles_hint
+                    ActivationMode.MANUAL -> R.string.profiles_hint_manual
+                },
+            ),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
 
         settings.overriddenId?.let { id ->
             settings.profile(id)?.let { matched ->
@@ -197,7 +213,7 @@ fun HomeScreen(
 private fun HostingCard(status: HubStatus, onHosting: (Boolean) -> Unit) {
     val settings = status.settings
     val detail = when {
-        !status.running -> null
+        !status.running -> stringResource(R.string.hosting_off_hint)
         status.slot == 0 -> stringResource(R.string.status_phone)
         else -> stringResource(
             R.string.status_target,
@@ -213,7 +229,7 @@ private fun HostingCard(status: HubStatus, onHosting: (Boolean) -> Unit) {
         Row(Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(stringResource(R.string.hosting_title), style = MaterialTheme.typography.titleLarge)
-                detail?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
+                Text(detail, style = MaterialTheme.typography.bodyMedium)
                 if (status.running) {
                     Text(
                         pluralStringResource(R.plurals.ready_count, status.ready.size, status.ready.size),
@@ -394,6 +410,7 @@ private val MODES = listOf(
 @Composable
 private fun ModeRow(mode: ActivationMode, onMode: (ActivationMode) -> Unit) {
     var menu by remember { mutableStateOf(false) }
+    var help by remember { mutableStateOf(false) }
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(stringResource(R.string.settings_activation), style = MaterialTheme.typography.bodyMedium)
         Spacer(Modifier.width(8.dp))
@@ -413,19 +430,39 @@ private fun ModeRow(mode: ActivationMode, onMode: (ActivationMode) -> Unit) {
             }
         }
         Spacer(Modifier.weight(1f))
-        HelpButton(stringResource(R.string.settings_activation)) {
-            for ((m, label, hint) in MODES) {
-                Column {
-                    Text(
-                        stringResource(label),
-                        fontWeight = FontWeight.SemiBold,
-                        color = if (m == mode) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-                    )
-                    Text(stringResource(hint), style = MaterialTheme.typography.bodyMedium)
+        IconButton(onClick = { help = true }) {
+            Surface(
+                shape = CircleShape,
+                border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.onSurfaceVariant),
+                color = Color.Transparent,
+                modifier = Modifier.size(24.dp),
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text("?", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
-            Text(stringResource(R.string.mode_fallback_note), style = MaterialTheme.typography.bodySmall)
-            Text(stringResource(R.string.profiles_order_note), style = MaterialTheme.typography.bodySmall)
         }
+    }
+    if (help) {
+        AlertDialog(
+            onDismissRequest = { help = false },
+            title = { Text(stringResource(R.string.settings_activation)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    for ((m, label, hint) in MODES) {
+                        Column {
+                            Text(
+                                stringResource(label),
+                                fontWeight = FontWeight.SemiBold,
+                                color = if (m == mode) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                            )
+                            Text(stringResource(hint), style = MaterialTheme.typography.bodyMedium)
+                        }
+                    }
+                    Text(stringResource(R.string.mode_fallback_note), style = MaterialTheme.typography.bodySmall)
+                }
+            },
+            confirmButton = { TextButton(onClick = { help = false }) { Text(stringResource(R.string.action_close)) } },
+        )
     }
 }
