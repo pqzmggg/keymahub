@@ -162,4 +162,7 @@
     <string name="settings_experiments">Experimentos</string>
     <string name="public_address">Anunciar con una dirección fija</string>
     <string name="public_address_hint">Para una tableta que no se vuelve a conectar. Tras activarlo, elimina este teléfono de los dispositivos Bluetooth de la tableta y vuelve a vincularlo. Si el teléfono no lo permite, el registro de diagnóstico lo indica.</string>
+    <string name="shortcut_activate_profile">Activar perfil: %1$s</string>
+    <string name="shortcut_profile_activated">Perfil activado: %1$s</string>
+    <string name="shortcut_profile_missing">Este perfil ya no existe</string>
 </resources>
