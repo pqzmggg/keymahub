@@ -34,8 +34,6 @@ object EvdevKeymap {{
     }}
 
     fun toHid(evdev: Int): Int? = table[evdev]
-
-    const val SIZE = {len(rows)}
 }}
 """)
         print(f"wrote {len(rows)} entries to {out.relative_to(ROOT)}")
