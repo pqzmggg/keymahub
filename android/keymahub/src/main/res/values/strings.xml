@@ -79,10 +79,8 @@
     <string name="problem_gatt">Could not start the Bluetooth keyboard service. Turn Bluetooth off and on, then try again.</string>
     <string name="action_back">Back</string>
     <string name="hosting_title">Hosting</string>
-    <string name="hosting_off_hint">Turn on to use this phone\'s keyboard and mouse on your devices.</string>
     <string name="settings_title">Settings</string>
     <string name="profiles_title">Profiles</string>
-    <string name="profiles_hint">Profiles whose conditions match switch on by themselves; when several match, the higher one wins. Drag a profile to reorder. When none match, the profile you activated last is used.</string>
     <string name="profile_in_use">In use</string>
     <string name="profile_not_in_use">Not in use</string>
     <string name="manual_banner">You activated %1$s, so it is used instead of %2$s until the conditions change.</string>
@@ -100,7 +98,6 @@
     <string name="state_disconnected_by_user">Disconnected (won\'t reconnect)</string>
     <string name="last_used">Last used %1$s</string>
     <string name="last_used_never">Never used</string>
-    <string name="device_rename_hint">A name for this device in KeymaHub.</string>
     <string name="device_disconnect">Disconnect</string>
     <string name="device_allow">Allow connection</string>
     <string name="device_remove">Remove</string>
@@ -134,7 +131,6 @@
     <string name="condition_devices">Connected devices</string>
     <string name="condition_devices_off">Any</string>
     <string name="condition_devices_on">When %1$s is connected</string>
-    <string name="condition_devices_hint">Applies while any of the checked devices is connected. Paired devices nearby reconnect by themselves while hosting is on.</string>
     <string name="settings_activation">Automatic profile activation</string>
     <string name="mode_auto">Fully automatic</string>
     <string name="mode_auto_hint">Uses the profile with the most of its devices connected; ties go to the higher profile.</string>
@@ -143,8 +139,7 @@
     <string name="mode_manual">Off</string>
     <string name="mode_manual_hint">Uses only the profile you activate.</string>
     <string name="profile_devices_connected">%1$d of %2$d devices connected</string>
-    <string name="profiles_hint_auto">The profile with the most of its devices connected is used; ties go to the higher one. Drag a profile to reorder. With none connected, the profile you activated last is used.</string>
-    <string name="profiles_hint_manual">The profile you activate is used. Drag a profile to reorder.</string>
+    <string name="profiles_order_note">The higher a profile is in the list, the higher its priority. Drag profiles to reorder them.</string>
     <string name="mode_fallback_note">In both automatic modes, when nothing matches, the profile you activated last is used. Activating a profile by hand also overrides the automatic choice until the connected devices change.</string>
     <string name="device_connect">Connect</string>
     <string name="device_connecting">Connecting to %1$s. It connects when the device is on and nearby.</string>

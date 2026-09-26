@@ -79,7 +79,6 @@ fun DevicesScreen(
         NameDialog(
             title = stringResource(R.string.device_rename),
             initial = d.name,
-            message = stringResource(R.string.device_rename_hint),
             onDismiss = { renaming = null },
             onConfirm = { name -> renaming = null; onEdit { it.renameDevice(d.address, name) } },
         )
@@ -114,12 +113,20 @@ private fun PairingCard(status: HubStatus, onPairing: (Boolean) -> Unit) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 // Room between the text and the switch.
                 Column(Modifier.weight(1f).padding(end = 12.dp)) {
-                    Text(stringResource(R.string.pairing_title), style = MaterialTheme.typography.titleMedium)
-                    Text(
-                        if (on) stringResource(R.string.pairing_on, "%d:%02d".format(left / 60, left % 60))
-                        else stringResource(R.string.pairing_off_hint),
-                        style = MaterialTheme.typography.bodySmall,
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(stringResource(R.string.pairing_title), style = MaterialTheme.typography.titleMedium)
+                        HelpButton(
+                            stringResource(R.string.pairing_title),
+                            stringResource(R.string.pairing_off_hint),
+                            stringResource(R.string.guide_windows_hint),
+                        )
+                    }
+                    if (on) {
+                        Text(
+                            stringResource(R.string.pairing_on, "%d:%02d".format(left / 60, left % 60)),
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
                 }
                 Switch(checked = on, onCheckedChange = onPairing)
             }
@@ -127,7 +134,6 @@ private fun PairingCard(status: HubStatus, onPairing: (Boolean) -> Unit) {
                 HorizontalDivider()
                 Text(stringResource(R.string.guide_intro), style = MaterialTheme.typography.bodyMedium)
                 GuideLine("Windows", stringResource(R.string.guide_windows))
-                Text(stringResource(R.string.guide_windows_hint), style = MaterialTheme.typography.bodySmall)
                 GuideLine("Mac", stringResource(R.string.guide_mac))
                 GuideLine("iPad / iPhone / Android", stringResource(R.string.guide_mobile))
                 Text(stringResource(R.string.guide_note), style = MaterialTheme.typography.bodySmall)
