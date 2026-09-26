@@ -129,7 +129,7 @@
     <string name="drag_to_renumber">Drag to move to another number</string>
     <string name="profile_fallback">Used when no conditions match</string>
     <string name="settings_hotkeys">Hotkeys</string>
-    <string name="hotkeys_mods_hint">Hold these keys and press a number key.\n%1$s+1: this phone\n%1$s+2–9, %1$s+0: the device on that number in the profile</string>
+    <string name="hotkeys_mods_hint">Hold these keys and press a number key.\n%1$s+1: this phone\n%1$s+2–9, 0: the device on that number in the profile</string>
     <string name="hotkeys_invalid">Include Ctrl/⌃, Alt/⌥ or Win/⌘.</string>
     <string name="condition_devices">Connected devices</string>
     <string name="condition_devices_off">Any</string>

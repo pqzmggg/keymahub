@@ -128,7 +128,7 @@
     <string name="drag_to_renumber">Faites glisser pour le déplacer vers un autre numéro</string>
     <string name="profile_fallback">Utilisé quand aucune condition n\'est remplie</string>
     <string name="settings_hotkeys">Raccourcis</string>
-    <string name="hotkeys_mods_hint">Maintenez ces touches et appuyez sur une touche numérique.\n%1$s+1 : ce téléphone\n%1$s+2–9, %1$s+0 : l\'appareil placé sur ce chiffre dans le profil</string>
+    <string name="hotkeys_mods_hint">Maintenez ces touches et appuyez sur une touche numérique.\n%1$s+1 : ce téléphone\n%1$s+2–9, 0 : l\'appareil placé sur ce chiffre dans le profil</string>
     <string name="hotkeys_invalid">Incluez Ctrl/⌃, Alt/⌥ ou Win/⌘.</string>
     <string name="condition_devices">Appareils connectés</string>
     <string name="condition_devices_off">Peu importe</string>
