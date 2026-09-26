@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="a11y_summary">이 폰에 연결한 키보드·마우스로 다른 기기 조작</string>
-    <string name="a11y_description">KeymaHub는 이 기기에 연결된 키보드와 마우스의 입력을 받아, 단축키로 고른 블루투스 기기(PC·태블릿)로 전달합니다. 이 폰을 선택한 동안에는 입력을 그대로 둡니다. 입력 내용은 저장하거나 인터넷으로 보내지 않으며, 선택한 기기로만 전달됩니다. 화면 내용은 읽지 않습니다.</string>
+    <string name="a11y_summary">이 폰에 연결한 키보드, 마우스로 다른 기기 조작</string>
+    <string name="a11y_description">KeymaHub는 이 기기에 연결된 키보드와 마우스의 입력을 받아, 단축키로 고른 블루투스 기기(PC, 태블릿)로 전달합니다. 이 폰을 선택한 동안에는 입력을 그대로 둡니다. 입력 내용은 저장하거나 인터넷으로 보내지 않으며, 선택한 기기로만 전달됩니다. 화면 내용은 읽지 않습니다.</string>
     <string name="setup_title">호스트 모드 설정</string>
-    <string name="setup_intro">이 폰에 연결한 키보드·마우스로 주변의 PC와 태블릿을 조작합니다. 상대 기기에는 설치할 것이 없습니다.</string>
+    <string name="setup_intro">이 폰에 연결한 키보드, 마우스로 주변의 PC와 태블릿을 조작합니다. 상대 기기에는 설치할 것이 없습니다.</string>
     <string name="setup_steps">시작하려면 다음을 허용해 주세요.</string>
     <string name="step_bluetooth_title">근처 기기 (블루투스)</string>
-    <string name="step_bluetooth_body">이 폰이 블루투스 키보드·마우스로 기기에 연결됩니다.</string>
+    <string name="step_bluetooth_body">이 폰이 블루투스 키보드, 마우스로 기기에 연결됩니다.</string>
     <string name="step_a11y_title">접근성 서비스</string>
-    <string name="step_a11y_body">연결한 키보드·마우스 입력을 받아 선택한 기기로 전달하는 데 필요합니다.</string>
+    <string name="step_a11y_body">연결한 키보드, 마우스 입력을 받아 선택한 기기로 전달하는 데 필요합니다.</string>
     <string name="step_notifications_title">알림 (권장)</string>
     <string name="step_notifications_body">실행 중인지, 지금 어떤 기기를 조작 중인지 알림으로 보여 줍니다.</string>
     <string name="action_allow">허용</string>
@@ -17,7 +17,7 @@
     <string name="disclosure_title">접근성 서비스 사용 안내</string>
     <string name="disclosure_intro">KeymaHub는 접근성 서비스를 다음 용도로만 사용합니다.</string>
     <string name="disclosure_1">• 이 폰에 연결된 키보드와 마우스의 입력을 받습니다.</string>
-    <string name="disclosure_2">• 단축키로 고른 블루투스 기기(PC·태블릿)로 그 입력을 전달합니다. 이 폰을 선택한 동안에는 입력을 그대로 둡니다.</string>
+    <string name="disclosure_2">• 단축키로 고른 블루투스 기기(PC, 태블릿)로 그 입력을 전달합니다. 이 폰을 선택한 동안에는 입력을 그대로 둡니다.</string>
     <string name="disclosure_3">• 입력 내용은 저장하지 않으며, 인터넷이나 개발자에게 보내지 않습니다. 선택한 기기로만 전달됩니다.</string>
     <string name="disclosure_4">• 화면 내용은 읽지 않습니다.</string>
     <string name="disclosure_next">다음 화면의 \'설치된 앱\'(또는 \'다운로드한 앱\')에서 KeymaHub를 켜 주세요.</string>
@@ -78,7 +78,7 @@
     <string name="problem_gatt">블루투스 키보드 서비스를 시작하지 못했습니다. 블루투스를 껐다 켠 뒤 다시 시도하세요.</string>
     <string name="action_back">뒤로</string>
     <string name="hosting_title">호스팅</string>
-    <string name="hosting_off_hint">켜면 이 폰의 키보드·마우스로 기기들을 조작합니다.</string>
+    <string name="hosting_off_hint">켜면 이 폰의 키보드, 마우스로 기기들을 조작합니다.</string>
     <string name="settings_title">설정</string>
     <string name="profiles_title">프로필</string>
     <string name="profiles_hint">조건이 맞는 프로필 중 가장 위에 있는 프로필을 사용합니다. 끌어서 순서를 바꾸세요.</string>
