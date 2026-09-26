@@ -88,7 +88,7 @@
     <string name="manual_banner">You activated %1$s, so it is used instead of %2$s until the conditions change.</string>
     <string name="manual_off">Back to automatic</string>
     <string name="conditions_title">Activation conditions</string>
-    <string name="conditions_hint">When profile activation is Rule-based, this profile switches on by itself while one of the chosen devices is connected.</string>
+    <string name="conditions_hint">When automatic profile activation is Rule-based, this profile switches on by itself while one of the chosen devices is connected.</string>
     <string name="condition_always">Only when activated</string>
     <string name="hud_profile">Profile: %1$s</string>
     <string name="notif_pairing">Pairing mode is on. Add this phone on your PC or tablet.</string>
@@ -135,7 +135,7 @@
     <string name="condition_devices_off">Any</string>
     <string name="condition_devices_on">When %1$s is connected</string>
     <string name="condition_devices_hint">Applies while any of the checked devices is connected. Paired devices nearby reconnect by themselves while hosting is on.</string>
-    <string name="settings_activation">Profile activation</string>
+    <string name="settings_activation">Automatic profile activation</string>
     <string name="mode_auto">Fully automatic</string>
     <string name="mode_auto_hint">Uses the profile with the most of its devices connected; ties go to the higher profile.</string>
     <string name="mode_rules">Rule-based</string>

@@ -87,7 +87,7 @@
     <string name="manual_banner">%1$s 을(를) 직접 활성화해서, 조건이 바뀔 때까지 %2$s 대신 사용합니다.</string>
     <string name="manual_off">자동으로 돌아가기</string>
     <string name="conditions_title">활성화 조건</string>
-    <string name="conditions_hint">프로필 활성화 방식이 \'규칙 기반 자동\'일 때, 고른 기기 중 하나라도 연결되면 이 프로필이 자동으로 활성화됩니다.</string>
+    <string name="conditions_hint">프로필 자동 활성화가 \'규칙 기반 자동\'일 때, 고른 기기 중 하나라도 연결되면 이 프로필이 자동으로 활성화됩니다.</string>
     <string name="condition_always">직접 활성화할 때만</string>
     <string name="hud_profile">프로필: %1$s</string>
     <string name="notif_pairing">페어링 모드가 켜져 있습니다. PC나 태블릿에서 이 폰을 추가하세요.</string>
@@ -134,7 +134,7 @@
     <string name="condition_devices_off">상관없음</string>
     <string name="condition_devices_on">%1$s 연결 시</string>
     <string name="condition_devices_hint">체크한 기기 중 하나라도 연결돼 있으면 적용됩니다. 호스팅이 켜져 있으면 가까이 있는 페어링된 기기는 알아서 다시 연결됩니다.</string>
-    <string name="settings_activation">프로필 활성화</string>
+    <string name="settings_activation">프로필 자동 활성화</string>
     <string name="mode_auto">완전 자동</string>
     <string name="mode_auto_hint">프로필에 배정된 기기가 가장 많이 연결된 프로필을 사용합니다. 같으면 위에 있는 프로필이 우선입니다.</string>
     <string name="mode_rules">규칙 기반 자동</string>

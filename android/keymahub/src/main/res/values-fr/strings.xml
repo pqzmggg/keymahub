@@ -87,7 +87,7 @@
     <string name="manual_banner">Vous avez activé %1$s : il est utilisé à la place de %2$s jusqu\'à ce que les conditions changent.</string>
     <string name="manual_off">Revenir en automatique</string>
     <string name="conditions_title">Conditions d\'activation</string>
-    <string name="conditions_hint">Quand l\'activation des profils se fait selon des règles, ce profil s\'active de lui-même dès qu\'un des appareils choisis est connecté.</string>
+    <string name="conditions_hint">Quand l\'activation automatique des profils se fait selon des règles, ce profil s\'active de lui-même dès qu\'un des appareils choisis est connecté.</string>
     <string name="condition_always">Seulement quand il est activé</string>
     <string name="hud_profile">Profil : %1$s</string>
     <string name="notif_pairing">Le mode d\'association est activé. Ajoutez ce téléphone sur votre PC ou tablette.</string>
@@ -134,7 +134,7 @@
     <string name="condition_devices_off">Peu importe</string>
     <string name="condition_devices_on">Quand %1$s est connecté</string>
     <string name="condition_devices_hint">S\'applique tant qu\'un des appareils cochés est connecté. Quand le mode hôte est actif, les appareils associés à proximité se reconnectent d\'eux-mêmes.</string>
-    <string name="settings_activation">Activation des profils</string>
+    <string name="settings_activation">Activation automatique des profils</string>
     <string name="mode_auto">Entièrement automatique</string>
     <string name="mode_auto_hint">Utilise le profil dont le plus d\'appareils sont connectés ; en cas d\'égalité, le plus haut l\'emporte.</string>
     <string name="mode_rules">Selon des règles</string>

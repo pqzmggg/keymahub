@@ -87,7 +87,7 @@
     <string name="manual_banner">您手动启用了 %1$s，在条件变化前将代替 %2$s 使用。</string>
     <string name="manual_off">恢复自动</string>
     <string name="conditions_title">启用条件</string>
-    <string name="conditions_hint">当配置启用方式为“按规则自动”时，所选设备中任一已连接，此配置就会自动启用。</string>
+    <string name="conditions_hint">当配置自动启用设为“按规则自动”时，所选设备中任一已连接，此配置就会自动启用。</string>
     <string name="condition_always">仅在手动启用时</string>
     <string name="hud_profile">配置：%1$s</string>
     <string name="notif_pairing">配对模式已开启。请在电脑或平板上添加本手机。</string>
@@ -134,7 +134,7 @@
     <string name="condition_devices_off">不限</string>
     <string name="condition_devices_on">%1$s 连接时</string>
     <string name="condition_devices_hint">任一勾选的设备连接时适用。主机开启时，附近已配对的设备会自动重新连接。</string>
-    <string name="settings_activation">配置启用方式</string>
+    <string name="settings_activation">配置自动启用</string>
     <string name="mode_auto">全自动</string>
     <string name="mode_auto_hint">使用已分配设备连接最多的配置；数量相同时，排在上面的优先。</string>
     <string name="mode_rules">按规则自动</string>
