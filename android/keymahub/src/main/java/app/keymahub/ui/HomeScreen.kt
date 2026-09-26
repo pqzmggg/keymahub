@@ -83,6 +83,8 @@ fun HomeScreen(
     onSettings: () -> Unit,
     /** Copies [log] to the clipboard. */
     onCopyLog: (log: String) -> Unit,
+    /** The profile shown next to the list (two panes), outlined in it; null with one pane. */
+    selectedId: String? = null,
 ) {
     val settings = status.settings
     var menu by remember { mutableStateOf(false) }
@@ -150,7 +152,7 @@ fun HomeScreen(
             }
         }
 
-        ProfileList(settings, status.running, status.ready, onEdit, onOpenProfile)
+        ProfileList(settings, status.running, status.ready, selectedId, onEdit, onOpenProfile)
     }
 
     if (creating) {
@@ -247,7 +249,7 @@ private fun HostingCard(status: HubStatus, onHosting: (Boolean) -> Unit) {
  * room as it passes them, and the new order is saved on release.
  */
 @Composable
-private fun ProfileList(settings: Settings, running: Boolean, ready: Set<String>, onEdit: ((Settings) -> Settings) -> Unit, onOpen: (String) -> Unit) {
+private fun ProfileList(settings: Settings, running: Boolean, ready: Set<String>, selectedId: String?, onEdit: ((Settings) -> Settings) -> Unit, onOpen: (String) -> Unit) {
     val profiles = settings.profiles
     val heights = remember { mutableStateMapOf<String, Int>() }
     var dragId by remember { mutableStateOf<String?>(null) }
@@ -288,6 +290,7 @@ private fun ProfileList(settings: Settings, running: Boolean, ready: Set<String>
             running = running,
             ready = ready,
             dragging = dragging,
+            selected = p.id == selectedId,
             modifier = Modifier
                 .onSizeChanged { heights[p.id] = it.height }
                 .zIndex(if (dragging) 1f else 0f)
@@ -328,6 +331,7 @@ private fun ProfileRow(
     running: Boolean,
     ready: Set<String>,
     dragging: Boolean,
+    selected: Boolean,
     modifier: Modifier,
     handle: Modifier,
     onActivate: () -> Unit,
@@ -342,6 +346,7 @@ private fun ProfileRow(
         modifier = modifier.fillMaxWidth(),
         colors = if (lit) CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer) else CardDefaults.cardColors(),
         elevation = CardDefaults.cardElevation(defaultElevation = if (dragging) 8.dp else 1.dp),
+        border = if (selected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
     ) {
         Row(Modifier.padding(end = 12.dp, top = 8.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(handle.padding(horizontal = 8.dp, vertical = 12.dp)) {

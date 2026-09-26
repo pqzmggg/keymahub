@@ -46,6 +46,8 @@ fun SettingsScreen(
     onMods: (Int) -> Unit,
     language: String,
     onBack: () -> Unit,
+    /** False in the right pane of two, which has no back arrow. */
+    showBack: Boolean = true,
     onUi: ((UiPrefs) -> UiPrefs) -> Unit,
     onLanguage: (String) -> Unit,
 ) {
@@ -55,7 +57,7 @@ fun SettingsScreen(
     val languageName = Locales.SUPPORTED.firstOrNull { it.first == language }?.second ?: stringResource(R.string.language_system)
 
     Page {
-        TopBar(stringResource(R.string.settings_title), onBack)
+        TopBar(stringResource(R.string.settings_title), onBack.takeIf { showBack })
 
         SectionTitle(stringResource(R.string.settings_hotkeys))
         HotkeyCard(mods, onMods)

@@ -67,6 +67,8 @@ fun ProfileScreen(
     profileId: String,
     status: HubStatus,
     onBack: () -> Unit,
+    /** False in the right pane of two, which has no back arrow. */
+    showBack: Boolean = true,
     onEdit: ((Settings) -> Settings) -> Unit,
     /** Moves control to a slot of the active profile (0 = this phone). */
     onSelect: (slot: Int) -> Unit,
@@ -82,7 +84,7 @@ fun ProfileScreen(
     var deleting by remember { mutableStateOf(false) }
 
     Page {
-        TopBar(profileName(profile), onBack) {
+        TopBar(profileName(profile), onBack.takeIf { showBack }) {
             IconButton(onClick = { renaming = true }) {
                 Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.profile_rename))
             }
