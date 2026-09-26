@@ -162,6 +162,7 @@
     <string name="public_address">Advertise with a fixed address</string>
     <string name="public_address_hint">For a tablet that does not reconnect. After turning this on, remove this phone from the tablet\'s Bluetooth devices and pair again. If the phone does not allow it, the diagnostic log says so.</string>
     <string name="shortcut_activate_profile">Activate profile: %1$s</string>
+    <string name="shortcut_activate_short">Activate %1$s</string>
     <string name="shortcut_profile_activated">Profile activated: %1$s</string>
     <string name="shortcut_profile_missing">This profile no longer exists</string>
 </resources>
