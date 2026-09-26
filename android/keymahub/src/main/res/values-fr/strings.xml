@@ -78,6 +78,7 @@
     <string name="action_back">Retour</string>
     <string name="hosting_title">Hôte</string>
     <string name="hosting_off_hint">Activez pour utiliser le clavier et la souris de ce téléphone sur vos appareils.</string>
+    <string name="hosting_still_linked">Encore connecté côté appareil (aucune saisie envoyée) : %1$s. La connexion se coupe d\'elle-même sous peu ; sinon, déconnectez depuis les réglages Bluetooth de cet appareil.</string>
     <string name="settings_title">Paramètres</string>
     <string name="profiles_title">Profils</string>
     <string name="profiles_hint">Le profil le plus haut dont les conditions sont remplies est utilisé. Faites glisser pour réordonner.</string>

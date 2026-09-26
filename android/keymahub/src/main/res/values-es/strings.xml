@@ -78,6 +78,7 @@
     <string name="action_back">Atrás</string>
     <string name="hosting_title">Anfitrión</string>
     <string name="hosting_off_hint">Actívalo para usar el teclado y el ratón de este teléfono en tus dispositivos.</string>
+    <string name="hosting_still_linked">Aún conectado en el dispositivo (no se envía nada): %1$s. Se desconectará solo en breve; si no, desconéctalo desde los ajustes Bluetooth de ese dispositivo.</string>
     <string name="settings_title">Ajustes</string>
     <string name="profiles_title">Perfiles</string>
     <string name="profiles_hint">Se usa el perfil más alto cuyas condiciones se cumplen. Arrastra para reordenar.</string>

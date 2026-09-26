@@ -231,6 +231,16 @@ private fun HostingCard(status: HubStatus, onHosting: (Boolean) -> Unit) {
                         pluralStringResource(R.plurals.ready_count, status.ready.size, status.ready.size),
                         style = MaterialTheme.typography.bodySmall,
                     )
+                } else if (status.lingering.isNotEmpty()) {
+                    // Hosts that keep the link after stopping: they still show the keyboard connected.
+                    Text(
+                        stringResource(
+                            R.string.hosting_still_linked,
+                            status.lingering.joinToString { settings.device(it)?.name ?: it },
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
                 }
             }
             Switch(checked = status.running, onCheckedChange = onHosting)

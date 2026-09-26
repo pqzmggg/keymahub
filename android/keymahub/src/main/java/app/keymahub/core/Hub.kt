@@ -22,6 +22,8 @@ data class HubStatus(
     val problem: Int? = null,
     /** Pairing mode ends at this uptime (SystemClock.elapsedRealtime), 0 = off. */
     val pairingUntil: Long = 0,
+    /** Addresses of hosts still linked after hosting stopped (they keep the link; no input goes to them). */
+    val lingering: Set<String> = emptySet(),
 )
 
 enum class ThemeMode { SYSTEM, LIGHT, DARK }

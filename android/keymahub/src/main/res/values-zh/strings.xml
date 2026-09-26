@@ -78,6 +78,7 @@
     <string name="action_back">返回</string>
     <string name="hosting_title">主机</string>
     <string name="hosting_off_hint">开启后，用本手机的键盘和鼠标控制您的设备。</string>
+    <string name="hosting_still_linked">设备端仍显示已连接（不会发送输入）：%1$s。稍后会自行断开；如仍未断开，请在该设备的蓝牙设置中断开。</string>
     <string name="settings_title">设置</string>
     <string name="profiles_title">配置</string>
     <string name="profiles_hint">使用条件满足的配置中排在最上面的一个。拖动可调整顺序。</string>
