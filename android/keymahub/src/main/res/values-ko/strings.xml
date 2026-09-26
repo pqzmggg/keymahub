@@ -156,7 +156,7 @@
         <item quantity="other">기기 %1$d개</item>
     </plurals>
     <string name="settings_experiments">실험</string>
-    <string name="public_address">고정 주소로 광고</string>
+    <string name="public_address">블루투스 고정 주소 사용</string>
     <string name="public_address_hint">다시 연결되지 않는 태블릿용 실험입니다. 켠 뒤 태블릿과 다시 페어링하세요.</string>
     <string name="shortcut_activate_profile">프로필 활성화: %1$s</string>
     <string name="shortcut_activate_short">%1$s 활성화</string>

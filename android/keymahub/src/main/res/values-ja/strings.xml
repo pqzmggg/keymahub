@@ -156,7 +156,7 @@
         <item quantity="other">デバイス %1$d 台</item>
     </plurals>
     <string name="settings_experiments">実験</string>
-    <string name="public_address">固定アドレスでアドバタイズ</string>
+    <string name="public_address">Bluetooth の固定アドレスを使用</string>
     <string name="public_address_hint">再接続しないタブレット向けの実験です。オンにしたらタブレットと再ペアリングしてください。</string>
     <string name="shortcut_activate_profile">プロファイルを有効化: %1$s</string>
     <string name="shortcut_activate_short">%1$sを有効化</string>

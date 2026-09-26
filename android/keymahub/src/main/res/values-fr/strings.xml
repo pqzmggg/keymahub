@@ -160,7 +160,7 @@
         <item quantity="other">%1$d appareils</item>
     </plurals>
     <string name="settings_experiments">Expériences</string>
-    <string name="public_address">Annoncer avec une adresse fixe</string>
+    <string name="public_address">Utiliser une adresse Bluetooth fixe</string>
     <string name="public_address_hint">Pour une tablette qui ne se reconnecte pas. Après l\'activation, associez à nouveau la tablette.</string>
     <string name="shortcut_activate_profile">Activer le profil : %1$s</string>
     <string name="shortcut_activate_short">Activer %1$s</string>
