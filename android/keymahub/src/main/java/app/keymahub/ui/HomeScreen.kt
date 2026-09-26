@@ -2,7 +2,6 @@ package app.keymahub.ui
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,8 +44,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -54,9 +51,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
@@ -250,40 +244,11 @@ private fun HostingCard(status: HubStatus, onHosting: (Boolean) -> Unit) {
  */
 @Composable
 private fun ProfileList(settings: Settings, running: Boolean, ready: Set<String>, selectedId: String?, onEdit: ((Settings) -> Settings) -> Unit, onOpen: (String) -> Unit) {
-    val profiles = settings.profiles
-    val heights = remember { mutableStateMapOf<String, Int>() }
-    var dragId by remember { mutableStateOf<String?>(null) }
-    var dragOffset by remember { mutableFloatStateOf(0f) }
-    val gap = with(LocalDensity.current) { 12.dp.toPx() } // Page's spacing between rows
-
-    fun height(i: Int) = (heights[profiles[i].id] ?: 0).toFloat()
-
-    /** Where the dragged row would land now (-1: nothing dragged). Reads live state only. */
-    fun target(): Int {
-        val from = profiles.indexOfFirst { it.id == dragId }
-        if (from < 0) return -1
-        val tops = FloatArray(profiles.size)
-        var y = 0f
-        for (i in profiles.indices) {
-            tops[i] = y
-            y += height(i) + gap
-        }
-        val center = tops[from] + dragOffset + height(from) / 2
-        return profiles.indices.count { it != from && tops[it] + height(it) / 2 < center }
-    }
-
-    val from = profiles.indexOfFirst { it.id == dragId }
-    val target = target()
-
-    profiles.forEachIndexed { index, p -> key(p.id) {
-        val dragging = index == from
-        val shift = when {
-            from < 0 || dragging -> 0f
-            index in (from + 1)..target -> -(height(from) + gap)
-            index in target until from -> height(from) + gap
-            else -> 0f
-        }
-        val animatedShift by animateFloatAsState(shift, label = "shift")
+    val ids = settings.profiles.map { it.id }
+    val reorder = rememberReorder<String>(gap = 12.dp) // Page's spacing between rows
+    settings.profiles.forEachIndexed { index, p -> key(p.id) {
+        val dragging = reorder.isDragged(p.id)
+        val shift by animateFloatAsState(reorder.shift(ids, index), label = "shift")
         ProfileRow(
             p = p,
             settings = settings,
@@ -291,32 +256,10 @@ private fun ProfileList(settings: Settings, running: Boolean, ready: Set<String>
             ready = ready,
             dragging = dragging,
             selected = p.id == selectedId,
-            modifier = Modifier
-                .onSizeChanged { heights[p.id] = it.height }
+            modifier = reorder.measure(p.id)
                 .zIndex(if (dragging) 1f else 0f)
-                .graphicsLayer { translationY = if (dragging) dragOffset else animatedShift },
-            handle = Modifier.pointerInput(p.id, profiles) {
-                detectDragGestures(
-                    onDragStart = {
-                        dragId = p.id
-                        dragOffset = 0f
-                    },
-                    onDragEnd = {
-                        val to = target()
-                        val at = profiles.indexOfFirst { it.id == p.id }
-                        if (to >= 0 && to != at) onEdit { it.moveProfile(p.id, to - at) }
-                        dragId = null
-                        dragOffset = 0f
-                    },
-                    onDragCancel = {
-                        dragId = null
-                        dragOffset = 0f
-                    },
-                ) { change, amount ->
-                    change.consume()
-                    dragOffset += amount.y
-                }
-            },
+                .graphicsLayer { translationY = if (dragging) reorder.offset else shift },
+            handle = reorder.handle(p.id, ids) { from, to -> onEdit { it.moveProfile(p.id, to - from) } },
             onActivate = { onEdit { it.activate(p.id) } },
             onOpen = { onOpen(p.id) },
         )

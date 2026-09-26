@@ -26,7 +26,6 @@
     <string name="action_close">Cerrar</string>
     <string name="action_save">Guardar</string>
     <string name="action_delete">Eliminar</string>
-    <string name="action_ok">Aceptar</string>
     <string name="action_stop">Detener</string>
     <string name="menu">Menú</string>
     <string name="diagnostics_title">Registro de diagnóstico</string>
