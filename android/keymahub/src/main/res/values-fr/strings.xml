@@ -58,7 +58,7 @@
     <string name="device_rename">Renommer</string>
     <string name="guide_intro">Sur votre PC ou tablette, ajoutez ce téléphone depuis les paramètres Bluetooth. Les nouveaux appareils reçoivent le prochain raccourci libre du profil utilisé.</string>
     <string name="guide_windows">Paramètres → Bluetooth et appareils → Ajouter un appareil → Bluetooth → choisissez ce téléphone</string>
-    <string name="guide_windows_hint">Absent de la liste ? Paramètres → Bluetooth et appareils → Appareils → réglez « Découverte des appareils Bluetooth » sur Avancé, puis réessayez.</string>
+    <string name="guide_windows_hint">Absent de la liste ? Dans la fenêtre Ajouter un appareil, choisissez « Afficher tous les appareils ». Ou : Paramètres → Bluetooth et appareils → Appareils → réglez « Découverte des appareils Bluetooth » sur Avancé, puis réessayez.</string>
     <string name="guide_mac">Réglages Système → Bluetooth → cliquez sur Se connecter à côté de ce téléphone</string>
     <string name="guide_mobile">Réglages → Bluetooth → choisissez ce téléphone</string>
     <string name="guide_note">Si le téléphone demande l\'association, acceptez. Gardez l\'écran des paramètres Bluetooth de ce téléphone fermé pendant la connexion.</string>

@@ -58,7 +58,7 @@
     <string name="device_rename">重命名</string>
     <string name="guide_intro">请在电脑或平板的蓝牙设置中添加本手机。新设备会使用当前配置中空闲的快捷键。</string>
     <string name="guide_windows">设置 → 蓝牙和其他设备 → 添加设备 → 蓝牙 → 选择本手机</string>
-    <string name="guide_windows_hint">列表中没有？设置 → 蓝牙和其他设备 → 设备 → 将“蓝牙设备发现”改为“高级”，然后重试。</string>
+    <string name="guide_windows_hint">列表中没有？在添加设备窗口中选择“显示所有设备”。或者：设置 → 蓝牙和其他设备 → 设备 → 将“蓝牙设备发现”改为“高级”，然后重试。</string>
     <string name="guide_mac">系统设置 → 蓝牙 → 点按本手机旁的“连接”</string>
     <string name="guide_mobile">设置 → 蓝牙 → 选择本手机</string>
     <string name="guide_note">如果手机上出现配对请求，请允许。连接时请关闭本手机的蓝牙设置界面。</string>

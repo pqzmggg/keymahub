@@ -59,7 +59,7 @@
     <string name="device_rename">Rename</string>
     <string name="guide_intro">On your PC or tablet, add this phone from the Bluetooth settings. New devices go to the next free hotkey of the profile in use.</string>
     <string name="guide_windows">Settings → Bluetooth &amp; devices → Add device → Bluetooth → select this phone</string>
-    <string name="guide_windows_hint">Not listed? Settings → Bluetooth &amp; devices → Devices → set \"Bluetooth devices discovery\" to Advanced, then try again.</string>
+    <string name="guide_windows_hint">Not listed? In the Add a device window, choose \"Show all devices\". Or: Settings → Bluetooth &amp; devices → Devices → set \"Bluetooth devices discovery\" to Advanced, then try again.</string>
     <string name="guide_mac">System Settings → Bluetooth → click Connect next to this phone</string>
     <string name="guide_mobile">Settings → Bluetooth → select this phone</string>
     <string name="guide_note">If this phone asks to pair, allow it. Keep this phone\'s Bluetooth settings screen closed while connecting.</string>

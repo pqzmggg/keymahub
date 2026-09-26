@@ -58,7 +58,7 @@
     <string name="device_rename">Cambiar nombre</string>
     <string name="guide_intro">En tu PC o tableta, añade este teléfono desde los ajustes de Bluetooth. Los dispositivos nuevos reciben el siguiente atajo libre del perfil en uso.</string>
     <string name="guide_windows">Configuración → Bluetooth y dispositivos → Agregar dispositivo → Bluetooth → elige este teléfono</string>
-    <string name="guide_windows_hint">¿No aparece? Configuración → Bluetooth y dispositivos → Dispositivos → cambia \"Detección de dispositivos Bluetooth\" a Avanzada y vuelve a intentarlo.</string>
+    <string name="guide_windows_hint">¿No aparece? En la ventana Agregar un dispositivo, elige \"Mostrar todos los dispositivos\". O bien: Configuración → Bluetooth y dispositivos → Dispositivos → cambia \"Detección de dispositivos Bluetooth\" a Avanzada y vuelve a intentarlo.</string>
     <string name="guide_mac">Ajustes del Sistema → Bluetooth → pulsa Conectar junto a este teléfono</string>
     <string name="guide_mobile">Ajustes → Bluetooth → elige este teléfono</string>
     <string name="guide_note">Si el teléfono pide emparejar, permítelo. Mantén cerrada la pantalla de ajustes de Bluetooth de este teléfono mientras te conectas.</string>

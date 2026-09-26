@@ -58,7 +58,7 @@
     <string name="device_rename">名前を変更</string>
     <string name="guide_intro">PC やタブレットの Bluetooth 設定からこのスマホを追加してください。新しいデバイスは使用中のプロファイルの空いているホットキーに入ります。</string>
     <string name="guide_windows">設定 → Bluetooth とデバイス → デバイスの追加 → Bluetooth → このスマホを選択</string>
-    <string name="guide_windows_hint">表示されない場合：設定 → Bluetooth とデバイス → デバイス →「Bluetooth デバイスの検出」を「詳細」に変更してから、もう一度お試しください。</string>
+    <string name="guide_windows_hint">表示されない場合：デバイスの追加画面で「すべてのデバイスを表示」を選んでください。または、設定 → Bluetooth とデバイス → デバイス →「Bluetooth デバイスの検出」を「詳細」に変更してから、もう一度お試しください。</string>
     <string name="guide_mac">システム設定 → Bluetooth → このスマホの横の「接続」</string>
     <string name="guide_mobile">設定 → Bluetooth → このスマホを選択</string>
     <string name="guide_note">スマホにペアリングの確認が表示されたら許可してください。接続中はこのスマホの Bluetooth 設定画面を閉じておいてください。</string>
