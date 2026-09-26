@@ -87,19 +87,21 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     private fun Main(status: HubStatus, log: String, ui: UiPrefs) {
-        // "home", "profile:<id>", "devices", "settings". With two panes the list is always on the
-        // left and the route picks the right pane ("home" there = the profile in use).
+        // "home", "profile:<id>", "devices", "settings". With two panes, home and profiles share the
+        // screen (the route picks the right pane, "home" there = the profile in use); devices and
+        // settings always take the whole screen.
         var route by rememberSaveable { mutableStateOf("home") }
-        // The profile the right pane showed before devices or settings, to go back to.
+        // Where devices and settings go back to: the home or profile screen they were opened from.
         var lastProfile by rememberSaveable { mutableStateOf("home") }
         val twoPane = LocalConfiguration.current.screenWidthDp >= TWO_PANE_DP
+        val fullScreen = route == "devices" || route == "settings"
         val open: (String) -> Unit = { r ->
             if (r == "home" || r.startsWith("profile:")) lastProfile = r
             route = r
         }
-        val back = { open(if (twoPane && (route == "devices" || route == "settings")) lastProfile else "home") }
-        // Two panes: back leaves the app from a profile, and returns to it from devices or settings.
-        BackHandler(enabled = if (twoPane) route == "devices" || route == "settings" else route != "home") { back() }
+        val back = { open(if (fullScreen) lastProfile else "home") }
+        // Two panes: back leaves the app from a profile (the list is already on screen).
+        BackHandler(enabled = fullScreen || (!twoPane && route != "home")) { back() }
         val onEdit: ((app.keymahub.core.Settings) -> app.keymahub.core.Settings) -> Unit = { change -> Hub.edit(this, change) }
         // App shortcuts (and so Galaxy routines) follow the profile list: names and order.
         val shortcutKey = status.settings.profiles.map { it.id to it.name }
@@ -133,7 +135,6 @@ class MainActivity : ComponentActivity() {
                 r == "devices" -> DevicesScreen(
                     status = status,
                     onBack = back,
-                    showBack = !twoPane,
                     onEdit = onEdit,
                     onPairing = { on -> HubService.pairing(this, on) },
                     onConnect = { d ->
@@ -161,19 +162,18 @@ class MainActivity : ComponentActivity() {
                     onMods = { m -> Hub.edit(this) { it.setMods(m) } },
                     language = remember(tick) { Locales.current(this) },
                     onBack = back,
-                    showBack = !twoPane,
                     onUi = { change -> Hub.editUi(this, change); BleHid.applyAddressMode() },
                     onLanguage = { tag -> Locales.set(this, tag) },
                 )
             }
         }
 
-        if (twoPane) {
+        if (twoPane && !fullScreen) {
             // "home" on the right = the profile in use, so the pane is never empty.
             val right = if (route == "home") "profile:${status.settings.activeId}" else route
             Row(Modifier.fillMaxSize()) {
                 Box(Modifier.width(LIST_PANE_DP.dp).fillMaxHeight()) {
-                    home(right.removePrefix("profile:").takeIf { right.startsWith("profile:") })
+                    home(right.removePrefix("profile:"))
                 }
                 VerticalDivider()
                 Box(Modifier.weight(1f).fillMaxHeight()) { detail(right) }
