@@ -6,10 +6,11 @@ import android.os.Bundle
 import android.widget.Toast
 import app.keymahub.Locales
 import app.keymahub.R
+import app.keymahub.core.ActivationMode
 import app.keymahub.core.Hub
 
 /**
- * Activates a profile and closes, without showing anything but a toast.
+ * Switches profile activation to manual, activates a profile and closes, without showing anything but a toast.
  *
  * Opened by the per-profile app shortcuts ([ProfileShortcuts]) — which is how Galaxy
  * Modes & Routines ("Open an app → shortcut"), the launcher long-press menu and home-screen
@@ -30,7 +31,8 @@ class ActivateProfileActivity : Activity() {
             Hub.log("Shortcut: no profile id=$id name=$name")
             Toast.makeText(this, R.string.shortcut_profile_missing, Toast.LENGTH_SHORT).show()
         } else {
-            Hub.edit(this) { it.activate(profile.id) }
+            // A routine picked this profile on purpose: keep it until the user changes it (no auto switching).
+            Hub.edit(this) { it.setMode(ActivationMode.MANUAL).activate(profile.id) }
             Hub.log("Shortcut: activated profile ${profile.name}")
             Toast.makeText(this, getString(R.string.shortcut_profile_activated, profile.name), Toast.LENGTH_SHORT).show()
         }
