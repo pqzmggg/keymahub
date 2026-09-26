@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="a11y_summary">이 폰에 연결한 키보드·마우스로 다른 기기 조작</string>
-    <string name="a11y_description">KeymaHub는 이 기기에 연결된 키보드와 마우스의 입력을 받아, 단축키로 고른 블루투스 기기(PC·태블릿)로 전달합니다. 이 폰을 선택한 동안에는 입력을 그대로 둡니다. 입력 내용은 저장하거나 인터넷으로 보내지 않으며, 선택한 기기로만 전달됩니다. 화면 내용은 읽지 않습니다.</string>
+    <string name="a11y_summary">이 폰에 연결한 키보드, 마우스로 다른 기기 조작</string>
+    <string name="a11y_description">KeymaHub는 이 기기에 연결된 키보드와 마우스의 입력을 받아, 단축키로 고른 블루투스 기기(PC, 태블릿)로 전달합니다. 이 폰을 선택한 동안에는 입력을 그대로 둡니다. 입력 내용은 저장하거나 인터넷으로 보내지 않으며, 선택한 기기로만 전달됩니다. 화면 내용은 읽지 않습니다.</string>
     <string name="setup_title">호스트 모드 설정</string>
-    <string name="setup_intro">이 폰에 연결한 키보드·마우스로 주변의 PC와 태블릿을 조작합니다. 상대 기기에는 설치할 것이 없습니다.</string>
+    <string name="setup_intro">이 폰에 연결한 키보드, 마우스로 주변의 PC와 태블릿을 조작합니다. 상대 기기에는 설치할 것이 없습니다.</string>
     <string name="setup_steps">시작하려면 다음을 허용해 주세요.</string>
     <string name="step_bluetooth_title">근처 기기 (블루투스)</string>
-    <string name="step_bluetooth_body">이 폰이 블루투스 키보드·마우스로 기기에 연결됩니다.</string>
+    <string name="step_bluetooth_body">이 폰이 블루투스 키보드, 마우스로 기기에 연결됩니다.</string>
     <string name="step_a11y_title">접근성 서비스</string>
-    <string name="step_a11y_body">연결한 키보드·마우스 입력을 받아 선택한 기기로 전달하는 데 필요합니다.</string>
+    <string name="step_a11y_body">연결한 키보드, 마우스 입력을 받아 선택한 기기로 전달하는 데 필요합니다.</string>
     <string name="step_notifications_title">알림 (권장)</string>
     <string name="step_notifications_body">실행 중인지, 지금 어떤 기기를 조작 중인지 알림으로 보여 줍니다.</string>
     <string name="action_allow">허용</string>
@@ -17,7 +17,7 @@
     <string name="disclosure_title">접근성 서비스 사용 안내</string>
     <string name="disclosure_intro">KeymaHub는 접근성 서비스를 다음 용도로만 사용합니다.</string>
     <string name="disclosure_1">• 이 폰에 연결된 키보드와 마우스의 입력을 받습니다.</string>
-    <string name="disclosure_2">• 단축키로 고른 블루투스 기기(PC·태블릿)로 그 입력을 전달합니다. 이 폰을 선택한 동안에는 입력을 그대로 둡니다.</string>
+    <string name="disclosure_2">• 단축키로 고른 블루투스 기기(PC, 태블릿)로 그 입력을 전달합니다. 이 폰을 선택한 동안에는 입력을 그대로 둡니다.</string>
     <string name="disclosure_3">• 입력 내용은 저장하지 않으며, 인터넷이나 개발자에게 보내지 않습니다. 선택한 기기로만 전달됩니다.</string>
     <string name="disclosure_4">• 화면 내용은 읽지 않습니다.</string>
     <string name="disclosure_next">다음 화면의 \'설치된 앱\'(또는 \'다운로드한 앱\')에서 KeymaHub를 켜 주세요.</string>
@@ -78,10 +78,10 @@
     <string name="problem_gatt">블루투스 키보드 서비스를 시작하지 못했습니다. 블루투스를 껐다 켠 뒤 다시 시도하세요.</string>
     <string name="action_back">뒤로</string>
     <string name="hosting_title">호스팅</string>
-    <string name="hosting_off_hint">켜면 이 폰의 키보드·마우스로 기기들을 조작합니다.</string>
+    <string name="hosting_off_hint">켜면 이 폰의 키보드, 마우스로 기기들을 조작합니다.</string>
     <string name="settings_title">설정</string>
     <string name="profiles_title">프로필</string>
-    <string name="profiles_hint">조건이 맞는 프로필 중 가장 위의 것을 사용합니다. 끌어서 순서를 바꾸세요.</string>
+    <string name="profiles_hint">조건이 맞는 프로필 중 가장 위에 있는 프로필을 사용합니다. 끌어서 순서를 바꾸세요.</string>
     <string name="profile_in_use">사용 중</string>
     <string name="profile_not_in_use">사용 안 함</string>
     <string name="manual_banner">%1$s 을(를) 직접 활성화해서, 조건이 바뀔 때까지 %2$s 대신 사용합니다.</string>
@@ -138,11 +138,11 @@
     <string name="mode_auto">완전 자동</string>
     <string name="mode_auto_hint">프로필에 배정된 기기가 가장 많이 연결된 프로필을 사용합니다. 같으면 위에 있는 프로필이 우선입니다.</string>
     <string name="mode_rules">규칙 기반 자동</string>
-    <string name="mode_rules_hint">고른 기기 중 하나라도 연결된 프로필 중 목록에서 가장 위의 것을 사용합니다.</string>
+    <string name="mode_rules_hint">고른 기기 중 하나라도 연결된 프로필 중 목록에서 가장 위에 있는 프로필을 사용합니다.</string>
     <string name="mode_manual">끄기</string>
     <string name="mode_manual_hint">직접 활성화한 프로필만 사용합니다.</string>
     <string name="profile_devices_connected">기기 %2$d대 중 %1$d대 연결</string>
-    <string name="profiles_hint_auto">기기가 가장 많이 연결된 프로필을 사용하고, 같으면 위의 것이 우선입니다. 끌어서 순서를 바꾸세요.</string>
+    <string name="profiles_hint_auto">기기가 가장 많이 연결된 프로필을 사용하고, 같으면 위에 있는 프로필이 우선입니다. 끌어서 순서를 바꾸세요.</string>
     <string name="profiles_hint_manual">직접 활성화한 프로필을 사용합니다.</string>
     <string name="mode_fallback_note">두 자동 방식 모두, 맞는 프로필이 없으면 마지막으로 활성화한 프로필을 사용합니다. 직접 활성화하면 연결된 기기가 바뀔 때까지 자동 선택보다 우선합니다.</string>
     <string name="device_connect">연결</string>
