@@ -44,8 +44,6 @@ import kotlinx.coroutines.delay
 fun DevicesScreen(
     status: HubStatus,
     onBack: () -> Unit,
-    /** False in the right pane of two, which has no back arrow. */
-    showBack: Boolean = true,
     onEdit: ((Settings) -> Settings) -> Unit,
     onPairing: (Boolean) -> Unit,
     onConnect: (Device) -> Unit,
@@ -58,7 +56,7 @@ fun DevicesScreen(
     var removing by remember { mutableStateOf<Device?>(null) }
 
     Page {
-        TopBar(stringResource(R.string.devices_title), onBack.takeIf { showBack })
+        TopBar(stringResource(R.string.devices_title), onBack)
         PairingCard(status, onPairing)
 
         SectionTitle(stringResource(R.string.devices_paired))
