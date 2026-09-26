@@ -29,6 +29,20 @@
             </intent-filter>
         </activity>
 
+        <!-- App shortcuts / Galaxy routines / automation apps: activate a profile, no UI. -->
+        <activity
+            android:name=".ui.ActivateProfileActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Translucent.NoTitleBar">
+            <intent-filter>
+                <action android:name="app.keymahub.action.ACTIVATE_PROFILE" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
         <service
             android:name=".HubService"
             android:exported="false"

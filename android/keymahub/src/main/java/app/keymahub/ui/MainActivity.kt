@@ -81,6 +81,9 @@ class MainActivity : ComponentActivity() {
         var route by rememberSaveable { mutableStateOf("home") }
         BackHandler(enabled = route != "home") { route = "home" }
         val onEdit: ((app.keymahub.core.Settings) -> app.keymahub.core.Settings) -> Unit = { change -> Hub.edit(this, change) }
+        // App shortcuts (and so Galaxy routines) follow the profile list: names and order.
+        val shortcutKey = status.settings.profiles.map { it.id to it.name }
+        LaunchedEffect(shortcutKey) { ProfileShortcuts.sync(this@MainActivity, status.settings.profiles) }
 
         when {
             route.startsWith("profile:") -> ProfileScreen(

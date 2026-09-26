@@ -162,4 +162,7 @@
     <string name="settings_experiments">Expériences</string>
     <string name="public_address">Annoncer avec une adresse fixe</string>
     <string name="public_address_hint">Pour une tablette qui ne se reconnecte pas. Après l\'activation, supprimez ce téléphone des appareils Bluetooth de la tablette et associez-le à nouveau. Si le téléphone ne le permet pas, le journal de diagnostic l\'indique.</string>
+    <string name="shortcut_activate_profile">Activer le profil : %1$s</string>
+    <string name="shortcut_profile_activated">Profil activé : %1$s</string>
+    <string name="shortcut_profile_missing">Ce profil n’existe plus</string>
 </resources>
