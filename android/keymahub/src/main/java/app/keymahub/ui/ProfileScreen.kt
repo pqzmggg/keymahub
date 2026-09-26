@@ -3,7 +3,6 @@ package app.keymahub.ui
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,8 +38,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -48,8 +45,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -82,6 +77,17 @@ fun ProfileScreen(
     var renaming by remember { mutableStateOf(false) }
     var assignFor by remember { mutableStateOf<Int?>(null) }
     var deleting by remember { mutableStateOf(false) }
+    val active = settings.activeId == profile.id
+    // Hotkeys follow the active profile, so only its devices can take control.
+    val canSelect = status.running && active
+
+    /** Changes which device is on which number; the device in control keeps it on its new number. */
+    fun rearrange(change: (Settings) -> Settings) {
+        val controlled = if (canSelect && status.slot != 0) profile.addressOf(status.slot) else null
+        onEdit(change)
+        val now = controlled?.let { change(settings).profile(profileId)?.slotOf(it) }
+        if (now != null && now != status.slot) onSelect(now)
+    }
 
     Page {
         TopBar(profileName(profile), onBack.takeIf { showBack }) {
@@ -89,7 +95,6 @@ fun ProfileScreen(
                 Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.profile_rename))
             }
         }
-        val active = settings.activeId == profile.id
         Text(
             stringResource(
                 when {
@@ -110,8 +115,6 @@ fun ProfileScreen(
         )
 
         SectionTitle(stringResource(R.string.hotkeys_title), stringResource(R.string.hotkeys_hint))
-        // Hotkeys follow the active profile, so only its devices can take control.
-        val canSelect = status.running && active
         Card(Modifier.fillMaxWidth()) {
             SlotRow(0, profile, status, onSelect = if (canSelect) ({ onSelect(0) }) else null, onAssign = {}, onClear = {})
             ReceiverList(
@@ -121,13 +124,7 @@ fun ProfileScreen(
                 onSelect = onSelect,
                 onAssign = { slot -> assignFor = slot },
                 onClear = { slot -> onEdit { it.assign(profileId, slot, null) } },
-                onMove = { from, to ->
-                    val controlled = if (canSelect && status.slot != 0) profile.addressOf(status.slot) else null
-                    onEdit { it.moveReceiver(profileId, from, to) }
-                    // The device in control moved to another number: control follows it there.
-                    val now = controlled?.let { a -> status.settings.moveReceiver(profileId, from, to).profile(profileId)?.slotOf(a) }
-                    if (now != null && now != status.slot) onSelect(now)
-                },
+                onMove = { from, to -> rearrange { it.moveReceiver(profileId, from, to) } },
             )
         }
         if (settings.profiles.size > 1) {
@@ -161,10 +158,7 @@ fun ProfileScreen(
             onDismiss = { assignFor = null },
             onPick = { address ->
                 assignFor = null
-                val controlled = if (status.running && settings.activeId == profileId && status.slot != 0) profile.addressOf(status.slot) else null
-                onEdit { it.assign(profileId, slot, address) }
-                // The device in control moved to another number: control follows it there.
-                if (address != null && address == controlled && slot != status.slot) onSelect(slot)
+                rearrange { it.assign(profileId, slot, address) }
             },
         )
     }
@@ -240,44 +234,18 @@ private fun ReceiverList(
     onMove: (from: Int, to: Int) -> Unit,
 ) {
     val slots = (1 until Profile.SLOTS).toList()
-    val heights = remember { mutableStateMapOf<Int, Int>() }
-    var dragSlot by remember { mutableStateOf<Int?>(null) }
-    var dragOffset by remember { mutableFloatStateOf(0f) }
-
-    fun height(i: Int) = (heights[slots[i]] ?: 0).toFloat()
-
-    /** Where the dragged row would land now (-1: nothing dragged). Reads live state only. */
-    fun target(): Int {
-        val from = slots.indexOf(dragSlot)
-        if (from < 0) return -1
-        val tops = FloatArray(slots.size)
-        var y = 0f
-        for (i in slots.indices) {
-            tops[i] = y
-            y += height(i)
-        }
-        val center = tops[from] + dragOffset + height(from) / 2
-        return slots.indices.count { it != from && tops[it] + height(it) / 2 < center }
-    }
-
-    val from = slots.indexOf(dragSlot)
-    val target = target()
+    val reorder = rememberReorder<Int>()
+    val from = reorder.from(slots)
+    val target = reorder.target(slots)
     slots.forEachIndexed { index, slot -> key(slot) {
         val dragging = index == from
-        val shift = when {
-            from < 0 || dragging -> 0f
-            index in (from + 1)..target -> -height(from)
-            index in target until from -> height(from)
-            else -> 0f
-        }
-        val animatedShift by animateFloatAsState(shift, label = "shift")
+        val shift by animateFloatAsState(reorder.shift(slots, index), label = "shift")
         // The number and hotkey belong to the place in the list, the rest to the dragged device.
-        val shown = if (from >= 0 && target >= 0) slots[slotShownAt(index, from, target)] else slot
+        val shown = if (from >= 0) slots[slotShownAt(index, from, target)] else slot
         Column(
-            Modifier
-                .onSizeChanged { heights[slot] = it.height }
+            reorder.measure(slot)
                 .zIndex(if (dragging) 1f else 0f)
-                .graphicsLayer { translationY = if (dragging) dragOffset else animatedShift }
+                .graphicsLayer { translationY = if (dragging) reorder.offset else shift }
                 .then(if (dragging) Modifier.shadow(8.dp).background(MaterialTheme.colorScheme.surfaceContainerHighest) else Modifier),
         ) {
             HorizontalDivider()
@@ -287,27 +255,7 @@ private fun ReceiverList(
                 onAssign = { onAssign(slot) },
                 onClear = { onClear(slot) },
                 numberSlot = if (dragging) slots[target] else shown,
-                handle = Modifier.pointerInput(slot, profile) {
-                    detectDragGestures(
-                        onDragStart = {
-                            dragSlot = slot
-                            dragOffset = 0f
-                        },
-                        onDragEnd = {
-                            val to = target()
-                            if (to >= 0 && slots[to] != slot) onMove(slot, slots[to])
-                            dragSlot = null
-                            dragOffset = 0f
-                        },
-                        onDragCancel = {
-                            dragSlot = null
-                            dragOffset = 0f
-                        },
-                    ) { change, amount ->
-                        change.consume()
-                        dragOffset += amount.y
-                    }
-                },
+                handle = reorder.handle(slot, slots) { a, b -> onMove(slots[a], slots[b]) },
             )
         }
     } }

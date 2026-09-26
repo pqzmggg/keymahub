@@ -27,7 +27,6 @@
     <string name="action_close">Close</string>
     <string name="action_save">Save</string>
     <string name="action_delete">Delete</string>
-    <string name="action_ok">OK</string>
     <string name="action_stop">Stop</string>
     <string name="menu">Menu</string>
     <string name="diagnostics_title">Diagnostic log</string>

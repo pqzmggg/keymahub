@@ -26,7 +26,6 @@
     <string name="action_close">关闭</string>
     <string name="action_save">保存</string>
     <string name="action_delete">删除</string>
-    <string name="action_ok">确定</string>
     <string name="action_stop">停止</string>
     <string name="menu">菜单</string>
     <string name="diagnostics_title">诊断日志</string>

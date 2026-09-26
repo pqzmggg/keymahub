@@ -8,10 +8,6 @@ import android.view.KeyEvent
  */
 object HidKeycodes {
     const val LANG1_HANGUL = 0x90
-    const val LANG2_HANJA = 0x91
-    const val LEFT_CTRL = 0xE0
-    const val LEFT_SHIFT = 0xE1
-    const val SPACE = 0x2C
 
     private val table: Map<Int, Int> = buildMap {
         for (i in 0 until 26) put(0x04 + i, KeyEvent.KEYCODE_A + i)
@@ -87,18 +83,4 @@ object HidKeycodes {
     fun fromKeycode(keycode: Int): Int? = reverse[keycode]
 
     fun isModifier(usage: Int) = usage in 0xE0..0xE7
-
-    /** Android meta state for a HID modifier byte (bit 0 = LCtrl … bit 7 = RGUI). */
-    fun metaState(modifiers: Int): Int {
-        var m = 0
-        if (modifiers and 0x01 != 0) m = m or KeyEvent.META_CTRL_ON or KeyEvent.META_CTRL_LEFT_ON
-        if (modifiers and 0x02 != 0) m = m or KeyEvent.META_SHIFT_ON or KeyEvent.META_SHIFT_LEFT_ON
-        if (modifiers and 0x04 != 0) m = m or KeyEvent.META_ALT_ON or KeyEvent.META_ALT_LEFT_ON
-        if (modifiers and 0x08 != 0) m = m or KeyEvent.META_META_ON or KeyEvent.META_META_LEFT_ON
-        if (modifiers and 0x10 != 0) m = m or KeyEvent.META_CTRL_ON or KeyEvent.META_CTRL_RIGHT_ON
-        if (modifiers and 0x20 != 0) m = m or KeyEvent.META_SHIFT_ON or KeyEvent.META_SHIFT_RIGHT_ON
-        if (modifiers and 0x40 != 0) m = m or KeyEvent.META_ALT_ON or KeyEvent.META_ALT_RIGHT_ON
-        if (modifiers and 0x80 != 0) m = m or KeyEvent.META_META_ON or KeyEvent.META_META_RIGHT_ON
-        return m
-    }
 }

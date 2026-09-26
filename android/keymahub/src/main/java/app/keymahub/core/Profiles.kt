@@ -61,14 +61,11 @@ data class Profile(
 
     fun slotOf(address: String): Int? = receivers.entries.firstOrNull { it.value == address }?.key
 
-    val hasConditions get() = whenConnected.isNotEmpty()
-
     /** [connected]: the devices connected right now. */
     fun matches(connected: Set<String>): Boolean = whenConnected.any { it in connected }
 
     companion object {
         const val SLOTS = 10
-        const val PHONE = 0
     }
 }
 
@@ -122,7 +119,6 @@ data class Settings(
 
     fun profile(id: String) = profiles.firstOrNull { it.id == id }
 
-    /** Picks the active profile for this moment. */
     /** Picks the active profile given the devices connected right now. */
     fun resolve(connected: Set<String>): Settings {
         val matched = when (mode) {
@@ -179,6 +175,7 @@ data class Settings(
 
     private fun withDevice(address: String, f: (Device) -> Device) =
         copy(devices = devices.map { if (it.address == address) f(it) else it })
+
     // ---------------------------------------------------------------- slots and hotkeys
 
     /**
@@ -279,7 +276,6 @@ data class Settings(
         for (p in profiles) {
             val recv = p.receivers.entries.sortedBy { it.key }.joinToString(",") { "${it.key}=${it.value}" }
             val connected = p.whenConnected.joinToString(",")
-            // The empty 4th field held per-profile hotkeys in early builds.
             // Empty 4th, 6th and 7th fields: per-profile hotkeys, times and places of early builds.
             append("profile\t${p.id}\t${p.name}\t\t$recv\t\t\t$connected\n")
         }

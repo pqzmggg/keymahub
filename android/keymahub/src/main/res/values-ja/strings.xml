@@ -26,7 +26,6 @@
     <string name="action_close">閉じる</string>
     <string name="action_save">保存</string>
     <string name="action_delete">削除</string>
-    <string name="action_ok">OK</string>
     <string name="action_stop">停止</string>
     <string name="menu">メニュー</string>
     <string name="diagnostics_title">診断ログ</string>

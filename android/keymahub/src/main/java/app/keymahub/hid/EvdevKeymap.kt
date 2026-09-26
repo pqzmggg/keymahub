@@ -138,6 +138,4 @@ object EvdevKeymap {
     }
 
     fun toHid(evdev: Int): Int? = table[evdev]
-
-    const val SIZE = 130
 }
