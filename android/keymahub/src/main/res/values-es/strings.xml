@@ -87,7 +87,7 @@
     <string name="manual_banner">Activaste %1$s, así que se usa en lugar de %2$s hasta que cambien las condiciones.</string>
     <string name="manual_off">Volver a automático</string>
     <string name="conditions_title">Condiciones de activación</string>
-    <string name="conditions_hint">Cuando la activación de perfiles es por reglas, este perfil se activa solo mientras esté conectado alguno de los dispositivos elegidos.</string>
+    <string name="conditions_hint">Cuando la activación automática de perfiles es por reglas, este perfil se activa solo mientras esté conectado alguno de los dispositivos elegidos.</string>
     <string name="condition_always">Solo al activarlo</string>
     <string name="hud_profile">Perfil: %1$s</string>
     <string name="notif_pairing">El modo de emparejamiento está activado. Añade este teléfono en tu PC o tableta.</string>
@@ -134,7 +134,7 @@
     <string name="condition_devices_off">Cualquiera</string>
     <string name="condition_devices_on">Cuando %1$s está conectado</string>
     <string name="condition_devices_hint">Se aplica mientras alguno de los dispositivos marcados esté conectado. Con el modo anfitrión activo, los dispositivos emparejados cercanos se reconectan solos.</string>
-    <string name="settings_activation">Activación de perfiles</string>
+    <string name="settings_activation">Activación automática de perfiles</string>
     <string name="mode_auto">Totalmente automática</string>
     <string name="mode_auto_hint">Usa el perfil con más de sus dispositivos conectados; en caso de empate, gana el de más arriba.</string>
     <string name="mode_rules">Por reglas</string>
