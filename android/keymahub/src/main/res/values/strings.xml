@@ -79,6 +79,7 @@
     <string name="action_back">Back</string>
     <string name="hosting_title">Hosting</string>
     <string name="hosting_off_hint">Turn on to use this phone\'s keyboard and mouse on your devices.</string>
+    <string name="hosting_still_linked">Still connected on the device side (no input is sent): %1$s. It lets go on its own shortly; if not, disconnect from that device\'s Bluetooth settings.</string>
     <string name="settings_title">Settings</string>
     <string name="profiles_title">Profiles</string>
     <string name="profiles_hint">The highest profile whose conditions match is used. Drag to reorder.</string>
