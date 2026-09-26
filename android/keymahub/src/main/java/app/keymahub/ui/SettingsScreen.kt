@@ -57,7 +57,7 @@ fun SettingsScreen(
     Page {
         TopBar(stringResource(R.string.settings_title), onBack)
 
-        SectionTitle(stringResource(R.string.settings_hotkeys), stringResource(R.string.hotkeys_mods_hint))
+        SectionTitle(stringResource(R.string.settings_hotkeys))
         HotkeyCard(mods, onMods)
 
         SectionTitle(stringResource(R.string.settings_appearance))
@@ -89,7 +89,7 @@ fun SettingsScreen(
             }
             if (Build.VERSION.SDK_INT >= 29) {
                 HorizontalDivider()
-                Toggle(stringResource(R.string.touch_keyboard), help = stringResource(R.string.touch_keyboard_hint), on = ui.touchKeyboard) { on ->
+                Toggle(stringResource(R.string.touch_keyboard), stringResource(R.string.touch_keyboard_hint), ui.touchKeyboard) { on ->
                     onUi { it.copy(touchKeyboard = on) }
                 }
             }
@@ -97,7 +97,7 @@ fun SettingsScreen(
 
         SectionTitle(stringResource(R.string.settings_experiments))
         Card(Modifier.fillMaxWidth()) {
-            Toggle(stringResource(R.string.public_address), help = stringResource(R.string.public_address_hint), on = ui.publicAddress) { on ->
+            Toggle(stringResource(R.string.public_address), stringResource(R.string.public_address_hint), ui.publicAddress) { on ->
                 onUi { it.copy(publicAddress = on) }
             }
         }
@@ -142,18 +142,15 @@ private fun Item(title: String, value: String, onClick: () -> Unit) {
 }
 
 @Composable
-private fun Toggle(title: String, hint: String? = null, on: Boolean, help: String? = null, onChange: (Boolean) -> Unit) {
+private fun Toggle(title: String, hint: String, on: Boolean, onChange: (Boolean) -> Unit) {
     Row(
         Modifier.fillMaxWidth().clickable { onChange(!on) }.padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         // Room between the text and the switch.
         Column(Modifier.weight(1f).padding(end = 12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(title, style = MaterialTheme.typography.titleMedium)
-                help?.let { HelpButton(title, it) }
-            }
-            hint?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+            Text(title, style = MaterialTheme.typography.titleMedium)
+            Text(hint, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Switch(checked = on, onCheckedChange = onChange)
     }
@@ -166,6 +163,7 @@ private fun HotkeyCard(mods: Int, onMods: (Int) -> Unit) {
     val valid = Hotkeys.validMods(pending)
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(stringResource(R.string.hotkeys_mods_hint), style = MaterialTheme.typography.bodyMedium)
             Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 for ((bit, label) in listOf(Mods.CTRL to KeyLabels.CTRL, Mods.ALT to KeyLabels.ALT, Mods.SHIFT to "Shift", Mods.META to KeyLabels.META)) {
                     FilterChip(
