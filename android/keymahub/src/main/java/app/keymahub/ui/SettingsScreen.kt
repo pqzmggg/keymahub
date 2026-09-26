@@ -163,7 +163,11 @@ private fun HotkeyCard(mods: Int, onMods: (Int) -> Unit) {
     val valid = Hotkeys.validMods(pending)
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(stringResource(R.string.hotkeys_mods_hint), style = MaterialTheme.typography.bodyMedium)
+            // Spelled with the keys picked below, so it changes as they do.
+            Text(
+                stringResource(R.string.hotkeys_mods_hint, KeyLabels.mods(if (valid) pending else mods)),
+                style = MaterialTheme.typography.bodyMedium,
+            )
             Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 for ((bit, label) in listOf(Mods.CTRL to KeyLabels.CTRL, Mods.ALT to KeyLabels.ALT, Mods.SHIFT to "Shift", Mods.META to KeyLabels.META)) {
                     FilterChip(
