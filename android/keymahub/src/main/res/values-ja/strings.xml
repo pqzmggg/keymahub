@@ -128,7 +128,7 @@
     <string name="drag_to_renumber">ドラッグして別の番号に移動</string>
     <string name="profile_fallback">条件に合うプロファイルがないときに使用</string>
     <string name="settings_hotkeys">ホットキー</string>
-    <string name="hotkeys_mods_hint">これらのキーを押しながら数字：1 = このスマホ、2〜9 と 0 = デバイス 1〜9</string>
+    <string name="hotkeys_mods_hint">これらのキーを押しながら数字キーを押します。1 はこのスマホ、2〜9 と 0 はプロファイルでその数字に割り当てたデバイスに切り替えます。</string>
     <string name="hotkeys_invalid">Ctrl/⌃、Alt/⌥、Win/⌘ のいずれかを含めてください。</string>
     <string name="condition_devices">接続中のデバイス</string>
     <string name="condition_devices_off">指定なし</string>
