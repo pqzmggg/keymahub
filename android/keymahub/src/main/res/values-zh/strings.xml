@@ -128,7 +128,7 @@
     <string name="drag_to_renumber">拖动以移到其他数字</string>
     <string name="profile_fallback">没有配置符合条件时使用</string>
     <string name="settings_hotkeys">快捷键</string>
-    <string name="hotkeys_mods_hint">按住这些键再按数字键。1 为本手机，2–9 和 0 切换到配置中放在该数字上的设备。</string>
+    <string name="hotkeys_mods_hint">按住这些键再按数字键。\n1：本手机\n2–9、0：配置中放在该数字上的设备</string>
     <string name="hotkeys_invalid">需包含 Ctrl/⌃、Alt/⌥ 或 Win/⌘。</string>
     <string name="condition_devices">已连接的设备</string>
     <string name="condition_devices_off">不限</string>
