@@ -94,6 +94,8 @@ object BleHid {
     private val main = Handler(Looper.getMainLooper())
     /** Timeouts of the phone's joins ([join]); kept apart from [main], which stop() clears. */
     private val timers = Handler(Looper.getMainLooper())
+    /** Retries of stalled sends ([pump]); kept apart from [main], which stop() clears. */
+    private val retries = Handler(Looper.getMainLooper())
 
     private lateinit var keyboardIn: BluetoothGattCharacteristic
     private lateinit var mouseIn: BluetoothGattCharacteristic
@@ -111,6 +113,8 @@ object BleHid {
     /** Notifications sent but not yet confirmed by onNotificationSent, and when the last one went out. */
     private val inFlight = HashMap<String, Int>()
     private val lastSent = HashMap<String, Long>()
+    /** Targets with a [pump] retry scheduled. */
+    private val retrying = HashSet<String>()
     /** The phone's own client connection over each host's link (see the class note and [join]). */
     private val holds = HashMap<String, Hold>()
     /** Links the GATT server joined itself (links up before it was opened, see [rejoinLinks]). */
@@ -483,6 +487,18 @@ object BleHid {
             }
             inFlight[address] = (inFlight[address] ?: 0) + 1
             lastSent[address] = now
+        }
+        // Reports still waiting may get no confirmation to send them: none comes when the stack
+        // was busy with nothing in flight, or when a confirmation got lost. Without a retry they
+        // would wait for the next input (a key release held back keeps the key down on the host).
+        if (q.size > 0 && retrying.add(address)) {
+            val full = (inFlight[address] ?: 0) >= WINDOW
+            retries.postDelayed({
+                synchronized(lock) {
+                    retrying.remove(address)
+                    pump(address)
+                }
+            }, if (full) IN_FLIGHT_TIMEOUT_MS + BUSY_RETRY_MS else BUSY_RETRY_MS)
         }
     }
 
@@ -882,4 +898,6 @@ object BleHid {
     private const val ENC_WRITE = BluetoothGattCharacteristic.PERMISSION_WRITE_ENCRYPTED
     private const val WINDOW = 3
     private const val IN_FLIGHT_TIMEOUT_MS = 250L
+    /** How soon a send the stack was too busy for is tried again. */
+    private const val BUSY_RETRY_MS = 5L
 }
