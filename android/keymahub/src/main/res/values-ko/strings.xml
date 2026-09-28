@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="a11y_summary">이 기기에 연결한 키보드, 마우스로 다른 기기 조작</string>
-    <string name="a11y_description">KeymaHub는 이 기기에 연결된 키보드와 마우스의 입력을 받아, 단축키로 고른 블루투스 기기(PC, 태블릿)로 전달합니다. 이 기기를 선택한 동안에는 입력을 그대로 둡니다. 입력 내용은 저장하거나 인터넷으로 보내지 않으며, 선택한 기기로만 전달됩니다. 화면 내용은 읽지 않습니다.</string>
+    <string name="a11y_description">KeymaHub는 이 기기에 연결된 키보드와 마우스의 입력을 받아, 단축키로 고른 블루투스 기기(PC, 태블릿)로 전달합니다. 이 기기를 선택한 동안에는 입력을 그대로 둡니다. 입력 내용은 저장하거나 인터넷으로 보내지 않으며, 선택한 기기로만 전달됩니다. 화면 내용은 읽지 않습니다. 단, 다른 기기를 조작하는 동안 이 기기에서 터치한 입력란은 화면 키보드로 입력할 수 있도록 그 내용을 읽습니다.</string>
     <string name="setup_title">호스트 모드 설정</string>
     <string name="setup_intro">이 기기에 연결한 키보드, 마우스로 주변의 PC와 태블릿을 조작합니다. 상대 기기에는 설치할 것이 없습니다.</string>
     <string name="setup_steps">시작하려면 다음을 허용해 주세요.</string>
@@ -19,7 +19,7 @@
     <string name="disclosure_1">• 이 기기에 연결된 키보드와 마우스의 입력을 받습니다.</string>
     <string name="disclosure_2">• 단축키로 고른 블루투스 기기(PC, 태블릿)로 그 입력을 전달합니다. 이 기기를 선택한 동안에는 입력을 그대로 둡니다.</string>
     <string name="disclosure_3">• 입력 내용은 저장하지 않으며, 인터넷이나 개발자에게 보내지 않습니다. 선택한 기기로만 전달됩니다.</string>
-    <string name="disclosure_4">• 화면 내용은 읽지 않습니다.</string>
+    <string name="disclosure_4">• 화면 내용은 읽지 않습니다. 단, 다른 기기를 조작하는 동안 이 기기에서 터치한 입력란은 화면 키보드로 입력할 수 있도록 그 내용을 읽습니다.</string>
     <string name="disclosure_next">다음 화면의 \'설치된 앱\'(또는 \'다운로드한 앱\')에서 KeymaHub를 켜 주세요.</string>
     <string name="disclosure_agree">동의하고 설정 열기</string>
     <string name="action_cancel">취소</string>

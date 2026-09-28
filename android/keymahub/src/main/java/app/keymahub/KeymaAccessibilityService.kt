@@ -9,7 +9,6 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.provider.Settings
 import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -47,6 +46,7 @@ class KeymaAccessibilityService : AccessibilityService() {
 
     private fun detach() {
         softKeyboardDespiteHardKeyboard(false)
+        textEvents = null
         if (instance === this) instance = null
         if (capture != null) {
             Hub.log("accessibility service turned off while running")
@@ -55,7 +55,26 @@ class KeymaAccessibilityService : AccessibilityService() {
         capture = null
     }
 
-    override fun onAccessibilityEvent(event: AccessibilityEvent?) {}
+    override fun onAccessibilityEvent(event: AccessibilityEvent?) {
+        if (event != null) textEvents?.invoke(event)
+    }
+
+    /**
+     * While set (a target has the mouse, see HubService.onSelect), gets the events that show a
+     * text field touched on the phone, and its text changing (capture.TextRelay). Only then are
+     * they subscribed to: otherwise the service reads nothing on the screen.
+     */
+    @Volatile
+    var textEvents: ((AccessibilityEvent) -> Unit)? = null
+        set(value) {
+            field = value
+            val info = serviceInfo ?: return
+            info.eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or (
+                if (value == null) 0
+                else AccessibilityEvent.TYPE_VIEW_FOCUSED or AccessibilityEvent.TYPE_VIEW_CLICKED or AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED
+                )
+            serviceInfo = info
+        }
 
     override fun onInterrupt() {}
 
@@ -113,19 +132,8 @@ class KeymaAccessibilityService : AccessibilityService() {
     fun softKeyboardDespiteHardKeyboard(on: Boolean) {
         if (Build.VERSION.SDK_INT < 29) return
         val mode = if (on) AccessibilityService.SHOW_MODE_IGNORE_HARD_KEYBOARD else AccessibilityService.SHOW_MODE_AUTO
-        val ok = runCatching { softKeyboardController.setShowMode(mode) }
+        runCatching { softKeyboardController.setShowMode(mode) }
             .onFailure { Hub.log("on-screen keyboard mode failed: $it") }
-            .getOrDefault(false)
-        if (!on && ok) return
-        // Diagnostics: whether the request took, and what the system and the keyboard see.
-        val now = runCatching { softKeyboardController.showMode }.getOrNull()
-        val setting = runCatching { Settings.Secure.getInt(contentResolver, "show_ime_with_hard_keyboard") }
-            .getOrElse { "unreadable" }
-        val config = resources.configuration
-        Hub.log(
-            "on-screen keyboard ${if (on) "despite" else "hidden by"} physical keyboard: request ${if (ok) "ok" else "refused"}, " +
-                "mode=$now, show_ime_with_hard_keyboard=$setting, keyboard=${config.keyboard}, hardKeyboardHidden=${config.hardKeyboardHidden}",
-        )
     }
 
     companion object {

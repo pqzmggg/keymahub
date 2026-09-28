@@ -7,10 +7,10 @@ import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.view.Gravity
-import android.view.InputDevice
 import android.view.MotionEvent
-import android.view.View
 import android.view.WindowManager
+import android.view.accessibility.AccessibilityEvent
+import android.widget.FrameLayout
 import app.keymahub.core.Hub
 
 /**
@@ -22,11 +22,11 @@ import app.keymahub.core.Hub
  * Accessibility motion interception alone cannot do this: the phone's pointer is moved by
  * the input system before events are dispatched.
  *
- * The overlay is a 1x1 window in the corner; touches go to the phone's apps below it. Being the
- * top focusable window, it keeps focus even when an app is touched, and an app's text field and
- * on-screen keyboard need that focus. So a touch on the phone (seen as a touch outside the
- * overlay) takes the overlay away: focus goes to the app, and the mouse still reaches the target
- * through accessibility interception meanwhile. [reclaim] puts it back on a mouse button press.
+ * The overlay is a 1x1 window that is not touchable, so touches keep reaching the phone's apps.
+ * It keeps focus meanwhile (capture needs it), so a phone app's text field cannot take focus
+ * and show the on-screen keyboard; [TextRelay] types into it instead, through a hidden text
+ * field in this window. [reclaim] takes focus back when a mouse button is pressed after
+ * something else took it (the notification shade).
  */
 class PointerCaptureOverlay(
     private val service: AccessibilityService,
@@ -36,7 +36,7 @@ class PointerCaptureOverlay(
 ) {
     private val wm = service.getSystemService(WindowManager::class.java)!!
     private val main = Handler(Looper.getMainLooper())
-    private var view: CaptureView? = null
+    private var view: CaptureRoot? = null
     @Volatile private var wanted = false
     private var lastReclaim = 0L
 
@@ -45,46 +45,44 @@ class PointerCaptureOverlay(
         if (view == null) add()
     }
 
-    /** A mouse button was pressed while not captured (the phone was touched): take focus and capture back. */
+    /** A mouse button was pressed while not captured (focus went elsewhere): take focus and capture back. */
     fun reclaim() = main.post {
+        val v = view ?: return@post
         val now = SystemClock.uptimeMillis()
-        if (!wanted || now - lastReclaim < 500) return@post
-        val v = view
-        if (v != null && v.hasPointerCapture()) return@post
+        if (!wanted || v.hasPointerCapture() || now - lastReclaim < 500) return@post
         lastReclaim = now
-        // Only a newly added window gets focus back; (re-)add it.
-        if (v != null) {
-            view = null
-            runCatching { wm.removeView(v) }
-        }
+        // Only a newly added window gets focus back; re-add it.
+        view = null
+        v.relay.end()
+        runCatching { wm.removeView(v) }
         add()
     }
 
-    /** The phone was touched: take the overlay away so the touched app gets focus (see the class note). */
-    private fun yieldFocus() = main.post {
-        val v = view ?: return@post
-        if (!wanted) return@post
-        view = null
-        Hub.log("phone touched: focus to the phone's app until a mouse click")
-        runCatching { v.releasePointerCapture() }
-        runCatching { wm.removeView(v) }
-        onCaptureState(false)
+    /** Accessibility events while a target has focus: text fields touched on the phone (see [TextRelay]). */
+    fun onAccessibilityEvent(event: AccessibilityEvent) {
+        // The event is recycled once the service returns: take what the relay needs now.
+        val type = event.eventType
+        val source = event.source ?: return
+        if (event.packageName == service.packageName) return // this window's own field, and the app's own screens
+        main.post { if (wanted) view?.relay?.onEvent(type, source) }
     }
 
     /** On the main thread. */
     private fun add() {
-        val v = CaptureView(service)
+        val v = CaptureRoot(service)
         val params = WindowManager.LayoutParams(
             1, 1,
             WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
             // Focusable (no FLAG_NOT_FOCUSABLE): pointer capture is only granted to the focused window.
-            // Not touch-modal: touches outside its one pixel go to the windows below, and it hears
-            // of them (ACTION_OUTSIDE) to give focus up (see the class note).
-            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+            // Not touchable, and not touch-modal: every touch goes to the windows below.
+            WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
             PixelFormat.TRANSLUCENT,
         ).apply {
             gravity = Gravity.TOP or Gravity.START
             title = "KeymaHub pointer capture"
+            // The on-screen keyboard shown for TextRelay must not move or resize this window.
+            softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING or
+                WindowManager.LayoutParams.SOFT_INPUT_STATE_UNCHANGED
         }
         runCatching { wm.addView(v, params) }
             .onSuccess {
@@ -103,14 +101,20 @@ class PointerCaptureOverlay(
         wanted = false
         val v = view ?: return@post
         view = null
+        v.relay.end()
         runCatching { v.releasePointerCapture() }
         runCatching { wm.removeView(v) }
     }
 
-    private inner class CaptureView(context: Context) : View(context) {
+    /** The window's content: holds focus and capture, and [TextRelay]'s hidden text field. */
+    private inner class CaptureRoot(context: Context) : FrameLayout(context) {
+        val relay = TextRelay(context, this)
+
         init {
             isFocusable = true
             isFocusableInTouchMode = true
+            // Focus stays on this layout, not on the field, until TextRelay moves it there.
+            descendantFocusability = FOCUS_BEFORE_DESCENDANTS
         }
 
         override fun onWindowFocusChanged(hasWindowFocus: Boolean) {
@@ -126,12 +130,8 @@ class PointerCaptureOverlay(
             if (!hasCapture && wanted && hasWindowFocus()) main.postDelayed({ if (wanted) requestPointerCapture() }, 200)
         }
 
-        override fun onTouchEvent(event: MotionEvent): Boolean {
-            if (event.actionMasked == MotionEvent.ACTION_OUTSIDE && !event.isFromSource(InputDevice.SOURCE_MOUSE)) yieldFocus()
-            return true
-        }
-
-        override fun onCapturedPointerEvent(event: MotionEvent): Boolean {
+        // Captured events go to the focused view, which is the relay's field while typing: take them here.
+        override fun dispatchCapturedPointerEvent(event: MotionEvent): Boolean {
             onCaptured(event)
             return true
         }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="a11y_summary">用连接到本设备的键盘和鼠标控制其他设备</string>
-    <string name="a11y_description">KeymaHub 接收连接到本设备的键盘和鼠标的输入，并将其发送到您用快捷键选择的蓝牙设备（电脑、平板）。选择本设备时，输入保持不变。输入内容不会被保存，也不会发送到互联网，只会发送到您选择的设备。KeymaHub 不读取屏幕内容。</string>
+    <string name="a11y_description">KeymaHub 接收连接到本设备的键盘和鼠标的输入，并将其发送到您用快捷键选择的蓝牙设备（电脑、平板）。选择本设备时，输入保持不变。输入内容不会被保存，也不会发送到互联网，只会发送到您选择的设备。KeymaHub 不读取屏幕内容，但控制其他设备时您在本设备上点按的输入框除外：会读取其内容，以便用屏幕键盘输入。</string>
     <string name="setup_title">主机模式设置</string>
     <string name="setup_intro">用连接到本设备的键盘和鼠标控制附近的电脑和平板。对方设备无需安装任何软件。</string>
     <string name="setup_steps">开始前，请允许以下项目。</string>
@@ -19,7 +19,7 @@
     <string name="disclosure_1">• 接收连接到本设备的键盘和鼠标的输入。</string>
     <string name="disclosure_2">• 将这些输入发送到您用快捷键选择的蓝牙设备（电脑、平板）。选择本设备时，输入保持不变。</string>
     <string name="disclosure_3">• 输入内容不会被保存，也不会发送到互联网或开发者，只会发送到您选择的设备。</string>
-    <string name="disclosure_4">• KeymaHub 不读取屏幕内容。</string>
+    <string name="disclosure_4">• KeymaHub 不读取屏幕内容，但控制其他设备时您在本设备上点按的输入框除外：会读取其内容，以便用屏幕键盘输入。</string>
     <string name="disclosure_next">请在下一个界面的“已安装的应用”（或“已下载的应用”）中开启 KeymaHub。</string>
     <string name="disclosure_agree">同意并打开设置</string>
     <string name="action_cancel">取消</string>

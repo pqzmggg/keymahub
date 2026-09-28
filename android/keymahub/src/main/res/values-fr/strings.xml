@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="a11y_summary">Contrôlez d\'autres appareils avec le clavier et la souris connectés à cet appareil</string>
-    <string name="a11y_description">KeymaHub reçoit la saisie du clavier et de la souris connectés à cet appareil et l\'envoie à l\'appareil Bluetooth (PC, tablette) choisi avec un raccourci. Quand cet appareil est sélectionné, la saisie n\'est pas modifiée. La saisie n\'est jamais enregistrée ni envoyée sur Internet ; elle va uniquement à l\'appareil choisi. KeymaHub ne lit pas le contenu de l\'écran.</string>
+    <string name="a11y_description">KeymaHub reçoit la saisie du clavier et de la souris connectés à cet appareil et l\'envoie à l\'appareil Bluetooth (PC, tablette) choisi avec un raccourci. Quand cet appareil est sélectionné, la saisie n\'est pas modifiée. La saisie n\'est jamais enregistrée ni envoyée sur Internet ; elle va uniquement à l\'appareil choisi. KeymaHub ne lit pas le contenu de l\'écran, sauf un champ de texte touché sur cet appareil pendant le contrôle d\'un autre appareil : son texte est lu pour pouvoir y écrire avec le clavier à l\'écran.</string>
     <string name="setup_title">Configuration du mode hôte</string>
     <string name="setup_intro">Utilisez le clavier et la souris connectés à cet appareil pour contrôler les PC et tablettes à proximité. Rien à installer sur ceux-ci.</string>
     <string name="setup_steps">Pour commencer, autorisez les éléments suivants.</string>
@@ -19,7 +19,7 @@
     <string name="disclosure_1">• Recevoir la saisie du clavier et de la souris connectés à cet appareil.</string>
     <string name="disclosure_2">• Envoyer cette saisie à l\'appareil Bluetooth (PC, tablette) choisi avec un raccourci. Quand cet appareil est sélectionné, la saisie n\'est pas modifiée.</string>
     <string name="disclosure_3">• La saisie n\'est jamais enregistrée ni envoyée sur Internet ou au développeur. Elle va uniquement à l\'appareil choisi.</string>
-    <string name="disclosure_4">• KeymaHub ne lit pas le contenu de l\'écran.</string>
+    <string name="disclosure_4">• KeymaHub ne lit pas le contenu de l\'écran, sauf un champ de texte touché sur cet appareil pendant le contrôle d\'un autre appareil : son texte est lu pour pouvoir y écrire avec le clavier à l\'écran.</string>
     <string name="disclosure_next">Sur l\'écran suivant, activez KeymaHub dans Applications installées (ou Applications téléchargées).</string>
     <string name="disclosure_agree">Accepter et ouvrir les paramètres</string>
     <string name="action_cancel">Annuler</string>
