@@ -47,7 +47,7 @@
     <string name="state_connected">已连接</string>
     <string name="state_not_connected">未连接</string>
     <string name="assign_device">选择设备</string>
-    <string name="unassign">移除设备</string>
+    <string name="unassign">排除设备</string>
     <string name="assign_title">%1$s 对应的设备</string>
     <string name="assign_none">无</string>
     <string name="assign_now_on">当前为 %1$s</string>
