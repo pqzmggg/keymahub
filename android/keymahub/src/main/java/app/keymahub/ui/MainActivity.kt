@@ -162,7 +162,7 @@ class MainActivity : ComponentActivity() {
                     onMods = { m -> Hub.edit(this) { it.setMods(m) } },
                     language = remember(tick) { Locales.current(this) },
                     onBack = back,
-                    onUi = { change -> Hub.editUi(this, change); BleHid.applyAddressMode() },
+                    onUi = { change -> Hub.editUi(this, change) },
                     onLanguage = { tag -> Locales.set(this, tag) },
                 )
             }

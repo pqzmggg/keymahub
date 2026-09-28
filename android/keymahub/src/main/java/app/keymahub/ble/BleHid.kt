@@ -37,29 +37,33 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 /**
- * This phone as a Bluetooth LE keyboard + mouse (HID over GATT, "HOGP").
+ * This phone as a Bluetooth LE keyboard + mouse (HID over GATT, "HOGP"), behaving as a BLE
+ * keyboard does (HOGP 1.0 §5, GAP privacy).
  *
  * Why LE rather than Classic HID: it uses GATT instead of the HID L2CAP channels, so the
  * phone's own Bluetooth keyboard and mouse stay connected (Classic disconnects them); and
  * several targets (PCs, tablets) stay connected at once, so switching is instant.
  *
- * Targets pair from their own Bluetooth settings ("add device"); nothing to install there.
- *
- * Connections work as with an ordinary BLE keyboard:
- * - Hosts connect; the phone only advertises. A link the phone opens itself is not taken by a
- *   host's HID as its keyboard, so the phone never opens one (it only rejoins links already up).
- * - Hosts keep what they learned about the phone: its address and the service layout. So the
- *   GATT server and one advertising set are made once and kept while Bluetooth is on; hosting
- *   only turns advertising on and off.
+ * - Pairing: hosts pair from their own Bluetooth settings ("add device") while pairing mode is
+ *   on. The phone advertises with a private address that changes over time; hosts got its
+ *   identity key (IRK) when pairing and recognize it at any address.
+ * - The GATT database never changes while Bluetooth is on: the same services, in the same order,
+ *   made once. Hosts keep it with the bond. It is never taken apart: a host told that the HID
+ *   service is gone (Service Changed) forgets the keyboard, and Windows then never reconnects.
  * - Notification settings belong to the bond ([HostTable]): a returning host is ready at once,
  *   without subscribing again (Windows never does).
+ * - Hosts connect, the phone only advertises (undirected, connectable). A bonded host waits for
+ *   the advertising and connects on its own. The phone never opens a link itself: a host's HID
+ *   does not use a link the phone opened.
+ * - Hosting off is a keyboard switched off: the phone ends its links to the hosts and stops
+ *   advertising. Hosts keep the bond and the keyboard, and reconnect when hosting is on again.
  *
- * Hosting on: advertising, so paired hosts reconnect on their own (also after going out of
- * range), and input goes to the selected one. Hosting off: no advertising, links to targets let
- * go. Android can only give up the phone's own use of a link: a link the host opened stays up as
- * long as the host wants it (its HID, or EATT channels, keep it), and no input goes over it.
- * Hosting on takes back links still up. The HID service stays in the GATT database throughout:
- * a host that sees it gone (Service Changed) forgets the keyboard and does not reconnect (Windows).
+ * Ending a link: apps have no call for it. The stack ends an LE link about a second after the
+ * last app using it lets go, but only if an app used it at all: a link the host opened and no
+ * app joined stays up for good. So the phone joins every host's link with a client connection
+ * of its own ([holds], also used to ask for a short connection interval) and ends the link by
+ * letting go of it. When another app or the system also uses the link, it stays up (logged, and
+ * shown in the app); no input goes over it.
  */
 @SuppressLint("MissingPermission") // checked in start()
 object BleHid {
@@ -88,6 +92,8 @@ object BleHid {
     /** Hosting: advertising, accepting targets and sending input. */
     @Volatile private var running = false
     private val main = Handler(Looper.getMainLooper())
+    /** Timeouts of the phone's joins ([join]); kept apart from [main], which stop() clears. */
+    private val timers = Handler(Looper.getMainLooper())
 
     private lateinit var keyboardIn: BluetoothGattCharacteristic
     private lateinit var mouseIn: BluetoothGattCharacteristic
@@ -105,12 +111,12 @@ object BleHid {
     /** Notifications sent but not yet confirmed by onNotificationSent, and when the last one went out. */
     private val inFlight = HashMap<String, Int>()
     private val lastSent = HashMap<String, Long>()
-    /** Client-role links over a target's link, only to ask it for a short connection interval. */
-    private val fastLinks = HashMap<String, BluetoothGatt>()
+    /** The phone's own client connection over each host's link (see the class note and [join]). */
+    private val holds = HashMap<String, Hold>()
+    /** Links the GATT server joined itself (links up before it was opened, see [rejoinLinks]). */
+    private val serverJoined = HashSet<String>()
     /** Addresses using the HID service without being recognized as a target (see admit). */
     private val strangers = HashSet<String>()
-    /** Links being dropped (see release): the server's own hold on them is not a host connecting. */
-    private val releasing = HashSet<String>()
     /** GATT requests on each link so far (see trace). */
     private val traced = HashMap<String, Int>()
     @Volatile private var appContext: Context? = null
@@ -132,7 +138,7 @@ object BleHid {
         if (pairing == on) return
         pairing = on
         Hub.log(if (on) "BLE HID: pairing mode on" else "BLE HID: pairing mode off")
-        // Only the scan response changes: the advertising (and its address) goes on.
+        // Only the scan response changes: the advertising goes on.
         advertisingSet?.setScanResponseData(scanResponse(withName = on))
     }
 
@@ -179,24 +185,20 @@ object BleHid {
         if (!adapter.isEnabled) return R.string.problem_bt_off
         advertiser = adapter.bluetoothLeAdvertiser ?: return R.string.problem_ble_peripheral
         loadHosts(context, adapter)
-        if (server == null) open(context, manager)?.let { return it }
+        val opened = server == null
+        if (opened) open(context, manager)?.let { return it }
         Hub.update { it.copy(lingering = emptySet()) }
         running = true
         advertise()
-        rejoinLinks(manager)
-        // Hosts that became ready while hosting was off were not tuned then.
-        for (address in hosts.ready()) synchronized(lock) { devices[address] }?.let { d -> main.postDelayed({ tune(d) }, SETTLE_MS) }
+        rejoinLinks(manager, opened)
         Hub.log("BLE HID: hosting (${hosts.ready().size} ready)")
         return null
     }
 
     /**
-     * Stops hosting: no advertising, no input, and the phone lets go of its targets' links (with
-     * no one else using a link, it drops and the host shows the keyboard disconnected). A host
-     * keeps a link it opened for as long as its HID uses it; hosting on takes it back. Taking the
-     * HID service away to make the host drop it (Service Changed) was tried: Windows then forgot
-     * the keyboard and did not reconnect until paired again. Saved subscriptions stay, so the
-     * hosts are ready again as soon as they reconnect.
+     * Stops hosting, as a keyboard is switched off: no advertising, no input, and the links to the
+     * hosts end (see the class note). Saved subscriptions stay, so the hosts are ready again as
+     * soon as they reconnect.
      */
     @Synchronized
     fun stop() {
@@ -207,45 +209,40 @@ object BleHid {
         advertisingSet?.enableAdvertising(false, 0, 0)
         advertisingSet?.setScanResponseData(scanResponse(withName = false))
         active = null
-        val manager = appContext?.getSystemService(BluetoothManager::class.java)
-        // Nothing may stay pressed on a host that keeps the link a while longer.
+        // Nothing may stay pressed on a host whose link outlives hosting.
         releaseKeys(hosts.ready())
         val targets = synchronized(lock) {
-            val t = devices.filterKeys { hosts.isTarget(it) || hosts.knows(it) }.values.toList()
-            fastLinks.values.forEach { runCatching { it.disconnect(); it.close() } }
-            fastLinks.clear()
             queues.clear()
             inFlight.clear()
             lastSent.clear()
             strangers.clear()
-            t
+            devices.filterKeys { hosts.isTarget(it) || hosts.knows(it) }.values.toList()
         }
         hosts.dropLinks()
-        release(targets) { !running }
-        Hub.log("BLE HID: stopped hosting, disconnecting ${targets.size} link(s)")
-        if (manager == null) return
-        // Links the hosts keep: shown in the app (lingering) until they drop, and logged.
+        for (d in targets) endLink(d)
+        Hub.log("BLE HID: stopped hosting, ending ${targets.size} link(s)")
+        // Links that stay up: shown in the app (lingering) until they drop, and logged.
         main.postDelayed({
             if (running) return@postDelayed
-            val up = targets.filter { isLinkUp(manager, it) }
+            val up = targets.filter(::isLinkUp)
             if (up.isNotEmpty()) {
-                Hub.log("BLE HID: still linked after stopping (the host keeps the link; no input is sent): ${up.joinToString { nameOf(it.address) }}")
+                Hub.log("BLE HID: still linked after stopping (another app or the system uses the link; no input is sent): ${up.joinToString { nameOf(it.address) }}")
                 Hub.update { it.copy(lingering = up.map { d -> d.address }.toSet()) }
-                watchKeptLinks(manager, up, SystemClock.uptimeMillis() - 3_000)
+                watchKeptLinks(up, SystemClock.uptimeMillis() - END_CHECK_MS)
             }
-        }, 3_000)
+        }, END_CHECK_MS)
     }
 
     /** Logs when links kept up after stopping finally drop (checked every 10 s, for 10 minutes). */
-    private fun watchKeptLinks(manager: BluetoothManager, links: List<BluetoothDevice>, since: Long) {
+    private fun watchKeptLinks(links: List<BluetoothDevice>, since: Long) {
         main.postDelayed({
             if (running) return@postDelayed
             val elapsed = (SystemClock.uptimeMillis() - since) / 1000
-            val (up, down) = links.partition { isLinkUp(manager, it) }
+            val (up, down) = links.partition(::isLinkUp)
             for (d in down) Hub.log("BLE HID: link to ${nameOf(d.address)} dropped ${elapsed}s after stopping")
             Hub.update { it.copy(lingering = up.map { d -> d.address }.toSet()) }
             if (up.isEmpty()) return@postDelayed
-            if (elapsed < 600) watchKeptLinks(manager, up, since)
+            if (elapsed < 600) watchKeptLinks(up, since)
             else Hub.log("BLE HID: still linked 10 min after stopping: ${up.joinToString { nameOf(it.address) }}")
         }, 10_000)
     }
@@ -263,58 +260,117 @@ object BleHid {
     }
 
     /**
-     * Drops the links to [devices]. Android drops a link only when the last app holding it lets go,
-     * and a link the host opened is held by no app: cancelling alone leaves it up, and the host
-     * keeps showing the keyboard connected. So the server first holds each link that is up, then
-     * lets go of it (unless [stillWanted] says otherwise by then).
+     * Takes back links to known hosts that are still up: kept by another app or the system while
+     * hosting was off, or up before the GATT server was ([serverOpened]: it only reports links
+     * that come up later, and has to join those to send notifications on them).
      */
-    private fun release(devices: List<BluetoothDevice>, stillWanted: () -> Boolean = { true }) {
-        if (devices.isEmpty()) return
-        val manager = appContext?.getSystemService(BluetoothManager::class.java)
-        val up = devices.filter { manager != null && isLinkUp(manager, it) }
-        synchronized(lock) { releasing.addAll(up.map { it.address }) }
-        up.forEach { runCatching { server?.connect(it, false) } }
-        main.postDelayed({
-            synchronized(lock) { releasing.removeAll(up.map { it.address }.toSet()) }
-            if (stillWanted()) devices.forEach { runCatching { server?.cancelConnection(it) } }
-        }, if (up.isEmpty()) 0 else HOLD_MS)
-    }
-
-    /**
-     * Takes back links to known hosts that are still up: kept by the system while hosting was off,
-     * or up before the GATT server was (it only reports links that come up later). The host's HID
-     * may still be connected over it, expecting input without subscribing again.
-     */
-    private fun rejoinLinks(manager: BluetoothManager) {
+    private fun rejoinLinks(manager: BluetoothManager, serverOpened: Boolean) {
         val up = runCatching {
             (manager.getConnectedDevices(BluetoothProfile.GATT_SERVER) + manager.getConnectedDevices(BluetoothProfile.GATT))
                 .distinctBy { it.address }
         }.getOrDefault(emptyList())
-        for (d in up) rejoin(d)
+        for (d in up) {
+            val address = d.address
+            if (d.bondState != BluetoothDevice.BOND_BONDED || !hosts.knows(address) || isBlocked(address)) continue
+            if (hosts.isLinked(address)) continue
+            Hub.log("BLE HID: ${nameOf(address)} is still linked, taking it back")
+            synchronized(lock) { devices[address] = d }
+            if (serverOpened && synchronized(lock) { serverJoined.add(address) }) runCatching { server?.connect(d, false) }
+            if (hosts.linkUp(address, bonded = true) == Change.READY) onReady(d, restored = true)
+        }
     }
 
-    /** Joins the link to [device] if it is up and the device is a known, allowed host. */
-    private fun rejoin(device: BluetoothDevice) {
-        val address = device.address
-        if (device.bondState != BluetoothDevice.BOND_BONDED || !hosts.knows(address) || isBlocked(address)) return
-        if (hosts.isLinked(address)) return
-        Hub.log("BLE HID: ${nameOf(address)} is still linked, taking it back")
-        synchronized(lock) { devices[address] = device }
-        // The server's own use of the link: needed for its notifications to go out on it.
-        runCatching { server?.connect(device, false) }
-        if (hosts.linkUp(address, bonded = true) == Change.READY) onReady(device, restored = true)
-    }
-
-    private fun isLinkUp(manager: BluetoothManager, device: BluetoothDevice) =
-        runCatching { manager.getConnectionState(device, BluetoothProfile.GATT_SERVER) == BluetoothProfile.STATE_CONNECTED }
+    private fun isLinkUp(device: BluetoothDevice): Boolean {
+        val manager = appContext?.getSystemService(BluetoothManager::class.java) ?: return false
+        return runCatching { manager.getConnectionState(device, BluetoothProfile.GATT_SERVER) == BluetoothProfile.STATE_CONNECTED }
             .getOrDefault(false)
+    }
+
+    // ---------------------------------------------------------------- the phone's hold on a link
+
+    /** The phone's client connection over a host's link. [ending]: let go of it once it is up. */
+    private class Hold(@Volatile var ending: Boolean) {
+        @Volatile var gatt: BluetoothGatt? = null
+        @Volatile var up = false
+    }
+
+    /**
+     * Joins the link to [device] with a client connection (see the class note), or with [end] lets
+     * go of it, which ends the link unless something else uses it. Only over a link that is up:
+     * with none, connecting would open a link from the phone.
+     */
+    private fun join(device: BluetoothDevice, end: Boolean) {
+        val ctx = appContext ?: return
+        val address = device.address
+        synchronized(lock) {
+            val h = holds[address]
+            if (h != null) {
+                if (end && !h.ending) {
+                    h.ending = true
+                    if (h.up) h.gatt?.disconnect()
+                }
+                return
+            }
+        }
+        if (!isLinkUp(device)) return
+        val hold = Hold(ending = end)
+        synchronized(lock) { holds[address] = hold }
+        val gatt = runCatching { device.connectGatt(ctx, false, HoldCallback(address, hold), BluetoothDevice.TRANSPORT_LE) }.getOrNull()
+        if (gatt == null) {
+            synchronized(lock) { if (holds[address] === hold) holds.remove(address) }
+            Hub.log("BLE HID: could not join the link to ${nameOf(address)}")
+            return
+        }
+        hold.gatt = gatt
+        // Joining a link that went down meanwhile would open one from the phone: give up then.
+        timers.postDelayed({
+            if (hold.up) return@postDelayed
+            synchronized(lock) { if (holds[address] === hold) holds.remove(address) }
+            runCatching { gatt.disconnect(); gatt.close() }
+        }, JOIN_TIMEOUT_MS)
+    }
+
+    private class HoldCallback(private val address: String, private val hold: Hold) : BluetoothGattCallback() {
+        override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
+            when (newState) {
+                BluetoothProfile.STATE_CONNECTED -> {
+                    hold.gatt = gatt
+                    hold.up = true
+                    if (hold.ending) {
+                        gatt.disconnect()
+                    } else {
+                        // As a peripheral, Android never asks for a short connection interval, so the
+                        // host may pick 30-50 ms — far too slow for a mouse. The client role can:
+                        // CONNECTION_PRIORITY_HIGH is roughly 11-15 ms.
+                        val ok = gatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH)
+                        Hub.log("BLE HID: short connection interval requested from ${nameOf(address)}: $ok")
+                    }
+                }
+                BluetoothProfile.STATE_DISCONNECTED -> {
+                    // Let go (or the link is gone): the stack ends a link no app uses any more.
+                    synchronized(lock) { if (holds[address] === hold) holds.remove(address) }
+                    runCatching { gatt.close() }
+                }
+            }
+        }
+    }
+
+    /** Ends the link to [device], as a keyboard switched off does (see the class note). */
+    private fun endLink(device: BluetoothDevice) {
+        // The server's own join, if any, goes first: the client connection has to be the last user.
+        if (synchronized(lock) { serverJoined.remove(device.address) }) runCatching { server?.cancelConnection(device) }
+        join(device, end = true)
+    }
+
+    // ---------------------------------------------------------------- GATT server
 
     /** Opens the GATT server with its services, once per Bluetooth-on period. */
     private fun open(context: Context, manager: BluetoothManager): Int? {
         Hub.log("BLE HID: opening GATT server")
         val s = manager.openGattServer(context.applicationContext, callback) ?: return R.string.problem_gatt
         values.clear()
-        // One at a time: a service is only in the database once onServiceAdded says so.
+        // One at a time, always in this order: a service is only in the database once
+        // onServiceAdded says so, and hosts expect the same database every time.
         for (svc in listOf(hidService(), batteryService(), deviceInfoService())) {
             serviceAdded = CountDownLatch(1)
             if (!s.addService(svc) || !serviceAdded.await(3, TimeUnit.SECONDS)) {
@@ -355,12 +411,12 @@ object BleHid {
         runCatching { advertisingSet?.let { _ -> advertiser?.stopAdvertisingSet(advertisingCallback) } }
         advertisingSet = null
         creatingSet = false
-        publicRefused = false
         runCatching { server?.close() }
         server = null
         Hub.update { it.copy(lingering = emptySet()) }
         synchronized(lock) {
-            fastLinks.clear(); devices.clear(); queues.clear(); releasing.clear()
+            holds.values.forEach { h -> runCatching { h.gatt?.close() } }
+            holds.clear(); serverJoined.clear(); devices.clear(); queues.clear()
             inFlight.clear(); lastSent.clear(); strangers.clear(); traced.clear()
         }
         hosts.dropLinks()
@@ -391,51 +447,20 @@ object BleHid {
 
     // ---------------------------------------------------------------- device actions
 
-    /** Drops the link to [address] (it may come back unless blocked). */
+    /** "Disconnect": ends the link to [address] (refused when it comes back while blocked). */
     fun disconnect(address: String) {
-        closeLink(address) // the link stays up while the phone's own client connection holds it
         val d = synchronized(lock) { devices[address] } ?: remote(address)
         if (hosts.linkDown(address) == Change.GONE) gone(address)
-        if (d != null) release(listOf(d))
+        if (d != null) endLink(d)
     }
 
-    /** "Connect": the host has to connect; make sure the phone is advertising for it. */
+    /** "Connect": the host connects when it sees the advertising; take its link back if it is already up. */
     fun reconnect(address: String) {
         if (!running) return
         Hub.log("BLE HID: waiting for ${nameOf(address)} to connect")
         advertise()
         val manager = appContext?.getSystemService(BluetoothManager::class.java) ?: return
-        val d = remote(address) ?: return
-        if (isLinkUp(manager, d)) rejoin(d) else if (d.bondState == BluetoothDevice.BOND_BONDED) openLink(d)
-    }
-
-    /**
-     * Experiment: the phone opens the link itself (connecting when the host advertises). Some hosts
-     * (Lenovo tablet) open their HID connection only over a link that is already up when they start
-     * it, and not over a new one they make themselves.
-     */
-    private fun openLink(device: BluetoothDevice) {
-        val ctx = appContext ?: return
-        val address = device.address
-        synchronized(lock) { if (address in fastLinks) return }
-        Hub.log("BLE HID: opening a link to ${nameOf(address)} (experiment)")
-        val gatt = device.connectGatt(ctx, true, object : BluetoothGattCallback() {
-            override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
-                when (newState) {
-                    BluetoothProfile.STATE_CONNECTED -> {
-                        Hub.log("BLE HID: link to ${nameOf(address)} opened by the phone")
-                        gatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH)
-                    }
-                    BluetoothProfile.STATE_DISCONNECTED ->
-                        Hub.log("BLE HID: phone's link to ${nameOf(address)} down${statusText(status)}")
-                }
-            }
-        }, BluetoothDevice.TRANSPORT_LE) ?: return
-        synchronized(lock) { fastLinks[address] = gatt }
-    }
-
-    private fun closeLink(address: String) {
-        synchronized(lock) { fastLinks.remove(address) }?.let { runCatching { it.disconnect(); it.close() } }
+        rejoinLinks(manager, serverOpened = false)
     }
 
     /** Removes the phone's pairing with [address]. Best effort: the call is not public API. */
@@ -583,6 +608,7 @@ object BleHid {
         else -> null
     }
 
+
     // ---------------------------------------------------------------- callbacks
 
     private val callback = object : BluetoothGattServerCallback() {
@@ -597,21 +623,22 @@ object BleHid {
                     // Every LE link of the phone shows up here: the phone's own Bluetooth keyboard and
                     // mouse, links a host's system opens for its own use (Samsung devices read the
                     // battery level), and hosts. A paired host that subscribed before is ready at once.
-                    val ours = synchronized(lock) {
+                    synchronized(lock) {
                         traced.remove(address)
                         devices[address] = device
-                        address in releasing
                     }
-                    if (ours) return
+                    // While hosting is off the keyboard is off: a host that uses it anyway gets its link
+                    // ended (admit).
+                    if (!running) return
                     val bonded = device.bondState == BluetoothDevice.BOND_BONDED
                     if (bonded && hosts.knows(address) && isBlocked(address)) {
                         refuse(device, "disconnected by user")
                         return
                     }
                     if (hosts.linkUp(address, bonded) == Change.READY) onReady(device, restored = true)
-                    // Some controllers stop advertising when a link comes up; the same set goes on (same
-                    // address) once the link has settled (restarting at once drops a link still pairing).
-                    if (running) main.postDelayed(::advertise, SETTLE_MS)
+                    // Some controllers stop advertising when a link comes up; the same set goes on once
+                    // the link has settled (restarting at once drops a link still pairing).
+                    main.postDelayed(::advertise, SETTLE_MS)
                 }
                 BluetoothProfile.STATE_DISCONNECTED -> {
                     val wasTarget = hosts.isTarget(address)
@@ -621,11 +648,11 @@ object BleHid {
                         queues.remove(address)
                         inFlight.remove(address)
                         lastSent.remove(address)
-                        fastLinks.remove(address)?.let { runCatching { it.close() } }
+                        serverJoined.remove(address)
                         strangers.remove(address)
                         traced.remove(address)
                     }
-                    // Known hosts too: shows when a link kept up after hosting stopped finally drops.
+                    // Known hosts too: shows when a link ended after hosting stopped.
                     if (wasTarget || hosts.knows(address)) Hub.log("BLE HID: ${nameOf(address)} disconnected${statusText(status)}")
                     if (address in Hub.status.value.lingering) Hub.update { it.copy(lingering = it.lingering - address) }
                     if (change == Change.GONE) gone(address)
@@ -694,9 +721,9 @@ object BleHid {
     private fun onReady(device: BluetoothDevice, restored: Boolean) {
         val address = device.address
         Hub.log("BLE HID: ${nameOf(address)} ready${if (restored) " (restored)" else ""}")
-        if (!running) return // announced when hosting starts (readyTargets)
+        if (!running) return
         listeners.forEach { it.onReady(address, nameOf(address)) }
-        // A returning host may still be encrypting and opening its HID connection: tuning the link
+        // A returning host may still be encrypting and opening its HID connection: joining the link
         // then gets in the way, so wait until it settles.
         if (restored) main.postDelayed({ tune(device) }, SETTLE_MS) else tune(device)
     }
@@ -708,30 +735,11 @@ object BleHid {
         if (running) listeners.forEach { it.onGone(address) }
     }
 
-    /** Short connection interval, and advertise again (some controllers stop on connect). */
+    /** Joins the link (short connection interval, and a way to end it), and advertise again (some controllers stop on connect). */
     private fun tune(device: BluetoothDevice) {
         if (!running || !hosts.isLinked(device.address)) return
-        requestFastLink(device)
+        join(device, end = false)
         advertise()
-    }
-
-    /**
-     * As a peripheral, Android never asks for a short connection interval, so the target may
-     * pick 30-50 ms — far too slow for a mouse. A client-role connection over the same link
-     * gives access to requestConnectionPriority(HIGH), i.e. roughly 11-15 ms.
-     */
-    private fun requestFastLink(device: BluetoothDevice) {
-        val ctx = appContext ?: return
-        synchronized(lock) { if (device.address in fastLinks) return }
-        val gatt = device.connectGatt(ctx, false, object : BluetoothGattCallback() {
-            override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
-                if (newState == BluetoothProfile.STATE_CONNECTED) {
-                    val ok = gatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH)
-                    Hub.log("BLE HID: short connection interval requested from ${nameOf(device.address)}: $ok")
-                }
-            }
-        }, BluetoothDevice.TRANSPORT_LE) ?: return
-        synchronized(lock) { fastLinks[device.address] = gatt }
     }
 
     private fun isHid(ch: BluetoothGattCharacteristic) = ch.service?.uuid == HID_SERVICE
@@ -739,12 +747,22 @@ object BleHid {
     /**
      * Whether to answer a GATT request. A device using the HID service becomes a target: any paired
      * device, and new ones while pairing mode is on. The battery and device information services
-     * are answered for anyone (hosts' systems read them on their own links).
+     * are answered for anyone (hosts' systems read them on their own links). While hosting is off,
+     * a paired host that uses the HID service is answered, and its link ended: the keyboard is off.
      */
     private fun admit(device: BluetoothDevice, requestId: Int, hid: Boolean): Boolean {
         val address = device.address
         if (!hid || hosts.isTarget(address)) return true
         val bonded = device.bondState == BluetoothDevice.BOND_BONDED
+        if (!running) {
+            if (!bonded) {
+                synchronized(lock) { strangers.add(address) } // pairing is refused (onBondState)
+            } else if (synchronized(lock) { address !in holds }) {
+                Hub.log("BLE HID: ${nameOf(address)} uses the keyboard while hosting is off, ending the link")
+                endLink(device)
+            }
+            return true
+        }
         if (isBlocked(address)) {
             refuse(device, "disconnected by user")
             runCatching { server?.sendResponse(device, requestId, INSUFFICIENT_AUTHORIZATION, 0, null) }
@@ -753,6 +771,9 @@ object BleHid {
         if (hosts.useHid(address, bonded, pairing)) {
             synchronized(lock) { devices.putIfAbsent(address, device) }
             Hub.log("BLE HID: ${nameOf(address)} connected${if (bonded) "" else " (pairing)"}")
+            // A paired host recognized only now (its link came up under its private address): ready
+            // at once with its saved subscriptions.
+            if (hosts.linkUp(address, bonded) == Change.READY) onReady(device, restored = true)
             return true
         }
         // Not recognized: a paired host whose first requests still carry its private address (the
@@ -785,8 +806,7 @@ object BleHid {
 
     private fun refuse(device: BluetoothDevice, why: String) {
         Hub.log("BLE HID: refused ${device.address} ($why)")
-        closeLink(device.address)
-        release(listOf(device))
+        endLink(device)
     }
 
     private fun respond(device: BluetoothDevice, requestId: Int, offset: Int, value: ByteArray) {
@@ -798,10 +818,11 @@ object BleHid {
     // ---------------------------------------------------------------- advertising
 
     /**
-     * Advertising is one advertising set kept for as long as Bluetooth is on (see the class note):
-     * its random address is what paired hosts reconnect to, and a new set would get a new one.
-     * Hosting enables and disables it; pairing mode swaps only its scan response. It stays on
-     * while hosting, so a host that lost its link (out of range, restarted) comes back on its own.
+     * Advertising is one advertising set kept for as long as Bluetooth is on: undirected and
+     * connectable, at Android's shortest interval (100 ms; HOGP's 20-30 ms fast phase is not
+     * available to apps). Hosting enables and disables it; pairing mode swaps only its scan
+     * response (the name). It stays on while hosting, so a host that lost its link (out of range,
+     * restarted) comes back on its own. Its address changes over time; paired hosts resolve it.
      */
     private fun advertise() {
         if (!running) return
@@ -812,70 +833,20 @@ object BleHid {
         }
         if (creatingSet) return
         creatingSet = true
-        val builder = AdvertisingSetParameters.Builder()
+        val params = AdvertisingSetParameters.Builder()
             .setLegacyMode(true) // every host can see it
             .setConnectable(true)
             .setScannable(true)
             .setInterval(AdvertisingSetParameters.INTERVAL_LOW) // ~100 ms: hosts find the phone quickly
             .setTxPowerLevel(AdvertisingSetParameters.TX_POWER_MEDIUM)
-        val usePublic = Hub.ui.value.publicAddress && !publicRefused && requestPublicAddress(builder)
-        setIsPublic = usePublic
+            .build()
         val data = AdvertiseData.Builder().addServiceUuid(ParcelUuid(HID_SERVICE)).build()
-        runCatching { advertiser?.startAdvertisingSet(builder.build(), data, scanResponse(pairing), null, null, advertisingCallback) }
+        runCatching { advertiser?.startAdvertisingSet(params, data, scanResponse(pairing), null, null, advertisingCallback) }
             .onFailure {
                 creatingSet = false
                 Hub.log("BLE HID: advertising failed: $it")
-                if (usePublic) refusePublicAddress()
             }
     }
-
-    // ---------------------------------------------------------------- experiment: fixed address
-
-    /**
-     * Experiment for hosts that do not reconnect (Lenovo tablet): by default the phone advertises
-     * with a private address that keeps changing, and such a host keeps it as a pairing-time address
-     * mapped to the phone's identity, which its HID connection may never match again. Advertising
-     * with the phone's public address gives the host one address for everything (as real keyboards
-     * have); the host has to pair again. The call is a system API: it may be refused, then the
-     * phone advertises as before and the log says so.
-     */
-    private fun requestPublicAddress(builder: AdvertisingSetParameters.Builder): Boolean {
-        if (Build.VERSION.SDK_INT < 34) {
-            Hub.log("BLE HID: fixed address needs Android 14")
-            return false
-        }
-        return runCatching {
-            builder.javaClass.getMethod("setOwnAddressType", Int::class.javaPrimitiveType).invoke(builder, ADDRESS_TYPE_PUBLIC)
-        }.onSuccess { Hub.log("BLE HID: asking to advertise with the fixed (public) address") }
-            .onFailure { Hub.log("BLE HID: fixed address not available: ${it.cause ?: it}") }
-            .isSuccess
-    }
-
-    /** The fixed address was refused: advertise as before. */
-    private fun refusePublicAddress() {
-        publicRefused = true
-        Hub.log("BLE HID: fixed address refused by the system; advertising with a private address")
-        main.post(::advertise)
-    }
-
-    /** The setting changed: a different address needs a new advertising set. */
-    fun applyAddressMode() {
-        val want = Hub.ui.value.publicAddress
-        if (!want) publicRefused = false
-        val set = advertisingSet ?: return
-        if (setIsPublic == (want && !publicRefused)) return
-        Hub.log("BLE HID: address mode changed, restarting advertising")
-        runCatching { advertiser?.stopAdvertisingSet(advertisingCallback) }
-        advertisingSet = null
-        creatingSet = false
-        advertise()
-    }
-
-    /** Whether the current advertising set asked for the public address. */
-    @Volatile private var setIsPublic = false
-    /** The system refused the public address this Bluetooth-on period. */
-    @Volatile private var publicRefused = false
-    private const val ADDRESS_TYPE_PUBLIC = 0
 
     private fun scanResponse(withName: Boolean) = AdvertiseData.Builder().setIncludeDeviceName(withName).build()
 
@@ -884,11 +855,10 @@ object BleHid {
             creatingSet = false
             if (status != ADVERTISE_SUCCESS || set == null) {
                 Hub.log("BLE HID: advertising failed ($status)")
-                if (setIsPublic) refusePublicAddress()
                 return
             }
             advertisingSet = set
-            Hub.log(if (setIsPublic) "BLE HID: advertising (fixed address)" else "BLE HID: advertising")
+            Hub.log("BLE HID: advertising")
             if (!running) set.enableAdvertising(false, 0, 0) // hosting stopped meanwhile
         }
 
@@ -928,8 +898,10 @@ object BleHid {
 
     private const val PREFS = "keymahub_ble"
     private const val KEY_SUBSCRIPTIONS = "subscriptions"
-    /** How long the server holds a link before letting go of it when hosting stops (see release). */
-    private const val HOLD_MS = 500L
+    /** How long after ending links hosting stop checks whether they are down. */
+    private const val END_CHECK_MS = 3_000L
+    /** How long joining a link may take before it is given up (see [join]). */
+    private const val JOIN_TIMEOUT_MS = 5_000L
     /** How long a new link is left alone before tuning it or restarting advertising. */
     private const val SETTLE_MS = 3_000L
     private const val ENC_READ = BluetoothGattCharacteristic.PERMISSION_READ_ENCRYPTED
