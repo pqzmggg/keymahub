@@ -7,6 +7,7 @@ import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.view.Gravity
+import android.view.InputDevice
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
@@ -21,9 +22,11 @@ import app.keymahub.core.Hub
  * Accessibility motion interception alone cannot do this: the phone's pointer is moved by
  * the input system before events are dispatched.
  *
- * The overlay is a 1x1 window that is not touchable, so touches keep reaching the phone's apps.
- * Touching an app moves focus there and ends the capture (the app's text fields and on-screen
- * keyboard need that focus); [reclaim] takes it back when a mouse button is pressed.
+ * The overlay is a 1x1 window in the corner; touches go to the phone's apps below it. Being the
+ * top focusable window, it keeps focus even when an app is touched, and an app's text field and
+ * on-screen keyboard need that focus. So a touch on the phone (seen as a touch outside the
+ * overlay) takes the overlay away: focus goes to the app, and the mouse still reaches the target
+ * through accessibility interception meanwhile. [reclaim] puts it back on a mouse button press.
  */
 class PointerCaptureOverlay(
     private val service: AccessibilityService,
@@ -42,16 +45,30 @@ class PointerCaptureOverlay(
         if (view == null) add()
     }
 
-    /** A mouse button was pressed while not captured (focus went to a touched app): take focus and capture back. */
+    /** A mouse button was pressed while not captured (the phone was touched): take focus and capture back. */
     fun reclaim() = main.post {
-        val v = view ?: return@post
         val now = SystemClock.uptimeMillis()
-        if (!wanted || v.hasPointerCapture() || now - lastReclaim < 500) return@post
+        if (!wanted || now - lastReclaim < 500) return@post
+        val v = view
+        if (v != null && v.hasPointerCapture()) return@post
         lastReclaim = now
-        // Only a newly added window gets focus back; re-add it.
-        view = null
-        runCatching { wm.removeView(v) }
+        // Only a newly added window gets focus back; (re-)add it.
+        if (v != null) {
+            view = null
+            runCatching { wm.removeView(v) }
+        }
         add()
+    }
+
+    /** The phone was touched: take the overlay away so the touched app gets focus (see the class note). */
+    private fun yieldFocus() = main.post {
+        val v = view ?: return@post
+        if (!wanted) return@post
+        view = null
+        Hub.log("phone touched: focus to the phone's app until a mouse click")
+        runCatching { v.releasePointerCapture() }
+        runCatching { wm.removeView(v) }
+        onCaptureState(false)
     }
 
     /** On the main thread. */
@@ -61,8 +78,9 @@ class PointerCaptureOverlay(
             1, 1,
             WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
             // Focusable (no FLAG_NOT_FOCUSABLE): pointer capture is only granted to the focused window.
-            // Not touchable, and not touch-modal: every touch goes to the windows below.
-            WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+            // Not touch-modal: touches outside its one pixel go to the windows below, and it hears
+            // of them (ACTION_OUTSIDE) to give focus up (see the class note).
+            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
             PixelFormat.TRANSLUCENT,
         ).apply {
             gravity = Gravity.TOP or Gravity.START
@@ -106,6 +124,11 @@ class PointerCaptureOverlay(
             onCaptureState(hasCapture)
             // Lost it while still on the target (e.g. notification shade took focus): try again.
             if (!hasCapture && wanted && hasWindowFocus()) main.postDelayed({ if (wanted) requestPointerCapture() }, 200)
+        }
+
+        override fun onTouchEvent(event: MotionEvent): Boolean {
+            if (event.actionMasked == MotionEvent.ACTION_OUTSIDE && !event.isFromSource(InputDevice.SOURCE_MOUSE)) yieldFocus()
+            return true
         }
 
         override fun onCapturedPointerEvent(event: MotionEvent): Boolean {
