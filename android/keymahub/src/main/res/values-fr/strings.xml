@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="a11y_summary">Contrôlez d\'autres appareils avec le clavier et la souris connectés à ce téléphone</string>
-    <string name="a11y_description">KeymaHub reçoit la saisie du clavier et de la souris connectés à cet appareil et l\'envoie à l\'appareil Bluetooth (PC, tablette) choisi avec un raccourci. Quand ce téléphone est sélectionné, la saisie n\'est pas modifiée. La saisie n\'est jamais enregistrée ni envoyée sur Internet ; elle va uniquement à l\'appareil choisi. KeymaHub ne lit pas le contenu de l\'écran.</string>
+    <string name="a11y_summary">Contrôlez d\'autres appareils avec le clavier et la souris connectés à cet appareil</string>
+    <string name="a11y_description">KeymaHub reçoit la saisie du clavier et de la souris connectés à cet appareil et l\'envoie à l\'appareil Bluetooth (PC, tablette) choisi avec un raccourci. Quand cet appareil est sélectionné, la saisie n\'est pas modifiée. La saisie n\'est jamais enregistrée ni envoyée sur Internet ; elle va uniquement à l\'appareil choisi. KeymaHub ne lit pas le contenu de l\'écran.</string>
     <string name="setup_title">Configuration du mode hôte</string>
-    <string name="setup_intro">Utilisez le clavier et la souris connectés à ce téléphone pour contrôler les PC et tablettes à proximité. Rien à installer sur ceux-ci.</string>
+    <string name="setup_intro">Utilisez le clavier et la souris connectés à cet appareil pour contrôler les PC et tablettes à proximité. Rien à installer sur ceux-ci.</string>
     <string name="setup_steps">Pour commencer, autorisez les éléments suivants.</string>
     <string name="step_bluetooth_title">Appareils à proximité (Bluetooth)</string>
-    <string name="step_bluetooth_body">Ce téléphone se connecte à vos appareils comme clavier et souris Bluetooth.</string>
+    <string name="step_bluetooth_body">Cet appareil se connecte à vos appareils comme clavier et souris Bluetooth.</string>
     <string name="step_a11y_title">Service d\'accessibilité</string>
     <string name="step_a11y_body">Nécessaire pour recevoir la saisie du clavier et de la souris connectés et l\'envoyer à l\'appareil choisi.</string>
     <string name="step_notifications_title">Notifications (recommandé)</string>
@@ -16,8 +16,8 @@
     <string name="restricted_hint">Impossible d\'activer KeymaHub ? Infos sur l\'appli → ⋮ → Autoriser les paramètres restreints</string>
     <string name="disclosure_title">Utilisation du service d\'accessibilité par KeymaHub</string>
     <string name="disclosure_intro">KeymaHub utilise le service d\'accessibilité uniquement pour :</string>
-    <string name="disclosure_1">• Recevoir la saisie du clavier et de la souris connectés à ce téléphone.</string>
-    <string name="disclosure_2">• Envoyer cette saisie à l\'appareil Bluetooth (PC, tablette) choisi avec un raccourci. Quand ce téléphone est sélectionné, la saisie n\'est pas modifiée.</string>
+    <string name="disclosure_1">• Recevoir la saisie du clavier et de la souris connectés à cet appareil.</string>
+    <string name="disclosure_2">• Envoyer cette saisie à l\'appareil Bluetooth (PC, tablette) choisi avec un raccourci. Quand cet appareil est sélectionné, la saisie n\'est pas modifiée.</string>
     <string name="disclosure_3">• La saisie n\'est jamais enregistrée ni envoyée sur Internet ou au développeur. Elle va uniquement à l\'appareil choisi.</string>
     <string name="disclosure_4">• KeymaHub ne lit pas le contenu de l\'écran.</string>
     <string name="disclosure_next">Sur l\'écran suivant, activez KeymaHub dans Applications installées (ou Applications téléchargées).</string>
@@ -30,7 +30,7 @@
     <string name="menu">Menu</string>
     <string name="diagnostics_title">Journal de diagnostic</string>
     <string name="log_empty">(vide)</string>
-    <string name="status_phone">Contrôle de ce téléphone</string>
+    <string name="status_phone">Contrôle de cet appareil</string>
     <string name="status_target">Contrôle de %1$s</string>
     <string name="profile_default">Par défaut</string>
     <string name="profile_new">Nouveau profil</string>
@@ -41,7 +41,7 @@
     <string name="profile_delete_confirm">Supprimer le profil « %1$s » ?</string>
     <string name="hotkeys_title">Raccourcis</string>
     <string name="hotkeys_hint">Touchez un appareil pour lui passer le contrôle. Choisissez les appareils avec ⋯, faites glisser pour renuméroter.</string>
-    <string name="this_phone">Ce téléphone</string>
+    <string name="this_phone">Cet appareil</string>
     <string name="slot_empty">Libre</string>
     <string name="state_controlling">En contrôle</string>
     <string name="state_connected">Connecté</string>
@@ -55,15 +55,15 @@
     <string name="assign_swap_hint">Si l\'appareil est sur un autre raccourci, les deux sont échangés.</string>
     <string name="devices_title">Gérer les appareils</string>
     <string name="device_rename">Renommer</string>
-    <string name="guide_intro">Sur votre PC ou tablette, ajoutez ce téléphone depuis les paramètres Bluetooth. Les nouveaux appareils reçoivent le prochain raccourci libre du profil utilisé.</string>
-    <string name="guide_windows">Paramètres → Bluetooth et appareils → Ajouter un appareil → Bluetooth → choisissez ce téléphone</string>
+    <string name="guide_intro">Sur votre PC ou tablette, ajoutez cet appareil depuis les paramètres Bluetooth. Les nouveaux appareils reçoivent le prochain raccourci libre du profil utilisé.</string>
+    <string name="guide_windows">Paramètres → Bluetooth et appareils → Ajouter un appareil → Bluetooth → choisissez cet appareil</string>
     <string name="guide_windows_hint">Absent de la liste ? Choisissez « Afficher tous les appareils » dans la fenêtre Ajouter un appareil.</string>
-    <string name="guide_mac">Réglages Système → Bluetooth → cliquez sur Se connecter à côté de ce téléphone</string>
-    <string name="guide_mobile">Réglages → Bluetooth → choisissez ce téléphone</string>
-    <string name="guide_note">Si le téléphone demande l\'association, acceptez. Gardez l\'écran des paramètres Bluetooth de ce téléphone fermé pendant la connexion.</string>
+    <string name="guide_mac">Réglages Système → Bluetooth → cliquez sur Se connecter à côté de cet appareil</string>
+    <string name="guide_mobile">Réglages → Bluetooth → choisissez cet appareil</string>
+    <string name="guide_note">Si cet appareil demande l\'association, acceptez. Gardez l\'écran des paramètres Bluetooth de cet appareil fermé pendant la connexion.</string>
     <string name="notif_channel">KeymaHub actif</string>
-    <string name="notif_text">%1$s · %2$d connecté(s) · %3$s : ce téléphone</string>
-    <string name="hud_phone">← Ce téléphone</string>
+    <string name="notif_text">%1$s · %2$d connecté(s) · %3$s : cet appareil</string>
+    <string name="hud_phone">← Cet appareil</string>
     <string name="hud_target">→ %1$s</string>
     <string name="hud_unavailable">%1$s n\'est pas connecté</string>
     <string name="hud_empty">Aucun appareil sur %1$s</string>
@@ -71,13 +71,13 @@
     <string name="problem_a11y_off">Le service d\'accessibilité est désactivé. Activez KeymaHub dans les paramètres d\'accessibilité.</string>
     <string name="problem_a11y_turned_off">Arrêté car le service d\'accessibilité a été désactivé.</string>
     <string name="problem_bt_permission">Autorisez l\'autorisation Appareils à proximité (Bluetooth).</string>
-    <string name="problem_bt_unsupported">Ce téléphone ne prend pas en charge le Bluetooth.</string>
+    <string name="problem_bt_unsupported">Cet appareil ne prend pas en charge le Bluetooth.</string>
     <string name="problem_bt_off">Activez le Bluetooth.</string>
-    <string name="problem_ble_peripheral">Ce téléphone ne peut pas servir de clavier Bluetooth LE (mode périphérique non pris en charge).</string>
+    <string name="problem_ble_peripheral">Cet appareil ne peut pas servir de clavier Bluetooth LE (mode périphérique non pris en charge).</string>
     <string name="problem_gatt">Impossible de démarrer le service de clavier Bluetooth. Désactivez puis réactivez le Bluetooth et réessayez.</string>
     <string name="action_back">Retour</string>
     <string name="hosting_title">Hôte</string>
-    <string name="hosting_off_hint">Activez pour utiliser le clavier et la souris de ce téléphone sur vos appareils.</string>
+    <string name="hosting_off_hint">Activez pour utiliser le clavier et la souris de cet appareil sur vos appareils.</string>
     <string name="settings_title">Paramètres</string>
     <string name="profiles_title">Profils</string>
     <string name="profiles_hint">Le profil le plus haut dont les conditions sont remplies est utilisé. Faites glisser pour réordonner.</string>
@@ -89,7 +89,7 @@
     <string name="conditions_hint">En mode selon des règles, ce profil est utilisé dès qu\'un des appareils cochés est connecté.</string>
     <string name="condition_always">Seulement quand il est activé</string>
     <string name="hud_profile">Profil : %1$s</string>
-    <string name="notif_pairing">Le mode d\'association est activé. Ajoutez ce téléphone sur votre PC ou tablette.</string>
+    <string name="notif_pairing">Le mode d\'association est activé. Ajoutez cet appareil sur votre PC ou tablette.</string>
     <string name="devices_paired">Appareils associés</string>
     <string name="devices_empty">Aucun appareil associé. Activez le mode d\'association pour en ajouter un.</string>
     <string name="pairing_title">Mode d\'association</string>
@@ -98,11 +98,11 @@
     <string name="state_disconnected_by_user">Déconnecté (pas de reconnexion)</string>
     <string name="last_used">Dernière utilisation : %1$s</string>
     <string name="last_used_never">Jamais utilisé</string>
-    <string name="device_rename_hint">Nom de cet appareil dans KeymaHub.</string>
+    <string name="device_rename_hint">Le nom affiché dans KeymaHub.</string>
     <string name="device_disconnect">Déconnecter</string>
     <string name="device_allow">Autoriser la connexion</string>
     <string name="device_remove">Supprimer</string>
-    <string name="device_remove_confirm">Supprimer « %1$s » ? L\'association est supprimée et il est retiré de tous les profils. Supprimez aussi ce téléphone sur cet appareil.</string>
+    <string name="device_remove_confirm">Supprimer « %1$s » ? L\'association est supprimée et il est retiré de tous les profils. Supprimez aussi cet appareil dans les paramètres Bluetooth de l\'autre appareil.</string>
     <string name="settings_appearance">Apparence</string>
     <string name="settings_behavior">Comportement</string>
     <string name="language">Langue</string>
@@ -127,7 +127,7 @@
     <string name="drag_to_renumber">Faites glisser pour le déplacer vers un autre numéro</string>
     <string name="profile_fallback">Utilisé quand aucune condition n\'est remplie</string>
     <string name="settings_hotkeys">Raccourcis</string>
-    <string name="hotkeys_mods_hint">Maintenez ces touches et appuyez sur une touche numérique.\n%1$s+1 : ce téléphone\n%1$s+2–9, 0 : l\'appareil placé sur ce chiffre dans le profil</string>
+    <string name="hotkeys_mods_hint">Maintenez ces touches et appuyez sur une touche numérique.\n%1$s+1 : cet appareil\n%1$s+2–9, 0 : l\'appareil placé sur ce chiffre dans le profil</string>
     <string name="hotkeys_invalid">Incluez Ctrl/⌃, Alt/⌥ ou Win/⌘.</string>
     <string name="condition_devices">Appareils connectés</string>
     <string name="condition_devices_off">Peu importe</string>
