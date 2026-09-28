@@ -213,6 +213,21 @@ data class Settings(
         return withProfile(p.copy(receivers = r))
     }
 
+    /**
+     * Takes the device off receiver [slot] of profile [id]; the receivers after it move up one
+     * place each (empty ones too), so the list closes the gap. The device stays paired.
+     */
+    fun excludeReceiver(id: String, slot: Int): Settings {
+        require(slot in 1 until Profile.SLOTS)
+        val p = profile(id) ?: return this
+        if (p.receivers[slot] == null) return this
+        val order = (1 until Profile.SLOTS).map { p.receivers[it] }.toMutableList()
+        order.removeAt(slot - 1)
+        order.add(null)
+        val r = order.withIndex().mapNotNull { (i, a) -> a?.let { i + 1 to it } }.toMap()
+        return withProfile(p.copy(receivers = r))
+    }
+
     // ---------------------------------------------------------------- profiles
 
     /**

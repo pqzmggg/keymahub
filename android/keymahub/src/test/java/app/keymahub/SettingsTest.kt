@@ -76,6 +76,19 @@ class SettingsTest {
     }
 
     @Test
+    fun excludeReceiverPullsTheRestUp() {
+        var s = Settings().deviceConnected("A", "a").deviceConnected("B", "b").deviceConnected("C", "c")
+        val id = s.activeId
+        s = s.moveReceiver(id, 3, 5) // A, B on 1-2, C on 5
+        s = s.excludeReceiver(id, 1) // everything after 1 moves up one, the gap too
+        assertEquals(mapOf(1 to "B", 4 to "C"), s.profile(id)!!.receivers)
+        assertEquals(3, s.devices.size) // still paired
+        assertEquals(s, s.excludeReceiver(id, 2)) // an empty slot: nothing to exclude
+        s = s.excludeReceiver(id, 4) // the last one: nothing moves
+        assertEquals(mapOf(1 to "B"), s.profile(id)!!.receivers)
+    }
+
+    @Test
     fun assignMovesAndSwaps() {
         var s = Settings().deviceConnected("A", "a").deviceConnected("B", "b")
         val id = s.activeId

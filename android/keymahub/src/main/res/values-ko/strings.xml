@@ -47,7 +47,7 @@
     <string name="state_connected">연결됨</string>
     <string name="state_not_connected">연결 안 됨</string>
     <string name="assign_device">기기 선택</string>
-    <string name="unassign">기기 빼기</string>
+    <string name="unassign">기기 제외</string>
     <string name="assign_title">%1$s 에 둘 기기</string>
     <string name="assign_none">없음</string>
     <string name="assign_now_on">지금 %1$s</string>
