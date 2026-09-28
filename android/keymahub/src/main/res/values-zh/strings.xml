@@ -135,13 +135,13 @@
     <string name="condition_devices_hint">主机开启时，附近已配对的设备会自动重新连接。</string>
     <string name="settings_activation">配置自动启用</string>
     <string name="mode_auto">全自动</string>
-    <string name="mode_auto_hint">使用已分配设备连接最多的配置；数量相同时，排在上面的优先。</string>
+    <string name="mode_auto_hint">使用设备连接比例最高的配置。</string>
     <string name="mode_rules">按规则自动</string>
     <string name="mode_rules_hint">使用所选设备中任一已连接的配置里排在最上面的一个。</string>
     <string name="mode_manual">关闭</string>
     <string name="mode_manual_hint">只使用您手动启用的配置。</string>
     <string name="profile_devices_connected">已连接 %1$d/%2$d 台设备</string>
-    <string name="profiles_hint_auto">使用设备连接最多的配置，数量相同时上面的优先。拖动可调整顺序。</string>
+    <string name="profiles_hint_auto">使用设备连接比例最高的配置。拖动可调整顺序。</string>
     <string name="profiles_hint_manual">使用您手动启用的配置。</string>
     <string name="mode_fallback_note">两种自动方式下，没有符合的配置时都会使用您最后启用的配置。手动启用的配置在已连接设备变化前优先于自动选择。</string>
     <string name="device_connect">连接</string>

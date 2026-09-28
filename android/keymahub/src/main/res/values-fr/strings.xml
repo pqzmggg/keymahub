@@ -135,13 +135,13 @@
     <string name="condition_devices_hint">Quand l\'hôte est actif, les appareils associés à proximité se reconnectent d\'eux-mêmes.</string>
     <string name="settings_activation">Activation automatique des profils</string>
     <string name="mode_auto">Entièrement automatique</string>
-    <string name="mode_auto_hint">Utilise le profil dont le plus d\'appareils sont connectés ; en cas d\'égalité, le plus haut l\'emporte.</string>
+    <string name="mode_auto_hint">Utilise le profil dont la plus grande part des appareils est connectée.</string>
     <string name="mode_rules">Selon des règles</string>
     <string name="mode_rules_hint">Utilise le premier profil de la liste dont un des appareils choisis est connecté.</string>
     <string name="mode_manual">Désactivée</string>
     <string name="mode_manual_hint">Utilise uniquement le profil que vous activez.</string>
     <string name="profile_devices_connected">%1$d appareil(s) connecté(s) sur %2$d</string>
-    <string name="profiles_hint_auto">Le profil qui a le plus d\'appareils connectés est utilisé ; à égalité, le plus haut. Faites glisser pour réordonner.</string>
+    <string name="profiles_hint_auto">Le profil dont la plus grande part des appareils est connectée est utilisé. Faites glisser pour réordonner.</string>
     <string name="profiles_hint_manual">Le profil que vous activez est utilisé.</string>
     <string name="mode_fallback_note">Dans les deux modes automatiques, si rien ne correspond, le dernier profil activé est utilisé. Activer un profil à la main l\'emporte aussi sur le choix automatique jusqu\'à ce que les appareils connectés changent.</string>
     <string name="device_connect">Connecter</string>
