@@ -47,7 +47,7 @@
     <string name="state_connected">接続済み</string>
     <string name="state_not_connected">未接続</string>
     <string name="assign_device">デバイスを選択</string>
-    <string name="unassign">デバイスを外す</string>
+    <string name="unassign">デバイスを除外</string>
     <string name="assign_title">%1$s のデバイス</string>
     <string name="assign_none">なし</string>
     <string name="assign_now_on">現在 %1$s</string>

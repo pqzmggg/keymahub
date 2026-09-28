@@ -86,8 +86,10 @@ fun ProfileScreen(
     fun rearrange(change: (Settings) -> Settings) {
         val controlled = if (canSelect && status.slot != 0) profile.addressOf(status.slot) else null
         onEdit(change)
-        val now = controlled?.let { change(settings).profile(profileId)?.slotOf(it) }
-        if (now != null && now != status.slot) onSelect(now)
+        if (controlled == null) return
+        val now = change(settings).profile(profileId)?.slotOf(controlled)
+        // Excluded: control goes back to this phone rather than to whoever moved up to its number.
+        if (now == null) onSelect(0) else if (now != status.slot) onSelect(now)
     }
 
     Page {
@@ -128,7 +130,7 @@ fun ProfileScreen(
                 canSelect = canSelect,
                 onSelect = onSelect,
                 onAssign = { slot -> assignFor = slot },
-                onClear = { slot -> onEdit { it.assign(profileId, slot, null) } },
+                onClear = { slot -> rearrange { it.excludeReceiver(profileId, slot) } },
                 onMove = { from, to -> rearrange { it.moveReceiver(profileId, from, to) } },
             )
         }

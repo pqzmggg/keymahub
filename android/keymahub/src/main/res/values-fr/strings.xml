@@ -47,7 +47,7 @@
     <string name="state_connected">Connecté</string>
     <string name="state_not_connected">Non connecté</string>
     <string name="assign_device">Choisir l\'appareil</string>
-    <string name="unassign">Retirer l\'appareil</string>
+    <string name="unassign">Exclure l\'appareil</string>
     <string name="assign_title">Appareil pour %1$s</string>
     <string name="assign_none">Aucun</string>
     <string name="assign_now_on">Actuellement sur %1$s</string>
