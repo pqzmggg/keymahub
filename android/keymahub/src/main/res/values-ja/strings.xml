@@ -78,7 +78,6 @@
     <string name="action_back">戻る</string>
     <string name="hosting_title">ホスティング</string>
     <string name="hosting_off_hint">オンにすると、このスマホのキーボードとマウスでデバイスを操作します。</string>
-    <string name="hosting_still_linked">デバイス側でまだ接続中（入力は送りません）: %1$s。このスマートフォンの別のアプリまたはシステムが接続を使用しています。切断するにはそのデバイスの Bluetooth 設定で切断してください。</string>
     <string name="settings_title">設定</string>
     <string name="profiles_title">プロファイル</string>
     <string name="profiles_hint">条件に合うプロファイルのうち、一番上のものを使います。ドラッグで並べ替えます。</string>

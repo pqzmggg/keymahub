@@ -78,7 +78,6 @@
     <string name="action_back">뒤로</string>
     <string name="hosting_title">호스팅</string>
     <string name="hosting_off_hint">켜면 이 폰의 키보드, 마우스로 기기들을 조작합니다.</string>
-    <string name="hosting_still_linked">기기 쪽에 아직 연결됨(입력은 보내지 않음): %1$s. 이 폰의 다른 앱이나 시스템이 연결을 쓰고 있습니다. 끊으려면 그 기기의 블루투스 설정에서 연결을 끊으세요.</string>
     <string name="settings_title">설정</string>
     <string name="profiles_title">프로필</string>
     <string name="profiles_hint">조건이 맞는 프로필 중 가장 위에 있는 프로필을 사용합니다. 끌어서 순서를 바꾸세요.</string>
