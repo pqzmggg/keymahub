@@ -135,13 +135,13 @@
     <string name="condition_devices_hint">ホスティング中は、近くのペアリング済みデバイスが自動で再接続します。</string>
     <string name="settings_activation">プロファイルの自動切り替え</string>
     <string name="mode_auto">完全自動</string>
-    <string name="mode_auto_hint">割り当てたデバイスが最も多く接続されているプロファイルを使います。同数なら接続されている割合が高いプロファイル、それも同じなら上のプロファイルが優先です。</string>
+    <string name="mode_auto_hint">デバイスが最も高い割合で接続されているプロファイルを使います。</string>
     <string name="mode_rules">ルールに基づく自動</string>
     <string name="mode_rules_hint">選んだデバイスのいずれかが接続されているプロファイルのうち、一覧で最も上のものを使います。</string>
     <string name="mode_manual">オフ</string>
     <string name="mode_manual_hint">手動で有効にしたプロファイルだけを使います。</string>
     <string name="profile_devices_connected">%2$d 台中 %1$d 台接続</string>
-    <string name="profiles_hint_auto">デバイスが最も多く接続されたプロファイルを使い、同数なら接続の割合が高い方、それも同じなら上が優先です。ドラッグで並べ替えます。</string>
+    <string name="profiles_hint_auto">デバイスが最も高い割合で接続されたプロファイルを使います。ドラッグで並べ替えます。</string>
     <string name="profiles_hint_manual">手動で有効にしたプロファイルを使います。</string>
     <string name="mode_fallback_note">どちらの自動モードでも、合うプロファイルがない場合は最後に有効にしたプロファイルを使います。手動で有効にすると、接続中のデバイスが変わるまで自動の選択より優先されます。</string>
     <string name="device_connect">接続</string>
