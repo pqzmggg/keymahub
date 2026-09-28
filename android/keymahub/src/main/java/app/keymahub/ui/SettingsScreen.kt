@@ -48,8 +48,8 @@ fun SettingsScreen(
     onBack: () -> Unit,
     onUi: ((UiPrefs) -> UiPrefs) -> Unit,
     onLanguage: (String) -> Unit,
-    /** Experiment (temporary): close the GATT server. */
-    onCloseGatt: () -> Unit,
+    /** Experiment (temporary): close the GATT server, and open it again after that many seconds (0: don't). */
+    onCloseGatt: (Int) -> Unit,
 ) {
     var pickingLanguage by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -99,7 +99,11 @@ fun SettingsScreen(
 
         SectionTitle(stringResource(R.string.settings_experiments))
         Card(Modifier.fillMaxWidth()) {
-            Item(stringResource(R.string.close_gatt), stringResource(R.string.close_gatt_hint), onCloseGatt)
+            Item(stringResource(R.string.close_gatt), stringResource(R.string.close_gatt_hint)) { onCloseGatt(0) }
+            for (seconds in listOf(2, 4, 8)) {
+                HorizontalDivider()
+                Item(stringResource(R.string.close_gatt_reopen_title, seconds), stringResource(R.string.close_gatt_reopen_hint)) { onCloseGatt(seconds) }
+            }
         }
 
         Text(

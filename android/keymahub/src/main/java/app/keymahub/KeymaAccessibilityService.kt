@@ -9,6 +9,7 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityManager
+import app.keymahub.ble.BleHid
 import app.keymahub.capture.A11yCapture
 import app.keymahub.core.Hub
 
@@ -21,6 +22,9 @@ class KeymaAccessibilityService : AccessibilityService() {
     override fun onServiceConnected() {
         instance = this
         Hub.log("accessibility service connected")
+        // The first thing the app's process does (it restarts the service after an update): the GATT
+        // server goes up at once, so hosts still linked see the HID service back soon (BleHid.refresh).
+        Thread({ BleHid.openServer(applicationContext) }, "gatt-open").start()
     }
 
     override fun onUnbind(intent: android.content.Intent?): Boolean {

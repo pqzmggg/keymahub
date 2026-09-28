@@ -164,4 +164,7 @@
     <string name="close_gatt_done">GATT 서버를 닫았습니다. 호스팅을 켜면 다시 열립니다.</string>
     <string name="close_gatt_hosting">호스팅을 먼저 끄세요.</string>
     <string name="close_gatt_none">GATT 서버가 열려 있지 않습니다.</string>
+    <string name="close_gatt_reopen_title">닫고 %1$d초 뒤 다시 열기</string>
+    <string name="close_gatt_reopen_hint">업데이트 뒤 앱이 다시 뜨는 것처럼: 연결된 기기가 키보드를 유지하는지 확인합니다.</string>
+    <string name="close_gatt_reopen">GATT 서버를 닫았습니다. 곧 다시 엽니다.</string>
 </resources>

@@ -168,4 +168,7 @@
     <string name="close_gatt_done">Servidor GATT cerrado. Se vuelve a abrir al activar el anfitrión.</string>
     <string name="close_gatt_hosting">Desactiva primero el anfitrión.</string>
     <string name="close_gatt_none">El servidor GATT no está abierto.</string>
+    <string name="close_gatt_reopen_title">Cerrar y volver a abrir en %1$d s</string>
+    <string name="close_gatt_reopen_hint">Como la app al reiniciarse tras una actualización: ¿el dispositivo conectado conserva el teclado?</string>
+    <string name="close_gatt_reopen">Servidor GATT cerrado. Se volverá a abrir en breve.</string>
 </resources>
