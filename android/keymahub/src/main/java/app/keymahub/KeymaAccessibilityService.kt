@@ -46,6 +46,7 @@ class KeymaAccessibilityService : AccessibilityService() {
 
     private fun detach() {
         softKeyboardDespiteHardKeyboard(false)
+        textEvents = null
         if (instance === this) instance = null
         if (capture != null) {
             Hub.log("accessibility service turned off while running")
@@ -54,7 +55,26 @@ class KeymaAccessibilityService : AccessibilityService() {
         capture = null
     }
 
-    override fun onAccessibilityEvent(event: AccessibilityEvent?) {}
+    override fun onAccessibilityEvent(event: AccessibilityEvent?) {
+        if (event != null) textEvents?.invoke(event)
+    }
+
+    /**
+     * While set (a target has the mouse, see HubService.onSelect), gets the events that show a
+     * text field touched on the phone, and its text changing (capture.TextRelay). Only then are
+     * they subscribed to: otherwise the service reads nothing on the screen.
+     */
+    @Volatile
+    var textEvents: ((AccessibilityEvent) -> Unit)? = null
+        set(value) {
+            field = value
+            val info = serviceInfo ?: return
+            info.eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or (
+                if (value == null) 0
+                else AccessibilityEvent.TYPE_VIEW_FOCUSED or AccessibilityEvent.TYPE_VIEW_CLICKED or AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED
+                )
+            serviceInfo = info
+        }
 
     override fun onInterrupt() {}
 

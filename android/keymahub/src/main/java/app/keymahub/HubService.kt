@@ -125,6 +125,7 @@ class HubService : Service(), BleHid.Listener {
         val c = capture
         KeymaAccessibilityService.instance?.let {
             it.softKeyboardDespiteHardKeyboard(false)
+            it.textEvents = null
             if (it.capture === c) it.capture = null
         }
         c?.stop()
@@ -178,12 +179,16 @@ class HubService : Service(), BleHid.Listener {
             pointerCapture?.stop()
             a11y?.interceptMouse(false)
             a11y?.softKeyboardDespiteHardKeyboard(false)
+            a11y?.textEvents = null
             showHud(getString(R.string.hud_phone))
         } else {
             val address = profile.addressOf(slot)
             sender?.select(address)
             pointerCapture?.start()
             a11y?.softKeyboardDespiteHardKeyboard(Hub.ui.value.touchKeyboard)
+            // The mouse stays captured, so a text field touched on the phone is typed into through the
+            // capture window (TextRelay).
+            a11y?.textEvents = pointerCapture?.takeIf { Hub.ui.value.touchKeyboard }?.let { it::onAccessibilityEvent }
             showHud(getString(R.string.hud_target, receiverName(slot).orEmpty()))
             if (address != null) Hub.edit(this) { it.touch(address, System.currentTimeMillis()) }
         }

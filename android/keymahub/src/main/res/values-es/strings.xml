@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="a11y_summary">Controla otros dispositivos con el teclado y el ratón conectados a este dispositivo</string>
-    <string name="a11y_description">KeymaHub recibe la entrada del teclado y el ratón conectados a este dispositivo y la envía al dispositivo Bluetooth (PC, tableta) que elijas con un atajo. Mientras este dispositivo está seleccionado, la entrada no se modifica. La entrada nunca se guarda ni se envía a Internet; solo va al dispositivo que elijas. KeymaHub no lee el contenido de la pantalla.</string>
+    <string name="a11y_description">KeymaHub recibe la entrada del teclado y el ratón conectados a este dispositivo y la envía al dispositivo Bluetooth (PC, tableta) que elijas con un atajo. Mientras este dispositivo está seleccionado, la entrada no se modifica. La entrada nunca se guarda ni se envía a Internet; solo va al dispositivo que elijas. KeymaHub no lee el contenido de la pantalla, salvo un campo de texto que toques en este dispositivo mientras controlas otro: se lee su texto para que puedas escribir en él con el teclado en pantalla.</string>
     <string name="setup_title">Configuración del modo anfitrión</string>
     <string name="setup_intro">Usa el teclado y el ratón conectados a este dispositivo para controlar PC y tabletas cercanos. No hay que instalar nada en ellos.</string>
     <string name="setup_steps">Para empezar, permite lo siguiente.</string>
@@ -19,7 +19,7 @@
     <string name="disclosure_1">• Recibir la entrada del teclado y el ratón conectados a este dispositivo.</string>
     <string name="disclosure_2">• Enviar esa entrada al dispositivo Bluetooth (PC, tableta) que elijas con un atajo. Mientras este dispositivo está seleccionado, la entrada no se modifica.</string>
     <string name="disclosure_3">• La entrada nunca se guarda ni se envía a Internet ni al desarrollador. Solo va al dispositivo que elijas.</string>
-    <string name="disclosure_4">• KeymaHub no lee el contenido de la pantalla.</string>
+    <string name="disclosure_4">• KeymaHub no lee el contenido de la pantalla, salvo un campo de texto que toques en este dispositivo mientras controlas otro: se lee su texto para que puedas escribir en él con el teclado en pantalla.</string>
     <string name="disclosure_next">En la siguiente pantalla, activa KeymaHub en Aplicaciones instaladas (o Aplicaciones descargadas).</string>
     <string name="disclosure_agree">Aceptar y abrir ajustes</string>
     <string name="action_cancel">Cancelar</string>

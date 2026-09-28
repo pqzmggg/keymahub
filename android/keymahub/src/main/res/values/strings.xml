@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name" translatable="false">KeymaHub</string>
     <string name="a11y_summary">Control other devices with the keyboard and mouse connected to this device</string>
-    <string name="a11y_description">KeymaHub receives input from the keyboard and mouse connected to this device and sends it to the Bluetooth device (PC, tablet) you choose with a hotkey. When this device is selected, input is left as it is. Input is never stored or sent to the internet; it only goes to the device you choose. KeymaHub does not read screen content.</string>
+    <string name="a11y_description">KeymaHub receives input from the keyboard and mouse connected to this device and sends it to the Bluetooth device (PC, tablet) you choose with a hotkey. When this device is selected, input is left as it is. Input is never stored or sent to the internet; it only goes to the device you choose. KeymaHub does not read screen content, except a text field you touch on this device while another device is controlled: its text is read so you can type into it with the on-screen keyboard.</string>
     <string name="setup_title">Host mode setup</string>
     <string name="setup_intro">Use the keyboard and mouse connected to this device to control PCs and tablets nearby. Nothing needs to be installed on them.</string>
     <string name="setup_steps">To start, allow the following.</string>
@@ -20,7 +20,7 @@
     <string name="disclosure_1">• Receive input from the keyboard and mouse connected to this device.</string>
     <string name="disclosure_2">• Send that input to the Bluetooth device (PC, tablet) you select with a hotkey. While this device is selected, input is left as it is.</string>
     <string name="disclosure_3">• Input is never stored and never sent to the internet or to the developer. It only goes to the device you select.</string>
-    <string name="disclosure_4">• KeymaHub does not read screen content.</string>
+    <string name="disclosure_4">• KeymaHub does not read screen content, except a text field you touch on this device while another device is controlled: its text is read so you can type into it with the on-screen keyboard.</string>
     <string name="disclosure_next">On the next screen, turn on KeymaHub under Installed apps (or Downloaded apps).</string>
     <string name="disclosure_agree">Agree and open settings</string>
     <string name="action_cancel">Cancel</string>
