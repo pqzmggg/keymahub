@@ -90,11 +90,15 @@ fun ProfileScreen(
     }
 
     Page {
-        TopBar(profileName(profile), onBack.takeIf { showBack }) {
-            IconButton(onClick = { renaming = true }) {
-                Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.profile_rename))
-            }
-        }
+        TopBar(
+            profileName(profile),
+            onBack.takeIf { showBack },
+            titleAction = {
+                IconButton(onClick = { renaming = true }) {
+                    Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.profile_rename))
+                }
+            },
+        )
         Text(
             stringResource(
                 when {
