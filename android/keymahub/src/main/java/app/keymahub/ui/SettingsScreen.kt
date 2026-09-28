@@ -48,6 +48,8 @@ fun SettingsScreen(
     onBack: () -> Unit,
     onUi: ((UiPrefs) -> UiPrefs) -> Unit,
     onLanguage: (String) -> Unit,
+    /** Experiment (temporary): close the GATT server. */
+    onCloseGatt: () -> Unit,
 ) {
     var pickingLanguage by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -93,6 +95,11 @@ fun SettingsScreen(
                     onUi { it.copy(touchKeyboard = on) }
                 }
             }
+        }
+
+        SectionTitle(stringResource(R.string.settings_experiments))
+        Card(Modifier.fillMaxWidth()) {
+            Item(stringResource(R.string.close_gatt), stringResource(R.string.close_gatt_hint), onCloseGatt)
         }
 
         Text(

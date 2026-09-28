@@ -158,4 +158,10 @@
     <string name="shortcut_activate_short">%1$s 활성화</string>
     <string name="shortcut_profile_activated">프로필 활성화됨: %1$s</string>
     <string name="shortcut_profile_missing">없는 프로필입니다</string>
+    <string name="settings_experiments">실험</string>
+    <string name="close_gatt">GATT 서버 닫기</string>
+    <string name="close_gatt_hint">호스팅이 꺼져 있을 때만. 앱이 종료될 때(업데이트, 강제 종료)처럼 서비스를 닫아 연결된 기기의 반응을 확인합니다. 임시 기능입니다.</string>
+    <string name="close_gatt_done">GATT 서버를 닫았습니다. 호스팅을 켜면 다시 열립니다.</string>
+    <string name="close_gatt_hosting">호스팅을 먼저 끄세요.</string>
+    <string name="close_gatt_none">GATT 서버가 열려 있지 않습니다.</string>
 </resources>

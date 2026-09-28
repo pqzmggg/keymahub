@@ -382,6 +382,21 @@ object BleHid {
         hostsLoaded = true
     }
 
+    /**
+     * Experiment (temporary): closes the GATT server as the app's process ending does (an update,
+     * a force stop): its services leave the database and hosts still linked are told (Service
+     * Changed). Hosting off only; hosting on opens the server again. Returns a string resource
+     * saying what happened.
+     */
+    @Synchronized
+    fun closeServer(): Int {
+        if (running) return R.string.close_gatt_hosting
+        if (server == null) return R.string.close_gatt_none
+        Hub.log("BLE HID: closing the GATT server (experiment)")
+        closeAll()
+        return R.string.close_gatt_done
+    }
+
     /** Bluetooth turned off: the server, advertising set and links are gone with it; opened again on start. */
     private fun closeAll() {
         running = false
