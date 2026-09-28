@@ -124,6 +124,13 @@ object BleHid {
     private val serverJoined = HashSet<String>()
     /** Hosts that read the report map since the GATT server opened: they looked at the keyboard again. */
     private val refreshed = HashSet<String>()
+    /**
+     * Hosts linked when the GATT server opened that have not looked at the keyboard again yet, and
+     * when it opened (see [refresh]): one dropping the link within [FORGET_WINDOW_MS] forgot it.
+     */
+    private val refreshing = HashMap<String, Long>()
+    /** Hosts already noted using the keyboard while hosting is off (see admit): noted once per link. */
+    private val offNoted = HashSet<String>()
     /** The [REFRESH_SERVICE] while it is in the database. */
     private var refreshService: BluetoothGattService? = null
     /** Addresses using the HID service without being recognized as a target (see admit). */
@@ -134,6 +141,13 @@ object BleHid {
     @Volatile private var active: String? = null
 
     private val listeners = CopyOnWriteArrayList<Listener>()
+
+    /**
+     * A host dropped the link without looking at the keyboard again after the HID service was gone
+     * for a while (see [refresh]): it has forgotten the keyboard and has to pair again. Called on a
+     * Bluetooth thread with the host's address and name. Set by the accessibility service.
+     */
+    @Volatile var onForgotten: ((address: String, name: String) -> Unit)? = null
 
     /** Devices the user disconnected: refused when they reconnect. Set by the service. */
     @Volatile var isBlocked: (address: String) -> Boolean = { false }
@@ -204,6 +218,7 @@ object BleHid {
         // Links up before the server: hosts that were using the keyboard when the old server went away.
         for (d in knownLinks(manager)) {
             adopt(d)
+            synchronized(lock) { refreshing[d.address] = SystemClock.uptimeMillis() }
             refresh(d)
         }
         return null
@@ -456,24 +471,6 @@ object BleHid {
         hostsLoaded = true
     }
 
-    /**
-     * Experiment (temporary): closes the GATT server as the app's process ending does (an update,
-     * a force stop): its services leave the database and hosts still linked are told (Service
-     * Changed). With [reopenAfterMs] it opens again after that long, as the next process does;
-     * otherwise hosting on opens it. Hosting off only. Returns a string resource saying what happened.
-     */
-    @Synchronized
-    fun closeServer(reopenAfterMs: Long = 0): Int {
-        if (running) return R.string.close_gatt_hosting
-        if (server == null) return R.string.close_gatt_none
-        Hub.log("BLE HID: closing the GATT server (experiment${if (reopenAfterMs > 0) ", opening it again in ${reopenAfterMs} ms" else ""})")
-        closeAll()
-        val ctx = appContext ?: return R.string.close_gatt_done
-        if (reopenAfterMs <= 0) return R.string.close_gatt_done
-        timers.postDelayed({ Thread { openServer(ctx) }.start() }, reopenAfterMs)
-        return R.string.close_gatt_reopen
-    }
-
     /** Bluetooth turned off: the server, advertising set and links are gone with it; opened again on start. */
     private fun closeAll() {
         running = false
@@ -487,6 +484,8 @@ object BleHid {
         refreshService = null
         synchronized(lock) {
             refreshed.clear()
+            refreshing.clear()
+            offNoted.clear()
             holds.values.forEach { h -> runCatching { h.gatt?.close() } }
             holds.clear(); serverJoined.clear(); devices.clear(); queues.clear()
             inFlight.clear(); lastSent.clear(); strangers.clear(); traced.clear()
@@ -735,9 +734,15 @@ object BleHid {
                         serverJoined.remove(address)
                         strangers.remove(address)
                         traced.remove(address)
+                        offNoted.remove(address)
                     }
                     // Known hosts too: shows when a link ended after hosting stopped.
                     if (wasTarget || hosts.knows(address)) Hub.log("BLE HID: ${nameOf(address)} disconnected${statusText(status)}")
+                    val since = synchronized(lock) { refreshing.remove(address) }
+                    if (since != null && SystemClock.uptimeMillis() - since <= FORGET_WINDOW_MS) {
+                        Hub.log("BLE HID: ${nameOf(address)} dropped the link without looking at the keyboard again: it has forgotten it (pair again)")
+                        onForgotten?.invoke(address, nameOf(address))
+                    }
                     if (change == Change.GONE) gone(address)
                     advertise() // hosts reconnect to it (a no-op while not hosting)
                 }
@@ -746,7 +751,10 @@ object BleHid {
 
         override fun onCharacteristicReadRequest(device: BluetoothDevice, requestId: Int, offset: Int, ch: BluetoothGattCharacteristic) {
             trace(device, "read ${label(ch)}${if (offset > 0) " @$offset" else ""}")
-            if (ch.uuid == REPORT_MAP) synchronized(lock) { refreshed.add(device.address) }
+            if (ch.uuid == REPORT_MAP) synchronized(lock) {
+                refreshed.add(device.address)
+                refreshing.remove(device.address)
+            }
             if (!admit(device, requestId, isHid(ch))) return
             respond(device, requestId, offset, values[ch] ?: ByteArray(0))
         }
@@ -841,7 +849,7 @@ object BleHid {
         if (!running) {
             if (!bonded) {
                 synchronized(lock) { strangers.add(address) } // pairing is refused (onBondState)
-            } else if (synchronized(lock) { address !in holds }) {
+            } else if (synchronized(lock) { offNoted.add(address) }) {
                 Hub.log("BLE HID: ${nameOf(address)} uses the keyboard while hosting is off, ending the link")
                 join(device, end = true)
             }
@@ -990,6 +998,8 @@ object BleHid {
     /** How often, and how many times, a host is told again that the services changed (see [refresh]). */
     private const val REFRESH_MS = 1_500L
     private const val REFRESH_ROUNDS = 6
+    /** A host linked when the server opened that drops the link this soon without looking again forgot the keyboard. */
+    private const val FORGET_WINDOW_MS = 15_000L
     /** How long a new link is left alone before tuning it or restarting advertising. */
     private const val SETTLE_MS = 3_000L
     private const val ENC_READ = BluetoothGattCharacteristic.PERMISSION_READ_ENCRYPTED

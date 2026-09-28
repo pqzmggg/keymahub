@@ -162,13 +162,7 @@
     <string name="shortcut_activate_short">Activar %1$s</string>
     <string name="shortcut_profile_activated">Perfil activado: %1$s</string>
     <string name="shortcut_profile_missing">Este perfil ya no existe</string>
-    <string name="settings_experiments">Experimentos</string>
-    <string name="close_gatt">Cerrar el servidor GATT</string>
-    <string name="close_gatt_hint">Solo con el anfitrión desactivado. Cierra los servicios como al cerrarse la app (actualización, forzar detención) para ver cómo reaccionan los dispositivos conectados. Función temporal.</string>
-    <string name="close_gatt_done">Servidor GATT cerrado. Se vuelve a abrir al activar el anfitrión.</string>
-    <string name="close_gatt_hosting">Desactiva primero el anfitrión.</string>
-    <string name="close_gatt_none">El servidor GATT no está abierto.</string>
-    <string name="close_gatt_reopen_title">Cerrar y volver a abrir en %1$d s</string>
-    <string name="close_gatt_reopen_hint">Como la app al reiniciarse tras una actualización: ¿el dispositivo conectado conserva el teclado?</string>
-    <string name="close_gatt_reopen">Servidor GATT cerrado. Se volverá a abrir en breve.</string>
+    <string name="notif_channel_hosts">Dispositivos</string>
+    <string name="host_forgot_title">%1$s olvidó este teclado</string>
+    <string name="host_forgot_text">Quita este dispositivo en %1$s y vuelve a añadirlo. El modo de emparejamiento está activado.</string>
 </resources>

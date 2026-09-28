@@ -158,13 +158,7 @@
     <string name="shortcut_activate_short">%1$s 활성화</string>
     <string name="shortcut_profile_activated">프로필 활성화됨: %1$s</string>
     <string name="shortcut_profile_missing">없는 프로필입니다</string>
-    <string name="settings_experiments">실험</string>
-    <string name="close_gatt">GATT 서버 닫기</string>
-    <string name="close_gatt_hint">호스팅이 꺼져 있을 때만. 앱이 종료될 때(업데이트, 강제 종료)처럼 서비스를 닫아 연결된 기기의 반응을 확인합니다. 임시 기능입니다.</string>
-    <string name="close_gatt_done">GATT 서버를 닫았습니다. 호스팅을 켜면 다시 열립니다.</string>
-    <string name="close_gatt_hosting">호스팅을 먼저 끄세요.</string>
-    <string name="close_gatt_none">GATT 서버가 열려 있지 않습니다.</string>
-    <string name="close_gatt_reopen_title">닫고 %1$d초 뒤 다시 열기</string>
-    <string name="close_gatt_reopen_hint">업데이트 뒤 앱이 다시 뜨는 것처럼: 연결된 기기가 키보드를 유지하는지 확인합니다.</string>
-    <string name="close_gatt_reopen">GATT 서버를 닫았습니다. 곧 다시 엽니다.</string>
+    <string name="notif_channel_hosts">기기</string>
+    <string name="host_forgot_title">%1$s: 키보드를 다시 등록해야 합니다</string>
+    <string name="host_forgot_text">%1$s에서 이 기기를 제거한 뒤 다시 추가하세요. 페어링 모드를 켰습니다.</string>
 </resources>
