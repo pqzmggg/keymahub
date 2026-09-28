@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="a11y_summary">このスマホにつないだキーボード・マウスで他のデバイスを操作</string>
-    <string name="a11y_description">KeymaHub は、このデバイスに接続されたキーボードとマウスの入力を受け取り、ホットキーで選んだ Bluetooth デバイス（PC・タブレット）に送ります。このスマホを選んでいる間は入力をそのままにします。入力内容を保存したりインターネットに送信したりすることはなく、選んだデバイスにだけ送ります。画面の内容は読み取りません。</string>
+    <string name="a11y_summary">このデバイスにつないだキーボード・マウスで他のデバイスを操作</string>
+    <string name="a11y_description">KeymaHub は、このデバイスに接続されたキーボードとマウスの入力を受け取り、ホットキーで選んだ Bluetooth デバイス（PC・タブレット）に送ります。このデバイスを選んでいる間は入力をそのままにします。入力内容を保存したりインターネットに送信したりすることはなく、選んだデバイスにだけ送ります。画面の内容は読み取りません。</string>
     <string name="setup_title">ホストモードの設定</string>
-    <string name="setup_intro">このスマホにつないだキーボードとマウスで、近くの PC やタブレットを操作します。相手側に何かをインストールする必要はありません。</string>
+    <string name="setup_intro">このデバイスにつないだキーボードとマウスで、近くの PC やタブレットを操作します。相手側に何かをインストールする必要はありません。</string>
     <string name="setup_steps">始めるには、次を許可してください。</string>
     <string name="step_bluetooth_title">付近のデバイス（Bluetooth）</string>
-    <string name="step_bluetooth_body">このスマホが Bluetooth キーボード・マウスとしてデバイスに接続します。</string>
+    <string name="step_bluetooth_body">このデバイスが Bluetooth キーボード・マウスとしてデバイスに接続します。</string>
     <string name="step_a11y_title">ユーザー補助サービス</string>
     <string name="step_a11y_body">接続したキーボード・マウスの入力を受け取り、選んだデバイスに送るために必要です。</string>
     <string name="step_notifications_title">通知（推奨）</string>
@@ -16,8 +16,8 @@
     <string name="restricted_hint">KeymaHub をオンにできない場合：アプリ情報 → ⋮ → 制限付き設定を許可</string>
     <string name="disclosure_title">ユーザー補助サービスの利用について</string>
     <string name="disclosure_intro">KeymaHub はユーザー補助サービスを次の目的にのみ使用します。</string>
-    <string name="disclosure_1">• このスマホに接続されたキーボードとマウスの入力を受け取ります。</string>
-    <string name="disclosure_2">• その入力を、ホットキーで選んだ Bluetooth デバイス（PC・タブレット）に送ります。このスマホを選んでいる間は入力をそのままにします。</string>
+    <string name="disclosure_1">• このデバイスに接続されたキーボードとマウスの入力を受け取ります。</string>
+    <string name="disclosure_2">• その入力を、ホットキーで選んだ Bluetooth デバイス（PC・タブレット）に送ります。このデバイスを選んでいる間は入力をそのままにします。</string>
     <string name="disclosure_3">• 入力内容は保存せず、インターネットや開発者に送信しません。選んだデバイスにだけ送ります。</string>
     <string name="disclosure_4">• 画面の内容は読み取りません。</string>
     <string name="disclosure_next">次の画面の「インストール済みアプリ」（または「ダウンロードしたアプリ」）で KeymaHub をオンにしてください。</string>
@@ -30,7 +30,7 @@
     <string name="menu">メニュー</string>
     <string name="diagnostics_title">診断ログ</string>
     <string name="log_empty">（空）</string>
-    <string name="status_phone">このスマホを操作中</string>
+    <string name="status_phone">このデバイスを操作中</string>
     <string name="status_target">%1$s を操作中</string>
     <string name="profile_default">デフォルト</string>
     <string name="profile_new">新しいプロファイル</string>
@@ -41,7 +41,7 @@
     <string name="profile_delete_confirm">プロファイル「%1$s」を削除しますか？</string>
     <string name="hotkeys_title">ホットキー</string>
     <string name="hotkeys_hint">デバイスをタップすると操作が移ります。⋯ でデバイスを選び、ドラッグで番号を変えます。</string>
-    <string name="this_phone">このスマホ</string>
+    <string name="this_phone">このデバイス</string>
     <string name="slot_empty">空き</string>
     <string name="state_controlling">操作中</string>
     <string name="state_connected">接続済み</string>
@@ -55,15 +55,15 @@
     <string name="assign_swap_hint">別のホットキーにあるデバイスを選ぶと、2 つが入れ替わります。</string>
     <string name="devices_title">デバイス管理</string>
     <string name="device_rename">名前を変更</string>
-    <string name="guide_intro">PC やタブレットの Bluetooth 設定からこのスマホを追加してください。新しいデバイスは使用中のプロファイルの空いているホットキーに入ります。</string>
-    <string name="guide_windows">設定 → Bluetooth とデバイス → デバイスの追加 → Bluetooth → このスマホを選択</string>
+    <string name="guide_intro">PC やタブレットの Bluetooth 設定からこのデバイスを追加してください。新しいデバイスは使用中のプロファイルの空いているホットキーに入ります。</string>
+    <string name="guide_windows">設定 → Bluetooth とデバイス → デバイスの追加 → Bluetooth → このデバイスを選択</string>
     <string name="guide_windows_hint">表示されない場合は、デバイスの追加画面で「すべてのデバイスを表示」を選んでください。</string>
-    <string name="guide_mac">システム設定 → Bluetooth → このスマホの横の「接続」</string>
-    <string name="guide_mobile">設定 → Bluetooth → このスマホを選択</string>
-    <string name="guide_note">スマホにペアリングの確認が表示されたら許可してください。接続中はこのスマホの Bluetooth 設定画面を閉じておいてください。</string>
+    <string name="guide_mac">システム設定 → Bluetooth → このデバイスの横の「接続」</string>
+    <string name="guide_mobile">設定 → Bluetooth → このデバイスを選択</string>
+    <string name="guide_note">このデバイスにペアリングの確認が表示されたら許可してください。接続中はこのデバイスの Bluetooth 設定画面を閉じておいてください。</string>
     <string name="notif_channel">KeymaHub 実行中</string>
-    <string name="notif_text">%1$s · 接続 %2$d 台 · %3$s: このスマホ</string>
-    <string name="hud_phone">← このスマホ</string>
+    <string name="notif_text">%1$s · 接続 %2$d 台 · %3$s: このデバイス</string>
+    <string name="hud_phone">← このデバイス</string>
     <string name="hud_target">→ %1$s</string>
     <string name="hud_unavailable">%1$s は未接続です</string>
     <string name="hud_empty">%1$s にデバイスがありません</string>
@@ -71,13 +71,13 @@
     <string name="problem_a11y_off">ユーザー補助サービスがオフです。ユーザー補助の設定で KeymaHub をオンにしてください。</string>
     <string name="problem_a11y_turned_off">ユーザー補助サービスがオフになったため停止しました。</string>
     <string name="problem_bt_permission">付近のデバイス（Bluetooth）の権限を許可してください。</string>
-    <string name="problem_bt_unsupported">このスマホは Bluetooth に対応していません。</string>
+    <string name="problem_bt_unsupported">このデバイスは Bluetooth に対応していません。</string>
     <string name="problem_bt_off">Bluetooth をオンにしてください。</string>
-    <string name="problem_ble_peripheral">このスマホは Bluetooth LE キーボード（ペリフェラルモード）に対応していません。</string>
+    <string name="problem_ble_peripheral">このデバイスは Bluetooth LE キーボード（ペリフェラルモード）に対応していません。</string>
     <string name="problem_gatt">Bluetooth キーボードサービスを開始できませんでした。Bluetooth をオフにしてからオンにし、もう一度お試しください。</string>
     <string name="action_back">戻る</string>
     <string name="hosting_title">ホスティング</string>
-    <string name="hosting_off_hint">オンにすると、このスマホのキーボードとマウスでデバイスを操作します。</string>
+    <string name="hosting_off_hint">オンにすると、このデバイスのキーボードとマウスでデバイスを操作します。</string>
     <string name="settings_title">設定</string>
     <string name="profiles_title">プロファイル</string>
     <string name="profiles_hint">条件に合うプロファイルのうち、一番上のものを使います。ドラッグで並べ替えます。</string>
@@ -89,7 +89,7 @@
     <string name="conditions_hint">「ルールに基づく自動」のとき、チェックしたデバイスのどれかが接続されるとこのプロファイルを使います。</string>
     <string name="condition_always">手動で有効にしたときのみ</string>
     <string name="hud_profile">プロファイル: %1$s</string>
-    <string name="notif_pairing">ペアリングモードがオンです。PC やタブレットでこのスマホを追加してください。</string>
+    <string name="notif_pairing">ペアリングモードがオンです。PC やタブレットでこのデバイスを追加してください。</string>
     <string name="devices_paired">ペアリング済みのデバイス</string>
     <string name="devices_empty">ペアリング済みのデバイスはまだありません。ペアリングモードをオンにして追加してください。</string>
     <string name="pairing_title">ペアリングモード</string>
@@ -98,11 +98,11 @@
     <string name="state_disconnected_by_user">切断済み（再接続しない）</string>
     <string name="last_used">最終使用: %1$s</string>
     <string name="last_used_never">未使用</string>
-    <string name="device_rename_hint">KeymaHub でこのデバイスを呼ぶ名前です。</string>
+    <string name="device_rename_hint">KeymaHub で表示する名前です。</string>
     <string name="device_disconnect">切断</string>
     <string name="device_allow">接続を許可</string>
     <string name="device_remove">削除</string>
-    <string name="device_remove_confirm">「%1$s」を削除しますか？ペアリングが解除され、すべてのプロファイルから外れます。相手側でもこのスマホを削除してください。</string>
+    <string name="device_remove_confirm">「%1$s」を削除しますか？ペアリングが解除され、すべてのプロファイルから外れます。相手側でもこのデバイスを削除してください。</string>
     <string name="settings_appearance">表示</string>
     <string name="settings_behavior">動作</string>
     <string name="language">言語</string>
@@ -127,7 +127,7 @@
     <string name="drag_to_renumber">ドラッグして別の番号に移動</string>
     <string name="profile_fallback">条件に合うプロファイルがないときに使用</string>
     <string name="settings_hotkeys">ホットキー</string>
-    <string name="hotkeys_mods_hint">これらのキーを押しながら数字キーを押します。\n%1$s+1：このスマホ\n%1$s+2〜9、0：プロファイルでその数字に割り当てたデバイス</string>
+    <string name="hotkeys_mods_hint">これらのキーを押しながら数字キーを押します。\n%1$s+1：このデバイス\n%1$s+2〜9、0：プロファイルでその数字に割り当てたデバイス</string>
     <string name="hotkeys_invalid">Ctrl/⌃、Alt/⌥、Win/⌘ のいずれかを含めてください。</string>
     <string name="condition_devices">接続中のデバイス</string>
     <string name="condition_devices_off">指定なし</string>
