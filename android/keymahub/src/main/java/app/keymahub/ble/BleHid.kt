@@ -63,7 +63,8 @@ import java.util.concurrent.TimeUnit
  * app joined stays up for good. So the phone joins every host's link with a client connection
  * of its own ([holds], also used to ask for a short connection interval) and ends the link by
  * letting go of it. When another app or the system also uses the link, it stays up (Windows
- * with this phone): no input goes over it, and hosting on takes it back at once.
+ * with this phone): no input goes over it, and hosting on takes it back at once. Before letting
+ * go the phone asks for a long connection interval, so a link that stays up idles cheaply.
  */
 @SuppressLint("MissingPermission") // checked in start()
 object BleHid {
@@ -373,7 +374,11 @@ object BleHid {
             if (h != null) {
                 if (end && !h.ending) {
                     h.ending = true
-                    if (h.up) h.gatt?.disconnect()
+                    if (h.up) letGo(address, h)
+                } else if (!end && h.ending) {
+                    // Hosting came back on before the hold let go: keep it, with a short interval again.
+                    h.ending = false
+                    if (h.up) h.gatt?.let { speedUp(address, it) }
                 }
                 return
             }
@@ -402,14 +407,8 @@ object BleHid {
                 BluetoothProfile.STATE_CONNECTED -> {
                     hold.gatt = gatt
                     hold.up = true
-                    if (hold.ending) {
-                        gatt.disconnect()
-                    } else {
-                        // As a peripheral, Android never asks for a short connection interval, so the
-                        // host may pick 30-50 ms — far too slow for a mouse. The client role can:
-                        // CONNECTION_PRIORITY_HIGH is roughly 11-15 ms.
-                        val ok = gatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH)
-                        Hub.log("BLE HID: short connection interval requested from ${nameOf(address)}: $ok")
+                    synchronized(lock) {
+                        if (hold.ending) letGo(address, hold) else speedUp(address, gatt)
                     }
                 }
                 BluetoothProfile.STATE_DISCONNECTED -> {
@@ -419,6 +418,37 @@ object BleHid {
                 }
             }
         }
+    }
+
+    /**
+     * Asks for a short connection interval. As a peripheral, Android never asks for one, so the host
+     * may pick 30-50 ms — far too slow for a mouse. The client role can: CONNECTION_PRIORITY_HIGH is
+     * roughly 11-15 ms.
+     */
+    private fun speedUp(address: String, gatt: BluetoothGatt) {
+        val ok = runCatching { gatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH) }.getOrDefault(false)
+        Hub.log("BLE HID: short connection interval requested from ${nameOf(address)}: $ok")
+    }
+
+    /**
+     * Lets go of [hold] (ending the link unless something else uses it), after asking for a long
+     * connection interval: the stack keeps a link's last parameters after its apps let go, and a
+     * link the phone cannot end (the host's system or another app uses it, see the class note)
+     * would otherwise stay at the short one, taking radio time from the links in use and battery
+     * while nothing goes over it. CONNECTION_PRIORITY_LOW_POWER is roughly 100-125 ms. The hold
+     * stays [LOW_POWER_SETTLE_MS] so the host gets the request over a link still in use.
+     */
+    private fun letGo(address: String, hold: Hold) {
+        val gatt = hold.gatt ?: return
+        val ok = runCatching { gatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_LOW_POWER) }.getOrDefault(false)
+        Hub.log("BLE HID: long connection interval requested from ${nameOf(address)}: $ok")
+        timers.postDelayed({
+            synchronized(lock) {
+                if (!hold.ending) return@postDelayed // hosting came back on
+                if (holds[address] === hold) holds.remove(address)
+            }
+            runCatching { gatt.disconnect() }
+        }, LOW_POWER_SETTLE_MS)
     }
 
     /** Ends the link to [device], as a keyboard switched off does (see the class note). */
@@ -995,6 +1025,8 @@ object BleHid {
     private const val KEY_SUBSCRIPTIONS = "subscriptions"
     /** How long joining a link may take before it is given up (see [join]). */
     private const val JOIN_TIMEOUT_MS = 5_000L
+    /** How long a hold stays after asking for a long connection interval (see [letGo]). */
+    private const val LOW_POWER_SETTLE_MS = 2_000L
     /** How often, and how many times, a host is told again that the services changed (see [refresh]). */
     private const val REFRESH_MS = 1_500L
     private const val REFRESH_ROUNDS = 6
