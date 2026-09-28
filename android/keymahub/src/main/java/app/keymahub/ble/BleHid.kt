@@ -62,8 +62,8 @@ import java.util.concurrent.TimeUnit
  * last app using it lets go, but only if an app used it at all: a link the host opened and no
  * app joined stays up for good. So the phone joins every host's link with a client connection
  * of its own ([holds], also used to ask for a short connection interval) and ends the link by
- * letting go of it. When another app or the system also uses the link, it stays up (logged, and
- * shown in the app); no input goes over it.
+ * letting go of it. When another app or the system also uses the link, it stays up (Windows
+ * with this phone): no input goes over it, and hosting on takes it back at once.
  */
 @SuppressLint("MissingPermission") // checked in start()
 object BleHid {
@@ -187,7 +187,6 @@ object BleHid {
         loadHosts(context, adapter)
         val opened = server == null
         if (opened) open(context, manager)?.let { return it }
-        Hub.update { it.copy(lingering = emptySet()) }
         running = true
         advertise()
         rejoinLinks(manager, opened)
@@ -221,30 +220,6 @@ object BleHid {
         hosts.dropLinks()
         for (d in targets) endLink(d)
         Hub.log("BLE HID: stopped hosting, ending ${targets.size} link(s)")
-        // Links that stay up: shown in the app (lingering) until they drop, and logged.
-        main.postDelayed({
-            if (running) return@postDelayed
-            val up = targets.filter(::isLinkUp)
-            if (up.isNotEmpty()) {
-                Hub.log("BLE HID: still linked after stopping (another app or the system uses the link; no input is sent): ${up.joinToString { nameOf(it.address) }}")
-                Hub.update { it.copy(lingering = up.map { d -> d.address }.toSet()) }
-                watchKeptLinks(up, SystemClock.uptimeMillis() - END_CHECK_MS)
-            }
-        }, END_CHECK_MS)
-    }
-
-    /** Logs when links kept up after stopping finally drop (checked every 10 s, for 10 minutes). */
-    private fun watchKeptLinks(links: List<BluetoothDevice>, since: Long) {
-        main.postDelayed({
-            if (running) return@postDelayed
-            val elapsed = (SystemClock.uptimeMillis() - since) / 1000
-            val (up, down) = links.partition(::isLinkUp)
-            for (d in down) Hub.log("BLE HID: link to ${nameOf(d.address)} dropped ${elapsed}s after stopping")
-            Hub.update { it.copy(lingering = up.map { d -> d.address }.toSet()) }
-            if (up.isEmpty()) return@postDelayed
-            if (elapsed < 600) watchKeptLinks(up, since)
-            else Hub.log("BLE HID: still linked 10 min after stopping: ${up.joinToString { nameOf(it.address) }}")
-        }, 10_000)
     }
 
     /** Sends "nothing pressed" on every input report to [addresses], bypassing the queues. */
@@ -413,7 +388,6 @@ object BleHid {
         creatingSet = false
         runCatching { server?.close() }
         server = null
-        Hub.update { it.copy(lingering = emptySet()) }
         synchronized(lock) {
             holds.values.forEach { h -> runCatching { h.gatt?.close() } }
             holds.clear(); serverJoined.clear(); devices.clear(); queues.clear()
@@ -654,7 +628,6 @@ object BleHid {
                     }
                     // Known hosts too: shows when a link ended after hosting stopped.
                     if (wasTarget || hosts.knows(address)) Hub.log("BLE HID: ${nameOf(address)} disconnected${statusText(status)}")
-                    if (address in Hub.status.value.lingering) Hub.update { it.copy(lingering = it.lingering - address) }
                     if (change == Change.GONE) gone(address)
                     advertise() // hosts reconnect to it (a no-op while not hosting)
                 }
@@ -901,8 +874,6 @@ object BleHid {
 
     private const val PREFS = "keymahub_ble"
     private const val KEY_SUBSCRIPTIONS = "subscriptions"
-    /** How long after ending links hosting stop checks whether they are down. */
-    private const val END_CHECK_MS = 3_000L
     /** How long joining a link may take before it is given up (see [join]). */
     private const val JOIN_TIMEOUT_MS = 5_000L
     /** How long a new link is left alone before tuning it or restarting advertising. */
