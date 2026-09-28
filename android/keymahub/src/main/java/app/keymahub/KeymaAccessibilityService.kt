@@ -9,7 +9,6 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.provider.Settings
 import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -113,19 +112,8 @@ class KeymaAccessibilityService : AccessibilityService() {
     fun softKeyboardDespiteHardKeyboard(on: Boolean) {
         if (Build.VERSION.SDK_INT < 29) return
         val mode = if (on) AccessibilityService.SHOW_MODE_IGNORE_HARD_KEYBOARD else AccessibilityService.SHOW_MODE_AUTO
-        val ok = runCatching { softKeyboardController.setShowMode(mode) }
+        runCatching { softKeyboardController.setShowMode(mode) }
             .onFailure { Hub.log("on-screen keyboard mode failed: $it") }
-            .getOrDefault(false)
-        if (!on && ok) return
-        // Diagnostics: whether the request took, and what the system and the keyboard see.
-        val now = runCatching { softKeyboardController.showMode }.getOrNull()
-        val setting = runCatching { Settings.Secure.getInt(contentResolver, "show_ime_with_hard_keyboard") }
-            .getOrElse { "unreadable" }
-        val config = resources.configuration
-        Hub.log(
-            "on-screen keyboard ${if (on) "despite" else "hidden by"} physical keyboard: request ${if (ok) "ok" else "refused"}, " +
-                "mode=$now, show_ime_with_hard_keyboard=$setting, keyboard=${config.keyboard}, hardKeyboardHidden=${config.hardKeyboardHidden}",
-        )
     }
 
     companion object {
