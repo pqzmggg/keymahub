@@ -182,9 +182,9 @@ class SettingsTest {
         s = s.addProfile("Office").let { (n, id) -> office = id; n }
             .assign(office, 3, null) // Office: A, B (and it is on top)
         s = s.resolve(setOf("A", "B"))
-        assertEquals(office, s.activeId) // tie 2-2: the higher profile wins
-        assertEquals(home, s.resolve(setOf("A", "B", "C")).activeId) // 3 beats 2
-        assertEquals(office, s.resolve(setOf("A")).activeId) // tie 1-1
+        assertEquals(office, s.activeId) // 2 of 2 beats 2 of 3
+        assertEquals(home, s.resolve(setOf("A", "B", "C")).activeId) // all of each connected: 3 beats 2
+        assertEquals(office, s.resolve(setOf("A")).activeId) // 1 of 2 beats 1 of 3
         // Nothing connected: the last activated one.
         assertEquals(home, s.activate(home).resolve(none).activeId)
         // Conditions do not matter in this mode.
