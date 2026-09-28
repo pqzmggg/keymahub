@@ -164,4 +164,7 @@
     <string name="close_gatt_done">GATT サーバーを閉じました。ホスティングをオンにすると再び開きます。</string>
     <string name="close_gatt_hosting">先にホスティングをオフにしてください。</string>
     <string name="close_gatt_none">GATT サーバーは開いていません。</string>
+    <string name="close_gatt_reopen_title">閉じて %1$d 秒後に再度開く</string>
+    <string name="close_gatt_reopen_hint">アップデート後にアプリが再起動するのと同じ流れで、接続中のデバイスがキーボードを保つか確認します。</string>
+    <string name="close_gatt_reopen">GATT サーバーを閉じました。まもなく再び開きます。</string>
 </resources>

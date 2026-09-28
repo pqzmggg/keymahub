@@ -167,4 +167,7 @@
     <string name="close_gatt_done">GATT server closed. Turning hosting on opens it again.</string>
     <string name="close_gatt_hosting">Turn hosting off first.</string>
     <string name="close_gatt_none">The GATT server is not open.</string>
+    <string name="close_gatt_reopen_title">Close, open again in %1$d s</string>
+    <string name="close_gatt_reopen_hint">As the app restarting after an update: does the connected device keep the keyboard?</string>
+    <string name="close_gatt_reopen">GATT server closed. It opens again shortly.</string>
 </resources>

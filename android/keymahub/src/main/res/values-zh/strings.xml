@@ -164,4 +164,7 @@
     <string name="close_gatt_done">已关闭 GATT 服务器。开启主机后会重新打开。</string>
     <string name="close_gatt_hosting">请先关闭主机。</string>
     <string name="close_gatt_none">GATT 服务器未打开。</string>
+    <string name="close_gatt_reopen_title">关闭并在 %1$d 秒后重新打开</string>
+    <string name="close_gatt_reopen_hint">模拟更新后应用重新启动：检查已连接设备是否保留键盘。</string>
+    <string name="close_gatt_reopen">已关闭 GATT 服务器，稍后会重新打开。</string>
 </resources>
