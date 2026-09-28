@@ -859,6 +859,9 @@ object BleHid {
             }
             advertisingSet = set
             Hub.log("BLE HID: advertising")
+            // Pairing mode may have changed while the set was being made (setPairing had no set to
+            // update then): the name goes in or out now.
+            set.setScanResponseData(scanResponse(withName = pairing))
             if (!running) set.enableAdvertising(false, 0, 0) // hosting stopped meanwhile
         }
 
