@@ -136,13 +136,13 @@
     <string name="condition_devices_hint">Nearby paired devices reconnect by themselves while hosting is on.</string>
     <string name="settings_activation">Automatic profile activation</string>
     <string name="mode_auto">Fully automatic</string>
-    <string name="mode_auto_hint">Uses the profile with the highest share of its devices connected.</string>
+    <string name="mode_auto_hint">Uses the profile with the most of its devices connected.</string>
     <string name="mode_rules">Rule-based</string>
     <string name="mode_rules_hint">Uses the first profile, in list order, one of whose chosen devices is connected.</string>
     <string name="mode_manual">Off</string>
     <string name="mode_manual_hint">Uses only the profile you activate.</string>
     <string name="profile_devices_connected">%1$d of %2$d devices connected</string>
-    <string name="profiles_hint_auto">The profile with the highest share of its devices connected is used. Drag to reorder.</string>
+    <string name="profiles_hint_auto">The profile with the most devices connected is used. Drag to reorder.</string>
     <string name="profiles_hint_manual">The profile you activate is used.</string>
     <string name="mode_fallback_note">In both automatic modes, when nothing matches, the profile you activated last is used. Activating a profile by hand also overrides the automatic choice until the connected devices change.</string>
     <string name="device_connect">Connect</string>

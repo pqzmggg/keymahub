@@ -182,9 +182,9 @@ class SettingsTest {
         s = s.addProfile("Office").let { (n, id) -> office = id; n }
             .assign(office, 3, null) // Office: A, B (and it is on top)
         s = s.resolve(setOf("A", "B"))
-        assertEquals(office, s.activeId) // 2 of 2 beats 2 of 3
-        assertEquals(home, s.resolve(setOf("A", "B", "C")).activeId) // all of each connected: 3 beats 2
-        assertEquals(office, s.resolve(setOf("A")).activeId) // 1 of 2 beats 1 of 3
+        assertEquals(office, s.activeId) // 2 each: 2 of 2 beats 2 of 3
+        assertEquals(home, s.resolve(setOf("A", "B", "C")).activeId) // 3 beats 2
+        assertEquals(office, s.resolve(setOf("A")).activeId) // 1 each: 1 of 2 beats 1 of 3
         // Nothing connected: the last activated one.
         assertEquals(home, s.activate(home).resolve(none).activeId)
         // Conditions do not matter in this mode.
@@ -193,18 +193,16 @@ class SettingsTest {
     }
 
     @Test
-    fun fullyAutomaticPicksTheLargestShareThenTheMostThenTheHigher() {
+    fun fullyAutomaticPicksTheMostThenTheLargestShareThenTheHigher() {
         var s = Settings().deviceConnected("A", "a").deviceConnected("B", "b")
             .deviceConnected("C", "c").deviceConnected("D", "d")
         val home = s.activeId // A, B, C, D
         val (next, office) = s.addProfile("Office") // on top, A, B, C, D too
         s = next.excludeReceiver(home, 3).excludeReceiver(home, 3) // home: A, B
-        // Home has 2 of 2, office 2 of 4: home, though lower.
+        // 2 connected each: home has 2 of 2, office 2 of 4: home, though lower.
         assertEquals(home, s.resolve(setOf("A", "B")).activeId)
-        // Share first: home's 2 of 2 beats office's 3 of 4.
-        assertEquals(home, s.resolve(setOf("A", "B", "C")).activeId)
-        // Same share (all): office's 4 beats home's 2.
-        assertEquals(office, s.resolve(setOf("A", "B", "C", "D")).activeId)
+        // Count first: office's 3 of 4 beats home's 2 of 2.
+        assertEquals(office, s.resolve(setOf("A", "B", "C")).activeId)
         // Same count and share (1 of 2 each): the higher profile.
         s = s.excludeReceiver(office, 1).excludeReceiver(office, 1) // office: C, D
         assertEquals(office, s.resolve(setOf("A", "C")).activeId)
