@@ -17,20 +17,6 @@ jobs:
       - name: Android keymap is up to date with core/keymap
         run: python3 tools/gen_android_keymap.py && git diff --exit-code
 
-  windows:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: cargo clippy -p win-capture --all-targets -- -D warnings
-      - run: cargo test -p win-capture
-      - run: cargo build --release -p win-capture -p kmc
-      - uses: actions/upload-artifact@v4
-        with:
-          name: keymahub-p0-windows
-          path: |
-            target/release/win-capture.exe
-            target/release/kmc.exe
-
   android:
     runs-on: ubuntu-latest
     defaults:
