@@ -22,8 +22,8 @@ import app.keymahub.core.Hub
  * the input system before events are dispatched.
  *
  * The overlay is a 1x1 window that is not touchable, so touches keep reaching the phone's apps.
- * Touching an app moves focus there and ends the capture; [reclaim] takes it back when the
- * mouse is used again.
+ * Touching an app moves focus there and ends the capture (the app's text fields and on-screen
+ * keyboard need that focus); [reclaim] takes it back when a mouse button is pressed.
  */
 class PointerCaptureOverlay(
     private val service: AccessibilityService,
@@ -42,7 +42,7 @@ class PointerCaptureOverlay(
         if (view == null) add()
     }
 
-    /** The mouse moved while not captured (focus went to a touched app): take focus and capture back. */
+    /** A mouse button was pressed while not captured (focus went to a touched app): take focus and capture back. */
     fun reclaim() = main.post {
         val v = view ?: return@post
         val now = SystemClock.uptimeMillis()
