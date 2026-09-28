@@ -238,6 +238,17 @@ class SettingsTest {
     }
 
     @Test
+    fun forgetPullsTheDevicesAfterItUpInEveryProfile() {
+        var s = Settings().deviceConnected("A", "a").deviceConnected("B", "b").deviceConnected("C", "c")
+        val (next, two) = s.addProfile("Two") // same numbers: A 1, B 2, C 3
+        s = next.moveReceiver(two, 1, 3) // Two: B 1, C 2, A 3
+        val one = s.profiles.last().id
+        s = s.forgetDevice("A")
+        assertEquals(mapOf(1 to "B", 2 to "C"), s.profile(one)!!.receivers) // B and C moved up
+        assertEquals(mapOf(1 to "B", 2 to "C"), s.profile(two)!!.receivers) // A was last: nothing moved
+    }
+
+    @Test
     fun forgetRemovesTheDeviceEverywhere() {
         var s = Settings().deviceConnected("A", "Desk").addProfile("Two").first
         s = s.forgetDevice("A")

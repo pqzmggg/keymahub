@@ -151,6 +151,11 @@ class MainActivity : ComponentActivity() {
                         BleHid.reconnect(address)
                     },
                     onRemove = { address ->
+                        // In control: back to this device first, before another device moves up to its number.
+                        val slot = Hub.status.value.slot
+                        if (HubService.running && slot != 0 && status.settings.active.addressOf(slot) == address) {
+                            HubService.select(this, 0)
+                        }
                         Hub.edit(this) { it.forgetDevice(address) }
                         BleHid.disconnect(address)
                         BleHid.unpair(this, address)

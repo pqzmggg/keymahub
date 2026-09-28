@@ -165,11 +165,15 @@ data class Settings(
         return withDevice(address) { it.copy(name = n) }
     }
 
-    /** Forgets the device everywhere. */
+    /**
+     * Forgets the device everywhere: in every profile that had it on a number, the devices after
+     * it move up one place (as [excludeReceiver]); it leaves the profiles' conditions too.
+     */
     fun forgetDevice(address: String) = copy(
         devices = devices.filter { it.address != address },
         profiles = profiles.map { p ->
-            p.copy(receivers = p.receivers.filterValues { it != address }, whenConnected = p.whenConnected - address)
+            val slot = p.slotOf(address)
+            (if (slot != null) p.closeGap(slot) else p).copy(whenConnected = p.whenConnected - address)
         },
     )
 
@@ -221,11 +225,15 @@ data class Settings(
         require(slot in 1 until Profile.SLOTS)
         val p = profile(id) ?: return this
         if (p.receivers[slot] == null) return this
-        val order = (1 until Profile.SLOTS).map { p.receivers[it] }.toMutableList()
+        return withProfile(p.closeGap(slot))
+    }
+
+    /** [slot] emptied, and the receivers after it one place up each (empty ones too). */
+    private fun Profile.closeGap(slot: Int): Profile {
+        val order = (1 until Profile.SLOTS).map { receivers[it] }.toMutableList()
         order.removeAt(slot - 1)
         order.add(null)
-        val r = order.withIndex().mapNotNull { (i, a) -> a?.let { i + 1 to it } }.toMap()
-        return withProfile(p.copy(receivers = r))
+        return copy(receivers = order.withIndex().mapNotNull { (i, a) -> a?.let { i + 1 to it } }.toMap())
     }
 
     // ---------------------------------------------------------------- profiles
