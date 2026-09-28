@@ -79,7 +79,13 @@ fun profileName(p: Profile) = p.name.ifEmpty { stringResource(R.string.profile_d
 
 /** Title row of a sub-screen, with a back arrow unless [onBack] is null (the right pane of two). */
 @Composable
-fun TopBar(title: String, onBack: (() -> Unit)?, actions: @Composable () -> Unit = {}) {
+fun TopBar(
+    title: String,
+    onBack: (() -> Unit)?,
+    /** Right after the title (editing it); [actions] stay at the end of the bar. */
+    titleAction: (@Composable () -> Unit)? = null,
+    actions: @Composable () -> Unit = {},
+) {
     Row(Modifier.heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
         if (onBack != null) {
             IconButton(onClick = onBack) {
@@ -87,10 +93,17 @@ fun TopBar(title: String, onBack: (() -> Unit)?, actions: @Composable () -> Unit
             }
             Spacer(Modifier.width(4.dp))
         }
-        Text(
-            title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold,
-            modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis,
-        )
+        Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+            // A long title shrinks (ellipsis) before pushing the title action off the bar.
+            Text(
+                title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(1f, fill = false), maxLines = 1, overflow = TextOverflow.Ellipsis,
+            )
+            if (titleAction != null) {
+                Spacer(Modifier.width(4.dp))
+                titleAction()
+            }
+        }
         actions()
     }
 }
