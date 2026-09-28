@@ -29,6 +29,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
@@ -382,9 +383,10 @@ private fun AssignDialog(slot: Int, profile: Profile, settings: Settings, onDism
                         detail = other?.let { stringResource(R.string.assign_now_on, KeyLabels.hotkey(settings.hotkey(it))) },
                         selected = d.address == current,
                         onClick = { onPick(d.address) },
+                        big = true,
                     )
                 }
-                Choice(stringResource(R.string.assign_none), null, selected = current == null, onClick = { onPick(null) })
+                Choice(stringResource(R.string.assign_none), null, selected = current == null, onClick = { onPick(null) }, big = true)
                 Spacer(Modifier.height(8.dp))
                 Text(stringResource(R.string.assign_swap_hint), style = MaterialTheme.typography.bodySmall)
             }
@@ -393,8 +395,9 @@ private fun AssignDialog(slot: Int, profile: Profile, settings: Settings, onDism
     )
 }
 
+/** [big]: the label as large as a device's name in the devices list (picking a device). */
 @Composable
-fun Choice(label: String, detail: String?, selected: Boolean, onClick: () -> Unit) {
+fun Choice(label: String, detail: String?, selected: Boolean, big: Boolean = false, onClick: () -> Unit) {
     Row(
         Modifier.fillMaxWidth().selectable(selected, role = Role.RadioButton, onClick = onClick).padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -402,7 +405,11 @@ fun Choice(label: String, detail: String?, selected: Boolean, onClick: () -> Uni
         RadioButton(selected = selected, onClick = null)
         Spacer(Modifier.width(12.dp))
         Column {
-            Text(label, fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal)
+            Text(
+                label,
+                style = if (big) MaterialTheme.typography.titleMedium else LocalTextStyle.current,
+                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+            )
             detail?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
         }
     }
