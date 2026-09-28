@@ -125,12 +125,12 @@ data class Settings(
             ActivationMode.AUTO -> profiles
                 .map { p -> Triple(p, p.receivers.values.count { it in connected }, p.receivers.size) }
                 .filter { it.second > 0 }
-                // Most devices connected; then the largest share of its devices connected
-                // (connected/total, compared by cross-multiplying); maxWithOrNull keeps the first of
+                // The largest share of its devices connected (connected/total, compared by
+                // cross-multiplying); then the most connected; maxWithOrNull keeps the first of
                 // equals, so then the higher profile.
                 .maxWithOrNull { a, b ->
-                    if (a.second != b.second) a.second.compareTo(b.second)
-                    else (a.second.toLong() * b.third).compareTo(b.second.toLong() * a.third)
+                    val share = (a.second.toLong() * b.third).compareTo(b.second.toLong() * a.third)
+                    if (share != 0) share else a.second.compareTo(b.second)
                 }?.first?.id
             ActivationMode.RULES -> profiles.firstOrNull { it.matches(connected) }?.id
             ActivationMode.MANUAL -> null

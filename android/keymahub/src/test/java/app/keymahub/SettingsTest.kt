@@ -193,16 +193,18 @@ class SettingsTest {
     }
 
     @Test
-    fun fullyAutomaticBreaksTiesByShareThenByOrder() {
+    fun fullyAutomaticPicksTheLargestShareThenTheMostThenTheHigher() {
         var s = Settings().deviceConnected("A", "a").deviceConnected("B", "b")
             .deviceConnected("C", "c").deviceConnected("D", "d")
         val home = s.activeId // A, B, C, D
         val (next, office) = s.addProfile("Office") // on top, A, B, C, D too
         s = next.excludeReceiver(home, 3).excludeReceiver(home, 3) // home: A, B
-        // 2 connected each: home has 2 of 2, office 2 of 4: home, though lower.
+        // Home has 2 of 2, office 2 of 4: home, though lower.
         assertEquals(home, s.resolve(setOf("A", "B")).activeId)
-        // Count first: office's 3 of 4 beats home's 2 of 2.
-        assertEquals(office, s.resolve(setOf("A", "B", "C")).activeId)
+        // Share first: home's 2 of 2 beats office's 3 of 4.
+        assertEquals(home, s.resolve(setOf("A", "B", "C")).activeId)
+        // Same share (all): office's 4 beats home's 2.
+        assertEquals(office, s.resolve(setOf("A", "B", "C", "D")).activeId)
         // Same count and share (1 of 2 each): the higher profile.
         s = s.excludeReceiver(office, 1).excludeReceiver(office, 1) // office: C, D
         assertEquals(office, s.resolve(setOf("A", "C")).activeId)
