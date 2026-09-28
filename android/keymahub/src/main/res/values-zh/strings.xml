@@ -158,4 +158,10 @@
     <string name="shortcut_activate_short">启用%1$s</string>
     <string name="shortcut_profile_activated">已启用配置：%1$s</string>
     <string name="shortcut_profile_missing">此配置已不存在</string>
+    <string name="settings_experiments">实验</string>
+    <string name="close_gatt">关闭 GATT 服务器</string>
+    <string name="close_gatt_hint">仅在主机关闭时可用。像应用退出（更新、强制停止）时一样关闭服务，以查看已连接设备的反应。临时功能。</string>
+    <string name="close_gatt_done">已关闭 GATT 服务器。开启主机后会重新打开。</string>
+    <string name="close_gatt_hosting">请先关闭主机。</string>
+    <string name="close_gatt_none">GATT 服务器未打开。</string>
 </resources>

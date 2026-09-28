@@ -158,4 +158,10 @@
     <string name="shortcut_activate_short">%1$sを有効化</string>
     <string name="shortcut_profile_activated">プロファイルを有効化しました: %1$s</string>
     <string name="shortcut_profile_missing">このプロファイルはもうありません</string>
+    <string name="settings_experiments">実験</string>
+    <string name="close_gatt">GATT サーバーを閉じる</string>
+    <string name="close_gatt_hint">ホスティングがオフのときのみ。アプリ終了時（アップデート、強制停止）と同じようにサービスを閉じ、接続中のデバイスの反応を確認します。一時的な機能です。</string>
+    <string name="close_gatt_done">GATT サーバーを閉じました。ホスティングをオンにすると再び開きます。</string>
+    <string name="close_gatt_hosting">先にホスティングをオフにしてください。</string>
+    <string name="close_gatt_none">GATT サーバーは開いていません。</string>
 </resources>
