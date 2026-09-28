@@ -161,13 +161,7 @@
     <string name="shortcut_activate_short">Activate %1$s</string>
     <string name="shortcut_profile_activated">Profile activated: %1$s</string>
     <string name="shortcut_profile_missing">This profile no longer exists</string>
-    <string name="settings_experiments">Experiments</string>
-    <string name="close_gatt">Close the GATT server</string>
-    <string name="close_gatt_hint">Hosting off only. Closes the services as the app shutting down does (an update, a force stop), to see how connected devices react. Temporary.</string>
-    <string name="close_gatt_done">GATT server closed. Turning hosting on opens it again.</string>
-    <string name="close_gatt_hosting">Turn hosting off first.</string>
-    <string name="close_gatt_none">The GATT server is not open.</string>
-    <string name="close_gatt_reopen_title">Close, open again in %1$d s</string>
-    <string name="close_gatt_reopen_hint">As the app restarting after an update: does the connected device keep the keyboard?</string>
-    <string name="close_gatt_reopen">GATT server closed. It opens again shortly.</string>
+    <string name="notif_channel_hosts">Devices</string>
+    <string name="host_forgot_title">%1$s forgot this keyboard</string>
+    <string name="host_forgot_text">Remove this device on %1$s and add it again. Pairing mode is on.</string>
 </resources>

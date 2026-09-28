@@ -158,13 +158,7 @@
     <string name="shortcut_activate_short">启用%1$s</string>
     <string name="shortcut_profile_activated">已启用配置：%1$s</string>
     <string name="shortcut_profile_missing">此配置已不存在</string>
-    <string name="settings_experiments">实验</string>
-    <string name="close_gatt">关闭 GATT 服务器</string>
-    <string name="close_gatt_hint">仅在主机关闭时可用。像应用退出（更新、强制停止）时一样关闭服务，以查看已连接设备的反应。临时功能。</string>
-    <string name="close_gatt_done">已关闭 GATT 服务器。开启主机后会重新打开。</string>
-    <string name="close_gatt_hosting">请先关闭主机。</string>
-    <string name="close_gatt_none">GATT 服务器未打开。</string>
-    <string name="close_gatt_reopen_title">关闭并在 %1$d 秒后重新打开</string>
-    <string name="close_gatt_reopen_hint">模拟更新后应用重新启动：检查已连接设备是否保留键盘。</string>
-    <string name="close_gatt_reopen">已关闭 GATT 服务器，稍后会重新打开。</string>
+    <string name="notif_channel_hosts">设备</string>
+    <string name="host_forgot_title">%1$s 已无法识别此键盘</string>
+    <string name="host_forgot_text">请在 %1$s 上删除本设备后重新添加。已开启配对模式。</string>
 </resources>

@@ -164,7 +164,6 @@ class MainActivity : ComponentActivity() {
                     onBack = back,
                     onUi = { change -> Hub.editUi(this, change) },
                     onLanguage = { tag -> Locales.set(this, tag) },
-                    onCloseGatt = { seconds -> Toast.makeText(this, BleHid.closeServer(seconds * 1000L), Toast.LENGTH_LONG).show() },
                 )
             }
         }

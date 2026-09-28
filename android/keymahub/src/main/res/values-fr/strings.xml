@@ -162,13 +162,7 @@
     <string name="shortcut_activate_short">Activer %1$s</string>
     <string name="shortcut_profile_activated">Profil activé : %1$s</string>
     <string name="shortcut_profile_missing">Ce profil n’existe plus</string>
-    <string name="settings_experiments">Expériences</string>
-    <string name="close_gatt">Fermer le serveur GATT</string>
-    <string name="close_gatt_hint">Hôte désactivé uniquement. Ferme les services comme à l\'arrêt de l\'app (mise à jour, arrêt forcé) pour voir la réaction des appareils connectés. Fonction temporaire.</string>
-    <string name="close_gatt_done">Serveur GATT fermé. Il se rouvre en activant l\'hôte.</string>
-    <string name="close_gatt_hosting">Désactivez d\'abord l\'hôte.</string>
-    <string name="close_gatt_none">Le serveur GATT n\'est pas ouvert.</string>
-    <string name="close_gatt_reopen_title">Fermer, rouvrir après %1$d s</string>
-    <string name="close_gatt_reopen_hint">Comme l\'app qui redémarre après une mise à jour : l\'appareil connecté garde-t-il le clavier ?</string>
-    <string name="close_gatt_reopen">Serveur GATT fermé. Il se rouvre sous peu.</string>
+    <string name="notif_channel_hosts">Appareils</string>
+    <string name="host_forgot_title">%1$s a oublié ce clavier</string>
+    <string name="host_forgot_text">Supprimez cet appareil sur %1$s puis ajoutez-le à nouveau. Le mode d\'association est activé.</string>
 </resources>
