@@ -38,6 +38,7 @@ import app.keymahub.core.Device
 import app.keymahub.core.HubStatus
 import app.keymahub.core.Settings
 import kotlinx.coroutines.delay
+import java.text.Collator
 
 /** Paired devices: pairing mode for new ones, alias, disconnect, remove, last used. */
 @Composable
@@ -63,7 +64,12 @@ fun DevicesScreen(
         if (settings.devices.isEmpty()) {
             Text(stringResource(R.string.devices_empty), style = MaterialTheme.typography.bodyMedium)
         }
-        for (d in settings.devices) {
+        // By name, as people read them (the phone's language; case and accents aside), then by address.
+        val collator = remember { Collator.getInstance().apply { strength = Collator.SECONDARY } }
+        val byName = remember(settings.devices) {
+            settings.devices.sortedWith(compareBy<Device, String>(collator) { it.name }.thenBy { it.address })
+        }
+        for (d in byName) {
             DeviceRow(
                 d, connected = d.address in status.ready,
                 onRename = { renaming = d },
