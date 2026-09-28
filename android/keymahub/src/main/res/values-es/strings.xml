@@ -135,13 +135,13 @@
     <string name="condition_devices_hint">Con el anfitrión activo, los dispositivos emparejados cercanos se reconectan solos.</string>
     <string name="settings_activation">Activación automática de perfiles</string>
     <string name="mode_auto">Totalmente automática</string>
-    <string name="mode_auto_hint">Usa el perfil con más de sus dispositivos conectados; en caso de empate, gana el de más arriba.</string>
+    <string name="mode_auto_hint">Usa el perfil con más de sus dispositivos conectados; en caso de empate, el que tenga conectada una mayor parte de sus dispositivos y, después, el de más arriba.</string>
     <string name="mode_rules">Por reglas</string>
     <string name="mode_rules_hint">Usa el primer perfil de la lista con alguno de sus dispositivos elegidos conectado.</string>
     <string name="mode_manual">Desactivada</string>
     <string name="mode_manual_hint">Usa solo el perfil que actives.</string>
     <string name="profile_devices_connected">%1$d de %2$d dispositivos conectados</string>
-    <string name="profiles_hint_auto">Se usa el perfil con más dispositivos conectados; en empate, el de más arriba. Arrastra para reordenar.</string>
+    <string name="profiles_hint_auto">Se usa el perfil con más dispositivos conectados; en empate, el de mayor parte conectada y, después, el de más arriba. Arrastra para reordenar.</string>
     <string name="profiles_hint_manual">Se usa el perfil que actives.</string>
     <string name="mode_fallback_note">En ambos modos automáticos, si no coincide ninguno, se usa el último perfil que activaste. Activar un perfil a mano también tiene prioridad sobre la elección automática hasta que cambien los dispositivos conectados.</string>
     <string name="device_connect">Conectar</string>

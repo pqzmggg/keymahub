@@ -122,11 +122,16 @@ data class Settings(
     /** Picks the active profile given the devices connected right now. */
     fun resolve(connected: Set<String>): Settings {
         val matched = when (mode) {
-            // maxByOrNull keeps the first of equal counts: the higher profile wins ties.
             ActivationMode.AUTO -> profiles
-                .map { p -> p to p.receivers.values.count { it in connected } }
+                .map { p -> Triple(p, p.receivers.values.count { it in connected }, p.receivers.size) }
                 .filter { it.second > 0 }
-                .maxByOrNull { it.second }?.first?.id
+                // Most devices connected; then the largest share of its devices connected
+                // (connected/total, compared by cross-multiplying); maxWithOrNull keeps the first of
+                // equals, so then the higher profile.
+                .maxWithOrNull { a, b ->
+                    if (a.second != b.second) a.second.compareTo(b.second)
+                    else (a.second.toLong() * b.third).compareTo(b.second.toLong() * a.third)
+                }?.first?.id
             ActivationMode.RULES -> profiles.firstOrNull { it.matches(connected) }?.id
             ActivationMode.MANUAL -> null
         }
