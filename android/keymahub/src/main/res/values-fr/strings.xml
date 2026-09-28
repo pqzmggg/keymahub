@@ -78,7 +78,7 @@
     <string name="action_back">Retour</string>
     <string name="hosting_title">Hôte</string>
     <string name="hosting_off_hint">Activez pour utiliser le clavier et la souris de ce téléphone sur vos appareils.</string>
-    <string name="hosting_still_linked">Encore connecté côté appareil (aucune saisie envoyée) : %1$s. Réactiver l\'hôte réutilise la connexion ; pour déconnecter, passez par les réglages Bluetooth de cet appareil.</string>
+    <string name="hosting_still_linked">Encore connecté côté appareil (aucune saisie envoyée) : %1$s. Une autre app ou le système de ce téléphone utilise la connexion ; pour déconnecter, passez par les réglages Bluetooth de cet appareil.</string>
     <string name="settings_title">Paramètres</string>
     <string name="profiles_title">Profils</string>
     <string name="profiles_hint">Le profil le plus haut dont les conditions sont remplies est utilisé. Faites glisser pour réordonner.</string>
@@ -159,9 +159,6 @@
         <item quantity="many">%1$d appareils</item>
         <item quantity="other">%1$d appareils</item>
     </plurals>
-    <string name="settings_experiments">Expériences</string>
-    <string name="public_address">Utiliser une adresse Bluetooth fixe</string>
-    <string name="public_address_hint">Pour une tablette qui ne se reconnecte pas. Après l\'activation, associez à nouveau la tablette.</string>
     <string name="shortcut_activate_profile">Activer le profil : %1$s</string>
     <string name="shortcut_activate_short">Activer %1$s</string>
     <string name="shortcut_profile_activated">Profil activé : %1$s</string>
