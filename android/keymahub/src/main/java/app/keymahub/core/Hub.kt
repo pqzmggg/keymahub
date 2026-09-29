@@ -33,6 +33,8 @@ data class UiPrefs(
     val showHud: Boolean = true,
     /** Show the on-screen keyboard while the physical one controls another device (Android 10+). */
     val touchKeyboard: Boolean = true,
+    /** The tutorial version last seen or skipped (0: never; see ui.TUTORIAL_VERSION). */
+    val tutorialSeen: Int = 0,
 )
 
 object Hub {
@@ -91,6 +93,7 @@ object Hub {
                 dynamicColor = p.getBoolean("dynamic_color", true),
                 showHud = p.getBoolean("show_hud", true),
                 touchKeyboard = p.getBoolean("touch_keyboard", true),
+                tutorialSeen = p.getInt("tutorial_seen", 0),
             )
             uiLoaded = true
         }
@@ -104,6 +107,7 @@ object Hub {
             .putBoolean("dynamic_color", u.dynamicColor)
             .putBoolean("show_hud", u.showHud)
             .putBoolean("touch_keyboard", u.touchKeyboard)
+            .putInt("tutorial_seen", u.tutorialSeen)
             .apply()
         _ui.value = u
     }

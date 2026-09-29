@@ -75,8 +75,22 @@ class MainActivity : ComponentActivity() {
                 val status by Hub.status.collectAsStateWithLifecycle()
                 val log by Hub.log.collectAsStateWithLifecycle()
                 val setup = remember(tick) { setupState() }
+                // Opened again from the home menu; after setup it shows by itself until seen (TUTORIAL_VERSION).
+                var tutorial by rememberSaveable { mutableStateOf(false) }
 
-                if (!setup.done && !status.running) Setup(setup) else Main(status, log, ui)
+                when {
+                    !setup.done && !status.running -> Setup(setup)
+                    tutorial || ui.tutorialSeen < TUTORIAL_VERSION -> TutorialScreen(
+                        status = status,
+                        onBluetoothSettings = ::openBluetoothSettings,
+                        onPairing = { on -> HubService.pairing(this, on) },
+                        onDone = {
+                            tutorial = false
+                            Hub.editUi(this) { it.copy(tutorialSeen = TUTORIAL_VERSION) }
+                        },
+                    )
+                    else -> Main(status, log, ui, onTutorial = { tutorial = true })
+                }
             }
         }
     }
@@ -92,7 +106,7 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    private fun Main(status: HubStatus, log: String, ui: UiPrefs) {
+    private fun Main(status: HubStatus, log: String, ui: UiPrefs, onTutorial: () -> Unit) {
         // "home", "profile:<id>", "devices", "settings". With two panes, home and profiles share the
         // screen (the route picks the right pane, "home" there = the profile in use); devices and
         // settings always take the whole screen.
@@ -124,6 +138,7 @@ class MainActivity : ComponentActivity() {
                 onOpenProfile = { id -> open("profile:$id") },
                 onDevices = { open("devices") },
                 onSettings = { open("settings") },
+                onTutorial = onTutorial,
                 onCopyLog = ::copyLog,
                 selectedId = selectedId,
                 batteryExempt = remember(tick) { batteryExempt() },

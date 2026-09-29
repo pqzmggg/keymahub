@@ -175,4 +175,17 @@
     <string name="step_battery_body">Facultatif. Si le système optimise la batterie pour KeymaHub, il peut l\'arrêter : les liaisons aux appareils peuvent tomber et l\'association s\'interrompre.</string>
     <string name="action_battery">Exclure</string>
     <string name="battery_banner">L\'optimisation de la batterie est active pour KeymaHub : le système peut l\'arrêter, coupant les liaisons aux appareils ou l\'association. Il est recommandé de l\'exclure.</string>
+    <string name="tutorial_title">Utiliser KeymaHub</string>
+    <string name="tutorial_menu">Mode d\'emploi</string>
+    <string name="tutorial_skip">Passer</string>
+    <string name="tutorial_next">Suivant</string>
+    <string name="tutorial_start">Commencer</string>
+    <string name="tutorial_input_title">Connecter un clavier et une souris</string>
+    <string name="tutorial_input_body">KeymaHub contrôle d\'autres appareils avec le clavier et la souris connectés à cet appareil. Associez-les d\'abord dans les réglages Bluetooth de cet appareil (l\'USB fonctionne aussi).</string>
+    <string name="tutorial_keyboard">Clavier</string>
+    <string name="tutorial_mouse">Souris</string>
+    <string name="tutorial_pair_title">Ajouter un PC ou une tablette</string>
+    <string name="tutorial_pair_body">Activez le mode d\'association, puis ajoutez cet appareil dans les réglages Bluetooth du PC ou de la tablette. Plus tard, utilisez « Ajouter un appareil » sur l\'écran principal.</string>
+    <string name="tutorial_switch_title">Changer avec les raccourcis</string>
+    <string name="tutorial_switch_body">Les appareils prennent les chiffres dans l\'ordre où ils sont ajoutés ; les profils et les touches des raccourcis se modifient plus tard.</string>
 </resources>

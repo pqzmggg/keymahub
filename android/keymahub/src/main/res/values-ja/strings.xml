@@ -171,4 +171,17 @@
     <string name="step_battery_body">任意です。バッテリー最適化の対象だとシステムが KeymaHub を停止することがあり、デバイスとの接続が切れたりペアリングが中断されたりします。</string>
     <string name="action_battery">対象外にする</string>
     <string name="battery_banner">KeymaHub がバッテリー最適化の対象です。システムがアプリを停止すると、デバイスとの接続が切れたりペアリングが中断されたりするため、対象外にすることをおすすめします。</string>
+    <string name="tutorial_title">KeymaHub の使い方</string>
+    <string name="tutorial_menu">使い方</string>
+    <string name="tutorial_skip">スキップ</string>
+    <string name="tutorial_next">次へ</string>
+    <string name="tutorial_start">はじめる</string>
+    <string name="tutorial_input_title">キーボードとマウスを接続</string>
+    <string name="tutorial_input_body">KeymaHub は、このデバイスに接続したキーボードとマウスで他のデバイスを操作します。まずこのデバイスの Bluetooth 設定でキーボードとマウスをペアリングしてください（USB 接続でもかまいません）。</string>
+    <string name="tutorial_keyboard">キーボード</string>
+    <string name="tutorial_mouse">マウス</string>
+    <string name="tutorial_pair_title">PC・タブレットを追加</string>
+    <string name="tutorial_pair_body">ペアリングモードをオンにして、PC やタブレットの Bluetooth 設定でこのデバイスを追加してください。あとからはメイン画面の「新しいデバイスを追加」を使います。</string>
+    <string name="tutorial_switch_title">ホットキーで切り替え</string>
+    <string name="tutorial_switch_body">デバイスは追加した順に番号に入ります。プロファイルとホットキーの修飾キーはあとから変更できます。</string>
 </resources>

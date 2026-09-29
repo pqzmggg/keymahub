@@ -175,4 +175,17 @@
     <string name="step_battery_body">Opcional. Si el sistema optimiza la batería de KeymaHub, puede detenerlo: las conexiones con los dispositivos pueden cortarse y el emparejamiento interrumpirse.</string>
     <string name="action_battery">Excluir</string>
     <string name="battery_banner">La optimización de batería está activa para KeymaHub: el sistema puede detenerlo, cortando las conexiones o el emparejamiento. Se recomienda excluirlo.</string>
+    <string name="tutorial_title">Cómo usar KeymaHub</string>
+    <string name="tutorial_menu">Cómo usar</string>
+    <string name="tutorial_skip">Omitir</string>
+    <string name="tutorial_next">Siguiente</string>
+    <string name="tutorial_start">Empezar</string>
+    <string name="tutorial_input_title">Conecta un teclado y un ratón</string>
+    <string name="tutorial_input_body">KeymaHub controla otros dispositivos con el teclado y el ratón conectados a este dispositivo. Primero emparéjalos en los ajustes de Bluetooth de este dispositivo (también sirve USB).</string>
+    <string name="tutorial_keyboard">Teclado</string>
+    <string name="tutorial_mouse">Ratón</string>
+    <string name="tutorial_pair_title">Añade un PC o una tableta</string>
+    <string name="tutorial_pair_body">Activa el modo de emparejamiento y añade este dispositivo en los ajustes de Bluetooth del PC o la tableta. Más adelante, usa «Añadir un dispositivo» en la pantalla principal.</string>
+    <string name="tutorial_switch_title">Cambia con atajos</string>
+    <string name="tutorial_switch_body">Los dispositivos ocupan los números en el orden en que se añaden; los perfiles y las teclas de los atajos se pueden cambiar después.</string>
 </resources>
