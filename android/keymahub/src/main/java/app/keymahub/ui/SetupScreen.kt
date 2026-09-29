@@ -34,6 +34,7 @@ fun SetupScreen(
     onBluetooth: () -> Unit,
     onAccessibility: () -> Unit,
     onAppInfo: () -> Unit,
+    onBattery: () -> Unit,
 ) {
     Page {
         Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
@@ -54,6 +55,10 @@ fun SetupScreen(
         Step(
             "3", stringResource(R.string.step_notifications_title), stringResource(R.string.step_notifications_body),
             done = setup.notifications, action = stringResource(R.string.action_allow), onClick = onNotifications,
+        )
+        Step(
+            "4", stringResource(R.string.step_battery_title), stringResource(R.string.step_battery_body),
+            done = setup.battery, action = stringResource(R.string.action_battery), onClick = onBattery,
         )
 
         if (setup.bluetooth && !setup.accessibility) {

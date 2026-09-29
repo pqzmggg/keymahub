@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
@@ -46,6 +47,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -85,6 +87,9 @@ fun HomeScreen(
     onCopyLog: (log: String) -> Unit,
     /** The profile shown next to the list (two panes), outlined in it; null with one pane. */
     selectedId: String? = null,
+    /** Left out of battery optimization; if not, a card recommends it ([onBattery] asks). */
+    batteryExempt: Boolean = true,
+    onBattery: () -> Unit = {},
 ) {
     val settings = status.settings
     var menu by remember { mutableStateOf(false) }
@@ -116,6 +121,7 @@ fun HomeScreen(
                 Text(stringResource(it), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onErrorContainer)
             }
         }
+        if (!batteryExempt) BatteryCard(onBattery)
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             SectionTitle(stringResource(R.string.profiles_title))
@@ -243,6 +249,30 @@ private fun HostingCard(status: HubStatus, onHosting: (Boolean) -> Unit) {
                 }
             }
             Switch(checked = status.running, onCheckedChange = onHosting)
+        }
+    }
+}
+
+/**
+ * Recommends leaving battery optimization: the system may otherwise stop the app, ending links
+ * and pairing. Closed, it stays away until the app is opened again.
+ */
+@Composable
+private fun BatteryCard(onBattery: () -> Unit) {
+    var closed by rememberSaveable { mutableStateOf(false) }
+    if (closed) return
+    Card(
+        Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+    ) {
+        Row(Modifier.padding(start = 16.dp, top = 12.dp, bottom = 12.dp, end = 4.dp)) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(stringResource(R.string.battery_banner), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onTertiaryContainer)
+                FilledTonalButton(onClick = onBattery) { Text(stringResource(R.string.action_battery)) }
+            }
+            IconButton(onClick = { closed = true }) {
+                Icon(Icons.Default.Close, contentDescription = stringResource(R.string.action_close))
+            }
         }
     }
 }

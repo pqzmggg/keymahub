@@ -170,6 +170,10 @@
     <string name="notif_channel_hosts">Devices</string>
     <string name="host_forgot_title">%1$s forgot this keyboard</string>
     <string name="host_forgot_text">Remove this device on %1$s and add it again. Pairing mode is on.</string>
+    <string name="step_battery_title">Leave battery optimization (recommended)</string>
+    <string name="step_battery_body">Optional. If the system optimizes KeymaHub\'s battery use, it may stop it: links to devices can drop and pairing can stop.</string>
+    <string name="action_battery">Leave it</string>
+    <string name="battery_banner">Battery optimization is on for KeymaHub: the system may stop it, dropping links to devices or stopping pairing. Leaving it out is recommended.</string>
     <string name="tutorial_title">How to use KeymaHub</string>
     <string name="tutorial_menu">How to use</string>
     <string name="tutorial_skip">Skip</string>
