@@ -110,6 +110,9 @@
     <string name="device_remove">삭제</string>
     <string name="device_remove_confirm">\'%1$s\' 을(를) 삭제할까요? 페어링이 해제되고 모든 프로필에서 빠집니다. 상대 기기에서도 이 기기를 제거하세요.</string>
     <string name="settings_appearance">화면</string>
+    <string name="settings_battery">배터리 최적화</string>
+    <string name="settings_battery_off">제외됨: KeymaHub가 계속 실행됩니다.</string>
+    <string name="settings_battery_on">적용 중: 시스템이 KeymaHub를 멈추면 기기 연결이 끊기거나 페어링이 중단될 수 있습니다.</string>
     <string name="settings_behavior">동작</string>
     <string name="language">언어</string>
     <string name="language_system">시스템 기본값</string>

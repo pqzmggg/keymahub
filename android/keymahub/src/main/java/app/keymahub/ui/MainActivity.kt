@@ -191,6 +191,8 @@ class MainActivity : ComponentActivity() {
                     onBack = back,
                     onUi = { change -> Hub.editUi(this, change) },
                     onLanguage = { tag -> Locales.set(this, tag) },
+                    batteryExempt = remember(tick) { batteryExempt() },
+                    onBattery = { if (batteryExempt()) openBatterySettings() else askBatteryExempt() },
                 )
             }
         }
@@ -291,6 +293,11 @@ class MainActivity : ComponentActivity() {
 
     /** Whether KeymaHub is left out of battery optimization (the system may stop it otherwise). */
     private fun batteryExempt() = getSystemService(PowerManager::class.java)?.isIgnoringBatteryOptimizations(packageName) ?: true
+
+    /** The system's battery optimization list (to put KeymaHub back in, or check it). */
+    private fun openBatterySettings() {
+        runCatching { startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)) }
+    }
 
     /** Asks to be left out of battery optimization; where that dialog is missing, the list of apps. */
     @SuppressLint("BatteryLife")

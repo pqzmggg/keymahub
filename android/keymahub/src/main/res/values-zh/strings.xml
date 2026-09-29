@@ -110,6 +110,9 @@
     <string name="device_remove">删除</string>
     <string name="device_remove_confirm">删除“%1$s”？将取消配对并从所有配置中移除。也请在对方设备上删除本设备。</string>
     <string name="settings_appearance">外观</string>
+    <string name="settings_battery">电池优化</string>
+    <string name="settings_battery_off">不优化：KeymaHub 会持续运行。</string>
+    <string name="settings_battery_on">优化中：系统停止 KeymaHub 时，与设备的连接可能断开或配对中断。</string>
     <string name="settings_behavior">行为</string>
     <string name="language">语言</string>
     <string name="language_system">跟随系统</string>

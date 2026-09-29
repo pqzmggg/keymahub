@@ -110,6 +110,9 @@
     <string name="device_remove">Supprimer</string>
     <string name="device_remove_confirm">Supprimer « %1$s » ? L\'association est supprimée et il est retiré de tous les profils. Supprimez aussi cet appareil dans les paramètres Bluetooth de l\'autre appareil.</string>
     <string name="settings_appearance">Apparence</string>
+    <string name="settings_battery">Optimisation de la batterie</string>
+    <string name="settings_battery_off">Exclu : KeymaHub continue de fonctionner.</string>
+    <string name="settings_battery_on">Active : le système peut arrêter KeymaHub, coupant les liaisons aux appareils ou l\'association.</string>
     <string name="settings_behavior">Comportement</string>
     <string name="language">Langue</string>
     <string name="language_system">Langue du système</string>

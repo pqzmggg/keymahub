@@ -111,6 +111,9 @@
     <string name="device_remove">Remove</string>
     <string name="device_remove_confirm">Remove \"%1$s\"? It is unpaired and removed from every profile. Also remove this device in that device\'s Bluetooth settings.</string>
     <string name="settings_appearance">Appearance</string>
+    <string name="settings_battery">Battery optimization</string>
+    <string name="settings_battery_off">Left out: KeymaHub keeps running.</string>
+    <string name="settings_battery_on">On: the system may stop KeymaHub, dropping links to devices or stopping pairing.</string>
     <string name="settings_behavior">Behavior</string>
     <string name="language">Language</string>
     <string name="language_system">System default</string>
