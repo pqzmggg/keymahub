@@ -229,6 +229,8 @@
 
 - **정리: 쓰이지 않는 코드 제거** (2026-09-29): 동작 변화 없음. 앱에서 안 쓰이게 된 `Settings.assign`(프로필 목록 개편 뒤 테스트만 사용 → 테스트는 `moveReceiver`/`excludeReceiver`/직접 구성으로), 아무도 구현하지 않던 `InputSink.enter/leave`, 호출부가 결과를 버리던 `HostTable.dropLinks()` 반환값과 테스트 전용 `linked()`, 넘기지 않던 `descriptor(value)`·`Choice(detail, big)`, 쓰지 않던 `onForgotten`의 주소 인자, 항상 넘기는 콜백의 기본값, 같은 스레드의 Handler 둘(`timers`/`retries` → 하나), `onGone`의 중복 `Hub.resolve`(edit가 이미 함), 중복 null 검사. 옛 주석 하나 수정.
 
+- **새 기기를 프로필에 자동으로 넣지 않음** (2026-09-29): 처음 연결된 기기는 사용 중인 프로필의 빈 단축키 번호에 자동으로 들어갔음 → 이제 기기로 기억만 하고, 단축키에는 사용자가 프로필의 '기기 추가'로 넣음(`Settings.deviceConnected`). 페어링 안내·튜토리얼 문구 갱신(6개 언어). 테스트는 '연결 후 추가'를 하는 헬퍼로 바꾸고, 자동 배치만 보던 테스트는 삭제·교체.
+
 ## 7. 운영 규칙
 
 - 커밋 작성자: `dean <pqzmggg@gmail.com>`, 커밋 메시지에 공동 작성자·세션 줄을 넣지 않는다 (기존 이력도 재작성함).

@@ -159,18 +159,11 @@ data class Settings(
     // ---------------------------------------------------------------- devices
 
     /**
-     * A device became ready. A new one is remembered and gets the first free receiver slot of the
-     * active profile. A known one (reconnecting) stays where the user put it: in no profile it was
-     * taken out of, and not added to whichever profile is active now.
+     * A device became ready: a new one is remembered. It goes on no hotkey by itself; the user adds
+     * it to profiles ([addReceiver]).
      */
-    fun deviceConnected(address: String, name: String): Settings {
-        if (device(address) != null) return this
-        val known = copy(devices = devices + Device(address, clean(name)))
-        val p = known.active
-        if (p.slotOf(address) != null) return known
-        val free = (1 until Profile.SLOTS).firstOrNull { it !in p.receivers } ?: return known
-        return known.withProfile(p.copy(receivers = p.receivers + (free to address)))
-    }
+    fun deviceConnected(address: String, name: String): Settings =
+        if (device(address) != null) this else copy(devices = devices + Device(address, clean(name)))
 
     fun touch(address: String, now: Long) = withDevice(address) { it.copy(lastUsed = now) }
 

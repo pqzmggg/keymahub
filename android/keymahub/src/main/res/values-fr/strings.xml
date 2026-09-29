@@ -51,7 +51,7 @@
     <string name="assign_no_devices">Aucun appareil pour l\'instant.</string>
     <string name="devices_title">Gérer les appareils</string>
     <string name="device_rename">Renommer</string>
-    <string name="guide_intro">Sur votre PC ou tablette, ajoutez cet appareil depuis les paramètres Bluetooth. Les nouveaux appareils reçoivent le prochain raccourci libre du profil utilisé.</string>
+    <string name="guide_intro">Sur votre PC ou tablette, ajoutez cet appareil depuis les paramètres Bluetooth. Placez-le ensuite sur un raccourci avec « Ajouter un appareil » dans un profil.</string>
     <string name="guide_windows">Paramètres → Bluetooth et appareils → Ajouter un appareil → Bluetooth → choisissez cet appareil</string>
     <string name="guide_windows_hint">Absent de la liste ? Choisissez « Afficher tous les appareils » dans la fenêtre Ajouter un appareil.</string>
     <string name="guide_mac">Réglages Système → Bluetooth → cliquez sur Se connecter à côté de cet appareil</string>
@@ -193,5 +193,5 @@
     <string name="tutorial_pair_title">Ajouter un PC ou une tablette</string>
     <string name="tutorial_pair_body">Activez le mode d\'association, puis ajoutez cet appareil dans les réglages Bluetooth du PC ou de la tablette. Plus tard, utilisez « Ajouter un appareil » sur l\'écran principal.</string>
     <string name="tutorial_switch_title">Changer avec les raccourcis</string>
-    <string name="tutorial_switch_body">Les appareils prennent les chiffres dans l\'ordre où ils sont ajoutés ; les profils et les touches des raccourcis se modifient plus tard.</string>
+    <string name="tutorial_switch_body">Placez les appareils sur les chiffres avec « Ajouter un appareil » dans un profil ; les profils et les touches des raccourcis se modifient plus tard.</string>
 </resources>

@@ -17,6 +17,10 @@ class SettingsTest {
     private val none = emptySet<String>()
     private val ctrlAlt = Mods.CTRL or Mods.ALT
 
+    /** A new device connects and the user adds it to the active profile (it goes on no hotkey by itself). */
+    private fun Settings.connect(address: String, name: String): Settings =
+        if (device(address) != null) this else deviceConnected(address, name).let { it.addReceiver(it.activeId, address) }
+
     @Test
     fun hotkeysAreShiftAltPlusFixedNumbers() {
         val s = Settings()
@@ -42,19 +46,16 @@ class SettingsTest {
     }
 
     @Test
-    fun connectedDevicesTakeTheFirstFreeReceiverSlot() {
-        var s = Settings().deviceConnected("A", "Desk").deviceConnected("B", "Laptop")
-        assertEquals(1, s.active.slotOf("A"))
-        assertEquals(2, s.active.slotOf("B"))
-        s = s.moveReceiver(s.activeId, 1, 3).deviceConnected("C", "iPad") // B on 1, A on 3: 2 is free
-        assertEquals(2, s.active.slotOf("C"))
-        assertEquals(s, s.deviceConnected("B", "renamed?")) // known and placed: nothing changes
-        assertEquals(listOf("Desk", "Laptop", "iPad"), s.devices.map { it.name })
+    fun newDevicesAreRememberedOnNoHotkey() {
+        val s = Settings().deviceConnected("A", "Desk").deviceConnected("B", "Laptop")
+        assertTrue(s.profiles.all { it.receivers.isEmpty() })
+        assertEquals(listOf("Desk", "Laptop"), s.devices.map { it.name })
+        assertEquals(s, s.deviceConnected("B", "renamed?")) // known: nothing changes
     }
 
     @Test
     fun knownDevicesReconnectingStayWhereTheyWere() {
-        var s = Settings().deviceConnected("A", "Desk")
+        var s = Settings().connect("A", "Desk")
         val first = s.activeId
         val (next, other) = s.addProfile("Other") // a copy: A on 1
         s = next.excludeReceiver(other, 1).activate(other) // A taken out of Other, Other active
@@ -68,15 +69,15 @@ class SettingsTest {
     @Test
     fun fullProfileRemembersTheDeviceWithoutASlot() {
         var s = Settings()
-        for (i in 1..9) s = s.deviceConnected("T$i", "n$i")
-        s = s.deviceConnected("X", "extra")
+        for (i in 1..9) s = s.connect("T$i", "n$i")
+        s = s.connect("X", "extra")
         assertNull(s.active.slotOf("X"))
         assertTrue(s.device("X") != null)
     }
 
     @Test
     fun moveReceiverShiftsTheOthersLikeAList() {
-        var s = Settings().deviceConnected("A", "a").deviceConnected("B", "b").deviceConnected("C", "c")
+        var s = Settings().connect("A", "a").connect("B", "b").connect("C", "c")
         val id = s.activeId
         assertEquals(mapOf(1 to "A", 2 to "B", 3 to "C"), s.profile(id)!!.receivers)
         s = s.moveReceiver(id, 3, 1) // C to the top: A and B move down
@@ -90,7 +91,7 @@ class SettingsTest {
 
     @Test
     fun excludeReceiverPullsTheRestUp() {
-        var s = Settings().deviceConnected("A", "a").deviceConnected("B", "b").deviceConnected("C", "c")
+        var s = Settings().connect("A", "a").connect("B", "b").connect("C", "c")
         val id = s.activeId
         s = s.moveReceiver(id, 3, 5) // A, B on 1-2, C on 5
         s = s.excludeReceiver(id, 1) // everything after 1 moves up one, the gap too
@@ -103,7 +104,7 @@ class SettingsTest {
 
     @Test
     fun addReceiverGoesLast() {
-        var s = Settings().deviceConnected("A", "a").deviceConnected("B", "b")
+        var s = Settings().connect("A", "a").connect("B", "b")
         val id = s.activeId
         s = s.excludeReceiver(id, 1).excludeReceiver(id, 1) // an empty profile, both still paired
         s = s.addReceiver(id, "B").addReceiver(id, "A")
@@ -119,7 +120,7 @@ class SettingsTest {
 
     @Test
     fun newProfilesGoOnTopAsACopyWithoutConditions() {
-        var s = Settings(mode = ActivationMode.RULES).deviceConnected("A", "Desk")
+        var s = Settings(mode = ActivationMode.RULES).connect("A", "Desk")
         val first = s.activeId
         s = s.setWhenConnected(first, setOf("A"))
         val (next, home) = s.addProfile("Home")
@@ -145,19 +146,9 @@ class SettingsTest {
     }
 
     @Test
-    fun devicesLandOnlyInTheActiveProfile() {
-        var s = Settings()
-        val first = s.activeId
-        val (next, office) = s.addProfile("Office")
-        s = next.activate(office).deviceConnected("B", "Office PC")
-        assertEquals(1, s.profile(office)!!.slotOf("B"))
-        assertNull(s.profile(first)!!.slotOf("B"))
-    }
-
-    @Test
     fun conditionsByPriorityElseTheTopProfile() {
         var s = Settings(mode = ActivationMode.RULES)
-            .deviceConnected("OFFICE", "Office PC").deviceConnected("HOME", "Home PC").deviceConnected("TAB", "Tablet")
+            .connect("OFFICE", "Office PC").connect("HOME", "Home PC").connect("TAB", "Tablet")
         val home = s.activeId // no conditions
         var work = ""
         var tablet = ""
@@ -182,7 +173,7 @@ class SettingsTest {
 
     @Test
     fun anyChosenDeviceMatchesAndForgottenDevicesDrop() {
-        var s = Settings().deviceConnected("A", "Desk").deviceConnected("B", "Laptop")
+        var s = Settings().connect("A", "Desk").connect("B", "Laptop")
         val id = s.activeId
         s = s.setWhenConnected(id, setOf("A", "B", "UNKNOWN"))
         assertEquals(setOf("A", "B"), s.active.whenConnected) // unknown devices are not kept
@@ -194,7 +185,7 @@ class SettingsTest {
 
     @Test
     fun fullyAutomaticPicksTheProfileWithTheMostConnectedDevices() {
-        var s = Settings().deviceConnected("A", "Desk").deviceConnected("B", "Laptop").deviceConnected("C", "iPad")
+        var s = Settings().connect("A", "Desk").connect("B", "Laptop").connect("C", "iPad")
         assertEquals(ActivationMode.AUTO, s.mode) // the default
         val home = s.activeId // A=1, B=2, C=3
         var office = ""
@@ -217,8 +208,8 @@ class SettingsTest {
 
     @Test
     fun fullyAutomaticPicksTheMostThenTheLargestShareThenTheHigher() {
-        var s = Settings().deviceConnected("A", "a").deviceConnected("B", "b")
-            .deviceConnected("C", "c").deviceConnected("D", "d")
+        var s = Settings().connect("A", "a").connect("B", "b")
+            .connect("C", "c").connect("D", "d")
         val home = s.activeId // A, B, C, D
         val (next, office) = s.addProfile("Office") // on top, A, B, C, D too
         s = next.excludeReceiver(home, 3).excludeReceiver(home, 3) // home: A, B
@@ -233,7 +224,7 @@ class SettingsTest {
 
     @Test
     fun manualIgnoresEverythingButTheChoice() {
-        var s = Settings(mode = ActivationMode.MANUAL).deviceConnected("A", "Desk")
+        var s = Settings(mode = ActivationMode.MANUAL).connect("A", "Desk")
         val first = s.activeId
         val (next, other) = s.addProfile("Other")
         s = next.setWhenConnected(other, setOf("A"))
@@ -246,7 +237,7 @@ class SettingsTest {
 
     @Test
     fun activatingOverridesTheMatchUntilItChanges() {
-        var s = Settings(mode = ActivationMode.RULES).deviceConnected("W", "Work PC")
+        var s = Settings(mode = ActivationMode.RULES).connect("W", "Work PC")
         val home = s.activeId
         var work = ""
         s = s.addProfile("Work").let { (n, id) -> work = id; n }.setWhenConnected(work, setOf("W"))
@@ -270,7 +261,7 @@ class SettingsTest {
 
     @Test
     fun devicesRememberUseAndBlocking() {
-        var s = Settings().deviceConnected("A", "Desk").touch("A", 1234L).setBlocked("A", true)
+        var s = Settings().connect("A", "Desk").touch("A", 1234L).setBlocked("A", true)
         assertEquals(Device("A", "Desk", 1234L, true), s.device("A"))
         s = s.setBlocked("A", false)
         assertFalse(s.device("A")!!.blocked)
@@ -278,7 +269,7 @@ class SettingsTest {
 
     @Test
     fun forgetPullsTheDevicesAfterItUpInEveryProfile() {
-        var s = Settings().deviceConnected("A", "a").deviceConnected("B", "b").deviceConnected("C", "c")
+        var s = Settings().connect("A", "a").connect("B", "b").connect("C", "c")
         val (next, two) = s.addProfile("Two") // same numbers: A 1, B 2, C 3
         s = next.moveReceiver(two, 1, 3) // Two: B 1, C 2, A 3
         val one = s.profiles.last().id
@@ -289,7 +280,7 @@ class SettingsTest {
 
     @Test
     fun forgetRemovesTheDeviceEverywhere() {
-        var s = Settings().deviceConnected("A", "Desk").addProfile("Two").first
+        var s = Settings().connect("A", "Desk").addProfile("Two").first
         s = s.forgetDevice("A")
         assertTrue(s.devices.isEmpty())
         assertTrue(s.profiles.all { it.receivers.isEmpty() })
@@ -297,7 +288,7 @@ class SettingsTest {
 
     @Test
     fun encodeDecodeRoundTrips() {
-        var s = Settings().deviceConnected("AA:BB", "My\tDesk\n").deviceConnected("CC:DD", "Tab")
+        var s = Settings().connect("AA:BB", "My\tDesk\n").connect("CC:DD", "Tab")
         s = s.renameDevice("CC:DD", "  ") // blank names are ignored
         s = s.touch("AA:BB", 1_700_000_000_000L).setBlocked("CC:DD", true)
         s = s.setMods(Mods.META or Mods.SHIFT)

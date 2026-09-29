@@ -51,7 +51,7 @@
     <string name="assign_no_devices">まだデバイスがありません。</string>
     <string name="devices_title">デバイス管理</string>
     <string name="device_rename">名前を変更</string>
-    <string name="guide_intro">PC やタブレットの Bluetooth 設定からこのデバイスを追加してください。新しいデバイスは使用中のプロファイルの空いているホットキーに入ります。</string>
+    <string name="guide_intro">PC やタブレットの Bluetooth 設定からこのデバイスを追加してください。その後、プロファイルの「デバイスを追加」でホットキーに入れます。</string>
     <string name="guide_windows">設定 → Bluetooth とデバイス → デバイスの追加 → Bluetooth → このデバイスを選択</string>
     <string name="guide_windows_hint">表示されない場合は、デバイスの追加画面で「すべてのデバイスを表示」を選んでください。</string>
     <string name="guide_mac">システム設定 → Bluetooth → このデバイスの横の「接続」</string>
@@ -189,5 +189,5 @@
     <string name="tutorial_pair_title">PC・タブレットを追加</string>
     <string name="tutorial_pair_body">ペアリングモードをオンにして、PC やタブレットの Bluetooth 設定でこのデバイスを追加してください。あとからはメイン画面の「新しいデバイスを追加」を使います。</string>
     <string name="tutorial_switch_title">ホットキーで切り替え</string>
-    <string name="tutorial_switch_body">デバイスは追加した順に番号に入ります。プロファイルとホットキーの修飾キーはあとから変更できます。</string>
+    <string name="tutorial_switch_body">プロファイルの「デバイスを追加」でデバイスを番号に入れます。プロファイルとホットキーの修飾キーはあとから変更できます。</string>
 </resources>

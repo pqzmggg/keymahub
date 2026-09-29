@@ -52,7 +52,7 @@
     <string name="assign_no_devices">No devices yet.</string>
     <string name="devices_title">Manage devices</string>
     <string name="device_rename">Rename</string>
-    <string name="guide_intro">On your PC or tablet, add this device from the Bluetooth settings. New devices go to the next free hotkey of the profile in use.</string>
+    <string name="guide_intro">On your PC or tablet, add this device from the Bluetooth settings. Then put it on a hotkey with Add device in a profile.</string>
     <string name="guide_windows">Settings → Bluetooth &amp; devices → Add device → Bluetooth → select this device</string>
     <string name="guide_windows_hint">Not listed? Choose \"Show all devices\" in the Add a device window.</string>
     <string name="guide_mac">System Settings → Bluetooth → click Connect next to this device</string>
@@ -192,5 +192,5 @@
     <string name="tutorial_pair_title">Add a PC or tablet</string>
     <string name="tutorial_pair_body">Turn on pairing mode, then add this device in the Bluetooth settings of the PC or tablet. Later, use \'Add a new device\' on the main screen.</string>
     <string name="tutorial_switch_title">Switch with hotkeys</string>
-    <string name="tutorial_switch_body">Devices go on the numbers in the order they are added; profiles and the hotkey keys can be changed later.</string>
+    <string name="tutorial_switch_body">Put devices on the numbers with Add device in a profile; profiles and the hotkey keys can be changed later.</string>
 </resources>
