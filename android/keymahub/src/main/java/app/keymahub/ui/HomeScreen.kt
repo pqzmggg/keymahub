@@ -268,6 +268,10 @@ private fun BatteryCard(onBattery: () -> Unit) {
                 Icon(Icons.Default.Close, contentDescription = stringResource(R.string.action_close))
             }
         }
+    }
+}
+
+/**
  * Adding a PC or tablet, from the home screen: the pairing card (time left, how to add this
  * device) while pairing mode is on; otherwise a button, made prominent while nothing is paired.
  */
