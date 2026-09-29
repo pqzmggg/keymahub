@@ -34,7 +34,7 @@ class A11yCapture(
      * A mouse button was pressed in [onMotionEvent] while a target has focus: pointer capture was
      * lost (a touch gave focus to a phone app) and the mouse is back at work on the target.
      */
-    private val onUncapturedClick: () -> Unit = {},
+    private val onUncapturedClick: () -> Unit,
 ) {
     /** Local side of the router: records "let this event through" instead of emitting it. */
     private class PassThrough : InputSink {

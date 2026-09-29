@@ -226,8 +226,8 @@ class HubService : Service(), BleHid.Listener {
     override fun onGone(address: String) {
         profile.slotOf(address)?.let { capture?.targetLost(it) }
         Hub.update { it.copy(ready = BleHid.readyTargets()) }
-        if (Hub.settings(this).device(address) != null) Hub.edit(this) { it.touch(address, System.currentTimeMillis()) }
-        Hub.resolve(this)
+        // Also re-picks the active profile for the devices still connected.
+        Hub.edit(this) { it.touch(address, System.currentTimeMillis()) }
         updateNotification()
     }
 

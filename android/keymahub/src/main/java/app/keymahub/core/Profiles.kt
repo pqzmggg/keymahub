@@ -199,26 +199,6 @@ data class Settings(
     // ---------------------------------------------------------------- slots and hotkeys
 
     /**
-     * Puts [address] (null = nobody) on receiver [slot] of profile [id]. If the device already
-     * had another slot, whoever was on [slot] moves there (the two swap).
-     */
-    fun assign(id: String, slot: Int, address: String?): Settings {
-        require(slot in 1 until Profile.SLOTS)
-        val p = profile(id) ?: return this
-        val r = p.receivers.toMutableMap()
-        val occupant = r.remove(slot)
-        if (address != null) {
-            val old = p.slotOf(address)
-            if (old != null && old != slot) {
-                r.remove(old)
-                if (occupant != null) r[old] = occupant
-            }
-            r[slot] = address
-        }
-        return withProfile(p.copy(receivers = r))
-    }
-
-    /**
      * Moves what is on receiver [from] (a device, or nothing) to receiver [to] of profile [id]; the
      * receivers in between shift one place toward [from], as in a reordered list. The numbers and
      * their hotkeys stay; the devices move between them.

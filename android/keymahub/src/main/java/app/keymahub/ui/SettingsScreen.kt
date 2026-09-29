@@ -76,7 +76,7 @@ fun SettingsScreen(
                     ThemeMode.LIGHT to R.string.theme_light,
                     ThemeMode.DARK to R.string.theme_dark,
                 )) {
-                    Choice(stringResource(label), null, selected = ui.theme == mode) { onUi { it.copy(theme = mode) } }
+                    Choice(stringResource(label), selected = ui.theme == mode) { onUi { it.copy(theme = mode) } }
                 }
             }
         }
@@ -139,12 +139,12 @@ fun SettingsScreen(
             title = { Text(stringResource(R.string.language)) },
             text = {
                 Column(Modifier.verticalScroll(rememberScrollState())) {
-                    Choice(stringResource(R.string.language_system), null, selected = language.isEmpty()) {
+                    Choice(stringResource(R.string.language_system), selected = language.isEmpty()) {
                         pickingLanguage = false
                         onLanguage("")
                     }
                     for ((tag, name) in Locales.SUPPORTED) {
-                        Choice(name, null, selected = language == tag) {
+                        Choice(name, selected = language == tag) {
                             pickingLanguage = false
                             onLanguage(tag)
                         }

@@ -28,7 +28,7 @@ class KeymaAccessibilityService : AccessibilityService() {
     override fun onServiceConnected() {
         instance = this
         Hub.log("accessibility service connected")
-        BleHid.onForgotten = { _, name -> hostForgot(name) }
+        BleHid.onForgotten = { name -> hostForgot(name) }
         // The first thing the app's process does (it restarts the service after an update): the GATT
         // server goes up at once, so hosts still linked see the HID service back soon (BleHid.refresh).
         Thread({ BleHid.openServer(applicationContext) }, "gatt-open").start()

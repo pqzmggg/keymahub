@@ -5,8 +5,6 @@ package app.keymahub.core
  * [Buttons] values, the wheel is in 1/120 notches (positive = up / right).
  */
 interface InputSink {
-    fun enter() {}
-    fun leave() {}
     fun key(usage: Int, down: Boolean)
     fun move(dx: Int, dy: Int)
     fun button(button: Int, down: Boolean)

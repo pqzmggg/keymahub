@@ -30,7 +30,6 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
@@ -136,7 +135,7 @@ fun ProfileScreen(
             Text(stringResource(R.string.profile_add_device))
         }
         Card(Modifier.fillMaxWidth()) {
-            SlotRow(0, profile, status, onSelect = if (canSelect) ({ onSelect(0) }) else null, onRemove = {})
+            SlotRow(0, profile, status, onSelect = if (canSelect) ({ onSelect(0) }) else null)
             ReceiverList(
                 profile = profile,
                 status = status,
@@ -298,7 +297,8 @@ private fun SlotRow(
     profile: Profile,
     status: HubStatus,
     onSelect: (() -> Unit)?,
-    onRemove: () -> Unit,
+    /** Not for this phone (slot 0), which has no − button. */
+    onRemove: () -> Unit = {},
     /** The number (and hotkey) to show; differs from [slot] while rows are being dragged. */
     numberSlot: Int = slot,
     /** The drag handle's gestures; null for this phone, which stays first. */
@@ -403,22 +403,14 @@ private val Minus: ImageVector = materialIcon(name = "Filled.Remove") {
     }
 }
 
-/** [big]: the label as large as a device's name in the devices list (picking a device). */
 @Composable
-fun Choice(label: String, detail: String?, selected: Boolean, big: Boolean = false, onClick: () -> Unit) {
+fun Choice(label: String, selected: Boolean, onClick: () -> Unit) {
     Row(
         Modifier.fillMaxWidth().selectable(selected, role = Role.RadioButton, onClick = onClick).padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         RadioButton(selected = selected, onClick = null)
         Spacer(Modifier.width(12.dp))
-        Column {
-            Text(
-                label,
-                style = if (big) MaterialTheme.typography.titleMedium else LocalTextStyle.current,
-                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-            )
-            detail?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
-        }
+        Text(label, fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal)
     }
 }
