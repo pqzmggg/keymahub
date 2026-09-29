@@ -76,6 +76,10 @@
     <string name="problem_ble_peripheral">Este dispositivo no puede funcionar como teclado Bluetooth LE (modo periférico no admitido).</string>
     <string name="problem_gatt">No se pudo iniciar el servicio de teclado Bluetooth. Apaga y enciende el Bluetooth y vuelve a intentarlo.</string>
     <string name="action_back">Atrás</string>
+    <string name="input_missing_both">No hay teclado ni ratón conectados a este dispositivo. Conéctalos primero en los ajustes de Bluetooth (o por USB).</string>
+    <string name="input_missing_keyboard">No hay ningún teclado conectado a este dispositivo.</string>
+    <string name="input_missing_mouse">No hay ningún ratón conectado a este dispositivo.</string>
+    <string name="action_bluetooth_settings">Ajustes de Bluetooth</string>
     <string name="hosting_title">Anfitrión</string>
     <string name="hosting_off_hint">Actívalo para usar el teclado y el ratón de este dispositivo en tus dispositivos.</string>
     <string name="settings_title">Ajustes</string>

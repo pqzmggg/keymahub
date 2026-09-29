@@ -71,6 +71,8 @@ fun HomeScreen(
     status: HubStatus,
     log: String,
     onHosting: (Boolean) -> Unit,
+    /** Opens this device's Bluetooth settings (to connect a keyboard or mouse). */
+    onBluetoothSettings: () -> Unit,
     onEdit: ((Settings) -> Settings) -> Unit,
     onOpenProfile: (String) -> Unit,
     onDevices: () -> Unit,
@@ -100,6 +102,7 @@ fun HomeScreen(
             }
         }
 
+        InputBanner(onBluetoothSettings)
         HostingCard(status, onHosting)
 
         status.problem?.let {

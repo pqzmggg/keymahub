@@ -76,6 +76,10 @@
     <string name="problem_ble_peripheral">Cet appareil ne peut pas servir de clavier Bluetooth LE (mode périphérique non pris en charge).</string>
     <string name="problem_gatt">Impossible de démarrer le service de clavier Bluetooth. Désactivez puis réactivez le Bluetooth et réessayez.</string>
     <string name="action_back">Retour</string>
+    <string name="input_missing_both">Aucun clavier ni souris n\'est connecté à cet appareil. Connectez-les d\'abord dans les réglages Bluetooth (ou en USB).</string>
+    <string name="input_missing_keyboard">Aucun clavier n\'est connecté à cet appareil.</string>
+    <string name="input_missing_mouse">Aucune souris n\'est connectée à cet appareil.</string>
+    <string name="action_bluetooth_settings">Réglages Bluetooth</string>
     <string name="hosting_title">Hôte</string>
     <string name="hosting_off_hint">Activez pour utiliser le clavier et la souris de cet appareil sur vos appareils.</string>
     <string name="settings_title">Paramètres</string>

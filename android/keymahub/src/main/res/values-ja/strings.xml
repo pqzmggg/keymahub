@@ -76,6 +76,10 @@
     <string name="problem_ble_peripheral">このデバイスは Bluetooth LE キーボード（ペリフェラルモード）に対応していません。</string>
     <string name="problem_gatt">Bluetooth キーボードサービスを開始できませんでした。Bluetooth をオフにしてからオンにし、もう一度お試しください。</string>
     <string name="action_back">戻る</string>
+    <string name="input_missing_both">このデバイスにキーボードとマウスが接続されていません。まず Bluetooth 設定（または USB）で接続してください。</string>
+    <string name="input_missing_keyboard">このデバイスにキーボードが接続されていません。</string>
+    <string name="input_missing_mouse">このデバイスにマウスが接続されていません。</string>
+    <string name="action_bluetooth_settings">Bluetooth 設定</string>
     <string name="hosting_title">ホスティング</string>
     <string name="hosting_off_hint">オンにすると、このデバイスのキーボードとマウスでデバイスを操作します。</string>
     <string name="settings_title">設定</string>
