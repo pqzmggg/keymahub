@@ -53,6 +53,19 @@ class SettingsTest {
     }
 
     @Test
+    fun knownDevicesReconnectingStayWhereTheyWere() {
+        var s = Settings().deviceConnected("A", "Desk")
+        val first = s.activeId
+        val (next, other) = s.addProfile("Other") // a copy: A on 1
+        s = next.excludeReceiver(other, 1).activate(other) // A taken out of Other, Other active
+        s = s.deviceConnected("A", "Desk") // A reconnects
+        assertNull(s.profile(other)!!.slotOf("A")) // not put back
+        assertEquals(1, s.profile(first)!!.slotOf("A"))
+        s = s.excludeReceiver(first, 1).activate(first).deviceConnected("A", "Desk")
+        assertNull(s.profile(first)!!.slotOf("A")) // nor into the active one it was taken out of
+    }
+
+    @Test
     fun fullProfileRemembersTheDeviceWithoutASlot() {
         var s = Settings()
         for (i in 1..9) s = s.deviceConnected("T$i", "n$i")
