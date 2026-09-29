@@ -73,6 +73,8 @@ fun HomeScreen(
     status: HubStatus,
     log: String,
     onHosting: (Boolean) -> Unit,
+    /** Opens this device's Bluetooth settings (to connect a keyboard or mouse). */
+    onBluetoothSettings: () -> Unit,
     /** Pairing mode on/off (on starts hosting too). */
     onPairing: (Boolean) -> Unit,
     onEdit: ((Settings) -> Settings) -> Unit,
@@ -107,6 +109,7 @@ fun HomeScreen(
             }
         }
 
+        InputBanner(onBluetoothSettings)
         HostingCard(status, onHosting)
         AddDevice(status, onPairing)
 
