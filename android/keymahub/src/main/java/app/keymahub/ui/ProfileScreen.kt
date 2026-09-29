@@ -125,10 +125,10 @@ fun ProfileScreen(
         )
 
         SectionTitle(stringResource(R.string.hotkeys_title), stringResource(R.string.hotkeys_hint))
-        // Off once all nine numbers are taken, or every device is already in the profile.
+        // Nine numbers at most: the button goes quiet once they are all taken.
         FilledTonalButton(
             onClick = { adding = true },
-            enabled = profile.receivers.size < Profile.SLOTS - 1 && settings.devices.any { profile.slotOf(it.address) == null },
+            enabled = profile.receivers.size < Profile.SLOTS - 1,
             modifier = Modifier.align(Alignment.End),
         ) {
             Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
@@ -356,7 +356,7 @@ private fun SlotRow(
     }
 }
 
-/** The devices not in [profile] yet (there is one: see the button); the one picked goes to the end of its list. */
+/** The devices not in [profile] yet; the one picked goes to the end of its list. */
 @Composable
 private fun AddDeviceDialog(profile: Profile, status: HubStatus, onDismiss: () -> Unit, onPick: (String) -> Unit) {
     val settings = status.settings
@@ -366,6 +366,10 @@ private fun AddDeviceDialog(profile: Profile, status: HubStatus, onDismiss: () -
         title = { Text(stringResource(R.string.profile_add_device)) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState())) {
+                when {
+                    settings.devices.isEmpty() -> Text(stringResource(R.string.assign_no_devices))
+                    devices.isEmpty() -> Text(stringResource(R.string.add_device_all_in))
+                }
                 for (d in devices) {
                     val connected = d.address in status.ready
                     Column(
