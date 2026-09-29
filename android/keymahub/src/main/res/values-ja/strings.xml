@@ -130,6 +130,10 @@
     <string name="cover_screen">他のデバイス操作中は画面を隠す</string>
     <string name="cover_screen_hint">他のデバイスを操作している間は黒い画面で覆い、クリックやキー入力で画面がついても何も表示しません。画面をタッチすると解除されます。</string>
     <string name="cover_hint">タッチすると画面が表示されます</string>
+    <string name="recover_screen">タッチがなければ再び隠す</string>
+    <string name="recover_screen_hint">タッチで解除した後、この時間スマホに触れなければ再び画面を隠します。</string>
+    <string name="duration_seconds">%d秒</string>
+    <string name="duration_minutes">%d分</string>
     <string name="touch_keyboard">他のデバイス操作中の画面キーボード</string>
     <string name="touch_keyboard_hint">物理キーボードで他のデバイスを操作中も画面キーボードを表示</string>
     <string name="profile_activate">有効にする</string>

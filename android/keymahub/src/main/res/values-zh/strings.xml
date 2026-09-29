@@ -130,6 +130,10 @@
     <string name="cover_screen">控制其他设备时遮住屏幕</string>
     <string name="cover_screen_hint">控制其他设备时用黑屏遮住，点击或按键点亮屏幕时也不显示内容。触摸屏幕即可取消。</string>
     <string name="cover_hint">触摸以显示屏幕</string>
+    <string name="recover_screen">无触摸时重新遮住</string>
+    <string name="recover_screen_hint">触摸取消遮挡后，手机在以下时间内未被触摸就再次遮住屏幕。</string>
+    <string name="duration_seconds">%d秒</string>
+    <string name="duration_minutes">%d分钟</string>
     <string name="touch_keyboard">控制其他设备时的屏幕键盘</string>
     <string name="touch_keyboard_hint">实体键盘控制其他设备时仍显示屏幕键盘</string>
     <string name="profile_activate">启用</string>

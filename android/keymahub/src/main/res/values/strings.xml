@@ -131,6 +131,10 @@
     <string name="cover_screen">Cover the screen while controlling</string>
     <string name="cover_screen_hint">Black screen while another device is controlled, so clicks and keys that turn the screen on show nothing. Touch the screen to uncover it.</string>
     <string name="cover_hint">Touch to show the screen</string>
+    <string name="recover_screen">Cover again when untouched</string>
+    <string name="recover_screen_hint">Once a touch uncovers the screen, cover it again after the phone goes untouched for:</string>
+    <string name="duration_seconds">%d s</string>
+    <string name="duration_minutes">%d min</string>
     <string name="touch_keyboard">On-screen keyboard while controlling</string>
     <string name="touch_keyboard_hint">Keep the on-screen keyboard while the physical one controls another device</string>
     <string name="profile_activate">Activate</string>
