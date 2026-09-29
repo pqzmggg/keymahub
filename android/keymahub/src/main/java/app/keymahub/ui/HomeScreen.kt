@@ -75,8 +75,8 @@ fun HomeScreen(
     onHosting: (Boolean) -> Unit,
     /** Opens this device's Bluetooth settings (to connect a keyboard or mouse). */
     onBluetoothSettings: () -> Unit,
-    /** Pairing mode on/off (on starts hosting too). */
-    onPairing: (Boolean) -> Unit,
+    /** Adding a PC or tablet: pairing mode on, on the devices screen (the new one shows there). */
+    onAddDevice: () -> Unit,
     onEdit: ((Settings) -> Settings) -> Unit,
     onOpenProfile: (String) -> Unit,
     onDevices: () -> Unit,
@@ -114,7 +114,7 @@ fun HomeScreen(
 
         InputBanner(onBluetoothSettings)
         HostingCard(status, onHosting)
-        AddDevice(status, onPairing)
+        AddDevice(status, onAddDevice)
 
         status.problem?.let {
             Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)) {
@@ -278,28 +278,27 @@ private fun BatteryCard(onBattery: () -> Unit) {
 }
 
 /**
- * Adding a PC or tablet, from the home screen: the pairing card (time left, how to add this
- * device) while pairing mode is on; otherwise a button, made prominent while nothing is paired.
+ * Adding a PC or tablet, from the home screen: a button to the devices screen with pairing mode
+ * on, made prominent while nothing is paired.
  */
 @Composable
-private fun AddDevice(status: HubStatus, onPairing: (Boolean) -> Unit) {
+private fun AddDevice(status: HubStatus, onAddDevice: () -> Unit) {
     val label = @Composable {
         Icon(Icons.Default.Add, contentDescription = null)
         Spacer(Modifier.width(8.dp))
         Text(stringResource(R.string.pairing_add))
     }
     when {
-        status.pairingUntil != 0L -> PairingCard(status, onPairing)
         status.settings.devices.isEmpty() -> Card(
             Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
         ) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(stringResource(R.string.home_no_devices), style = MaterialTheme.typography.bodyMedium)
-                Button(onClick = { onPairing(true) }) { label() }
+                Button(onClick = onAddDevice) { label() }
             }
         }
-        else -> OutlinedButton(onClick = { onPairing(true) }, modifier = Modifier.fillMaxWidth()) { label() }
+        else -> OutlinedButton(onClick = onAddDevice, modifier = Modifier.fillMaxWidth()) { label() }
     }
 }
 
