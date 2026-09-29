@@ -48,6 +48,8 @@
     <string name="unassign">デバイスを除外</string>
     <string name="profile_add_device">デバイスを追加</string>
     <string name="add_device_all_in">すべてのデバイスがこのプロファイルに入っています。</string>
+    <string name="add_device_confirm">追加</string>
+    <string name="add_device_room">あと %d 台まで追加できます。</string>
     <string name="assign_no_devices">まだデバイスがありません。</string>
     <string name="devices_title">デバイス管理</string>
     <string name="device_rename">名前を変更</string>

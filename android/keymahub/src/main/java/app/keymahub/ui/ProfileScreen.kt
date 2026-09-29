@@ -173,9 +173,9 @@ fun ProfileScreen(
             profile = profile,
             status = status,
             onDismiss = { adding = false },
-            onPick = { address ->
+            onAdd = { addresses ->
                 adding = false
-                onEdit { it.addReceiver(profileId, address) }
+                onEdit { s -> addresses.fold(s) { acc, address -> acc.addReceiver(profileId, address) } }
             },
         )
     }
@@ -356,11 +356,16 @@ private fun SlotRow(
     }
 }
 
-/** The devices not in [profile] yet; the one picked goes to the end of its list. */
+/**
+ * The devices not in [profile] yet, to check one or more: [onAdd] puts them at the end of its list
+ * in the order they were checked. No more can be checked than there are free numbers.
+ */
 @Composable
-private fun AddDeviceDialog(profile: Profile, status: HubStatus, onDismiss: () -> Unit, onPick: (String) -> Unit) {
+private fun AddDeviceDialog(profile: Profile, status: HubStatus, onDismiss: () -> Unit, onAdd: (List<String>) -> Unit) {
     val settings = status.settings
     val devices = settings.devices.filter { profile.slotOf(it.address) == null }
+    val room = Profile.SLOTS - 1 - profile.receivers.size
+    var picked by remember { mutableStateOf(listOf<String>()) }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.profile_add_device)) },
@@ -369,25 +374,49 @@ private fun AddDeviceDialog(profile: Profile, status: HubStatus, onDismiss: () -
                 when {
                     settings.devices.isEmpty() -> Text(stringResource(R.string.assign_no_devices))
                     devices.isEmpty() -> Text(stringResource(R.string.add_device_all_in))
+                    devices.size > room -> Text(
+                        stringResource(R.string.add_device_room, room),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
                 for (d in devices) {
+                    val on = d.address in picked
                     val connected = d.address in status.ready
-                    Column(
+                    Row(
                         Modifier.fillMaxWidth()
-                            .clickable { onPick(d.address) }
-                            .padding(vertical = 10.dp),
+                            .toggleable(on, enabled = on || picked.size < room, role = Role.Checkbox) {
+                                picked = if (it) picked + d.address else picked - d.address
+                            }
+                            .padding(vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text(d.name, style = MaterialTheme.typography.titleMedium)
-                        Text(
-                            stringResource(if (connected) R.string.state_connected else R.string.state_not_connected),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (connected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                        Checkbox(checked = on, onCheckedChange = null, enabled = on || picked.size < room)
+                        Spacer(Modifier.width(12.dp))
+                        Column {
+                            Text(d.name, style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                stringResource(if (connected) R.string.state_connected else R.string.state_not_connected),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (connected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                     }
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_close)) } },
+        confirmButton = {
+            if (devices.isEmpty()) {
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_close)) }
+            } else {
+                TextButton(onClick = { onAdd(picked) }, enabled = picked.isNotEmpty()) {
+                    Text(stringResource(R.string.add_device_confirm))
+                }
+            }
+        },
+        dismissButton = {
+            if (devices.isNotEmpty()) TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
+        },
     )
 }
 
