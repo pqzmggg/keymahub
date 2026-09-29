@@ -71,7 +71,7 @@ class MainActivity : ComponentActivity() {
                 }
                 val status by Hub.status.collectAsStateWithLifecycle()
                 val log by Hub.log.collectAsStateWithLifecycle()
-                val setup = remember(tick) { setupState() }
+                val setup = remember(tick, ui.batterySkipped) { setupState(ui.batterySkipped) }
                 // Opened again from the home menu; after setup it shows by itself until seen (TUTORIAL_VERSION).
                 var tutorial by rememberSaveable { mutableStateOf(false) }
 
@@ -240,6 +240,7 @@ class MainActivity : ComponentActivity() {
             onAccessibility = { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },
             onAppInfo = ::openAppInfo,
             onBattery = ::askBatteryExempt,
+            onSkip = { Hub.editUi(this) { it.copy(batterySkipped = true) } },
         )
     }
 
@@ -287,11 +288,12 @@ class MainActivity : ComponentActivity() {
         startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName")))
     }
 
-    private fun setupState() = SetupState(
+    private fun setupState(batterySkipped: Boolean) = SetupState(
         notifications = !needed(Manifest.permission.POST_NOTIFICATIONS),
         bluetooth = BleHid.hasPermission(this),
         accessibility = KeymaAccessibilityService.isEnabled(this),
         battery = batteryExempt(),
+        batterySkipped = batterySkipped,
     )
 
     /** Whether KeymaHub is left out of battery optimization (the system may stop it otherwise). */
@@ -310,12 +312,23 @@ class MainActivity : ComponentActivity() {
 }
 
 /**
- * Notifications are asked for but optional: KeymaHub runs without them (the notification is just
- * hidden). Leaving battery optimization ([battery]) is recommended, not required.
+ * The setup steps. KeymaHub would run without notifications (the notification is just hidden), but
+ * setup waits for them with the other two it needs. Leaving battery optimization ([battery]) is
+ * recommended, not required: it can be skipped.
  */
-data class SetupState(val notifications: Boolean, val bluetooth: Boolean, val accessibility: Boolean, val battery: Boolean) {
+data class SetupState(
+    val notifications: Boolean,
+    val bluetooth: Boolean,
+    val accessibility: Boolean,
+    val battery: Boolean,
+    /** The optional battery step was skipped once (UiPrefs.batterySkipped). */
+    val batterySkipped: Boolean,
+) {
     val runtimeDone get() = notifications && bluetooth
-    val done get() = bluetooth && accessibility
+    /** Steps 1 to 3: what hosting needs. The battery step can be skipped from here. */
+    val required get() = bluetooth && accessibility && notifications
+    /** All four steps done, or the battery one skipped: setup moves on by itself. */
+    val done get() = required && (battery || batterySkipped)
 }
 
 @Composable

@@ -37,6 +37,8 @@ data class UiPrefs(
     /** Cover it again after the phone goes untouched for [recoverSeconds], once a touch uncovered it. */
     val recoverScreen: Boolean = true,
     val recoverSeconds: Int = 10,
+    /** The setup's optional battery step was skipped: setup no longer waits for it. */
+    val batterySkipped: Boolean = false,
     /** The tutorial version last seen or skipped (0: never; see ui.TUTORIAL_VERSION). */
     val tutorialSeen: Int = 0,
 )
@@ -99,6 +101,7 @@ object Hub {
                 coverScreen = p.getBoolean("cover_screen", true),
                 recoverScreen = p.getBoolean("recover_screen", true),
                 recoverSeconds = p.getInt("recover_seconds", 10),
+                batterySkipped = p.getBoolean("battery_skipped", false),
                 tutorialSeen = p.getInt("tutorial_seen", 0),
             )
             uiLoaded = true
@@ -115,6 +118,7 @@ object Hub {
             .putBoolean("cover_screen", u.coverScreen)
             .putBoolean("recover_screen", u.recoverScreen)
             .putInt("recover_seconds", u.recoverSeconds)
+            .putBoolean("battery_skipped", u.batterySkipped)
             .putInt("tutorial_seen", u.tutorialSeen)
             .apply()
         _ui.value = u

@@ -182,6 +182,7 @@
     <string name="host_forgot_text">Quita este dispositivo en %1$s y vuelve a añadirlo. El modo de emparejamiento está activado.</string>
     <string name="step_battery_title">Excluir de la optimización de batería (recomendado)</string>
     <string name="step_battery_body">Opcional. Si el sistema optimiza la batería de KeymaHub, puede detenerlo: las conexiones con los dispositivos pueden cortarse y el emparejamiento interrumpirse.</string>
+    <string name="setup_skip">Omitir</string>
     <string name="action_battery">Excluir</string>
     <string name="battery_banner">La optimización de batería está activa para KeymaHub: el sistema puede detenerlo, cortando las conexiones o el emparejamiento. Se recomienda excluirlo.</string>
     <string name="tutorial_title">Cómo usar KeymaHub</string>

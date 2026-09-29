@@ -24,7 +24,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.keymahub.R
 
-/** Host mode setup: runtime permissions, then the accessibility service behind its disclosure. */
+/**
+ * Host mode setup: runtime permissions, then the accessibility service behind its disclosure, then
+ * leaving battery optimization (optional). It moves on once all four are done; [onSkip], enabled
+ * once the first three are, moves on without the fourth.
+ */
 @Composable
 fun SetupScreen(
     setup: SetupState,
@@ -35,6 +39,7 @@ fun SetupScreen(
     onAccessibility: () -> Unit,
     onAppInfo: () -> Unit,
     onBattery: () -> Unit,
+    onSkip: () -> Unit,
 ) {
     Page {
         Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
@@ -64,6 +69,13 @@ fun SetupScreen(
         if (setup.bluetooth && !setup.accessibility) {
             TextButton(onClick = onAppInfo) {
                 Text(stringResource(R.string.restricted_hint), fontSize = 12.sp)
+            }
+        }
+
+        // Only the battery step is left: it is optional.
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+            TextButton(onClick = onSkip, enabled = setup.required && !setup.battery) {
+                Text(stringResource(R.string.setup_skip))
             }
         }
     }
