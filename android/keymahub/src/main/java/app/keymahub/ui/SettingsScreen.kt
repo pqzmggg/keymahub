@@ -93,6 +93,10 @@ fun SettingsScreen(
                 }
             }
             HorizontalDivider()
+            Toggle(stringResource(R.string.cover_screen), stringResource(R.string.cover_screen_hint), ui.coverScreen) { on ->
+                onUi { it.copy(coverScreen = on) }
+            }
+            HorizontalDivider()
             BatteryItem(batteryExempt, onBattery)
         }
 

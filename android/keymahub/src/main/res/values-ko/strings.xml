@@ -127,6 +127,9 @@
     <string name="report_message">문제를 확인하는 데 쓰이는 로그입니다. 앱 동작 기록과 기기 이름이 들어 있고, 입력한 내용은 들어 있지 않습니다. 복사해서 문제를 알릴 곳에 붙여 넣으세요.</string>
     <string name="report_copy">복사</string>
     <string name="report_copied">로그를 클립보드에 복사했습니다.</string>
+    <string name="cover_screen">다른 기기 조작 중 화면 가리기</string>
+    <string name="cover_screen_hint">다른 기기를 조작하는 동안 검은 화면으로 가려, 클릭이나 키 입력으로 화면이 켜져도 아무것도 보이지 않게 합니다. 화면을 터치하면 풀립니다.</string>
+    <string name="cover_hint">터치하면 화면이 보입니다</string>
     <string name="touch_keyboard">다른 기기 조작 중 화면 키보드</string>
     <string name="touch_keyboard_hint">물리 키보드로 다른 기기를 조작하는 동안에도 화면 키보드 표시</string>
     <string name="profile_activate">활성화</string>

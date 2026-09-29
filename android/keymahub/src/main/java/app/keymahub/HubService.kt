@@ -18,6 +18,7 @@ import app.keymahub.ble.HidSender
 import app.keymahub.capture.A11yCapture
 import app.keymahub.capture.HudOverlay
 import app.keymahub.capture.PointerCaptureOverlay
+import app.keymahub.capture.ScreenCover
 import app.keymahub.core.Hotkey
 import app.keymahub.core.Hub
 import app.keymahub.ui.MainActivity
@@ -35,6 +36,7 @@ class HubService : Service(), BleHid.Listener {
     private var capture: A11yCapture? = null
     private var pointerCapture: PointerCaptureOverlay? = null
     private var hud: HudOverlay? = null
+    private var cover: ScreenCover? = null
     private val main = Handler(Looper.getMainLooper())
     private var pendingPairing = false
 
@@ -89,6 +91,7 @@ class HubService : Service(), BleHid.Listener {
         sender = s
         capture = c
         hud = HudOverlay(a11y)
+        cover = ScreenCover(a11y)
         pointerCapture = PointerCaptureOverlay(a11y, c::onCapturedPointer) { captured ->
             // Without capture, fall back to accessibility interception (the phone's pointer keeps moving).
             if (c.slot != 0) a11y.interceptMouse(!captured)
@@ -131,6 +134,7 @@ class HubService : Service(), BleHid.Listener {
         c?.stop()
         pointerCapture?.stop()
         hud?.remove()
+        cover?.hide()
         sender?.shutdown()
         // Off the main thread: it waits for a start still in progress. Hosts are let go (see BleHid.stop).
         Thread { BleHid.stop() }.start()
@@ -180,6 +184,7 @@ class HubService : Service(), BleHid.Listener {
             a11y?.interceptMouse(false)
             a11y?.softKeyboardDespiteHardKeyboard(false)
             a11y?.textEvents = null
+            cover?.hide()
             showHud(getString(R.string.hud_phone))
         } else {
             val address = profile.addressOf(slot)
@@ -189,6 +194,8 @@ class HubService : Service(), BleHid.Listener {
             // The mouse stays captured, so a text field touched on the phone is typed into through the
             // capture window (TextRelay).
             a11y?.textEvents = pointerCapture?.takeIf { Hub.ui.value.touchKeyboard }?.let { it::onAccessibilityEvent }
+            // Clicks and keys turn the screen on whatever an app does: it shows black instead.
+            if (Hub.ui.value.coverScreen) cover?.show()
             showHud(getString(R.string.hud_target, receiverName(slot).orEmpty()))
             if (address != null) Hub.edit(this) { it.touch(address, System.currentTimeMillis()) }
         }
