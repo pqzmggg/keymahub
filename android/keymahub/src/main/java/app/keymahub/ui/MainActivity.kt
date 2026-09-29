@@ -1,6 +1,7 @@
 package app.keymahub.ui
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -9,6 +10,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.PowerManager
 import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -118,6 +120,8 @@ class MainActivity : ComponentActivity() {
                 onSettings = { open("settings") },
                 onCopyLog = ::copyLog,
                 selectedId = selectedId,
+                batteryExempt = remember(tick) { batteryExempt() },
+                onBattery = ::askBatteryExempt,
             )
         }
         val detail = @Composable { r: String ->
@@ -212,6 +216,7 @@ class MainActivity : ComponentActivity() {
             onBluetooth = { requestRuntime(automatic = false, *BLUETOOTH) },
             onAccessibility = { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },
             onAppInfo = ::openAppInfo,
+            onBattery = ::askBatteryExempt,
         )
     }
 
@@ -263,15 +268,29 @@ class MainActivity : ComponentActivity() {
         notifications = !needed(Manifest.permission.POST_NOTIFICATIONS),
         bluetooth = BleHid.hasPermission(this),
         accessibility = KeymaAccessibilityService.isEnabled(this),
+        battery = batteryExempt(),
     )
+
+    /** Whether KeymaHub is left out of battery optimization (the system may stop it otherwise). */
+    private fun batteryExempt() = getSystemService(PowerManager::class.java)?.isIgnoringBatteryOptimizations(packageName) ?: true
+
+    /** Asks to be left out of battery optimization; where that dialog is missing, the list of apps. */
+    @SuppressLint("BatteryLife")
+    private fun askBatteryExempt() {
+        runCatching { startActivity(Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:$packageName"))) }
+            .onFailure { runCatching { startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)) } }
+    }
 
     private companion object {
         val BLUETOOTH = arrayOf(Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_ADVERTISE)
     }
 }
 
-/** Notifications are asked for but optional: KeymaHub runs without them (the notification is just hidden). */
-data class SetupState(val notifications: Boolean, val bluetooth: Boolean, val accessibility: Boolean) {
+/**
+ * Notifications are asked for but optional: KeymaHub runs without them (the notification is just
+ * hidden). Leaving battery optimization ([battery]) is recommended, not required.
+ */
+data class SetupState(val notifications: Boolean, val bluetooth: Boolean, val accessibility: Boolean, val battery: Boolean) {
     val runtimeDone get() = notifications && bluetooth
     val done get() = bluetooth && accessibility
 }

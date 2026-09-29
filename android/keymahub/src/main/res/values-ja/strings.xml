@@ -161,4 +161,8 @@
     <string name="notif_channel_hosts">デバイス</string>
     <string name="host_forgot_title">%1$s がキーボードを認識しなくなりました</string>
     <string name="host_forgot_text">%1$s でこのデバイスを削除してから、もう一度追加してください。ペアリングモードをオンにしました。</string>
+    <string name="step_battery_title">バッテリー最適化の対象外にする（推奨）</string>
+    <string name="step_battery_body">任意です。バッテリー最適化の対象だとシステムが KeymaHub を停止することがあり、デバイスとの接続が切れたりペアリングが中断されたりします。</string>
+    <string name="action_battery">対象外にする</string>
+    <string name="battery_banner">KeymaHub がバッテリー最適化の対象です。システムがアプリを停止すると、デバイスとの接続が切れたりペアリングが中断されたりするため、対象外にすることをおすすめします。</string>
 </resources>
