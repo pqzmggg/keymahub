@@ -96,6 +96,31 @@ fun SettingsScreen(
             Toggle(stringResource(R.string.cover_screen), stringResource(R.string.cover_screen_hint), ui.coverScreen) { on ->
                 onUi { it.copy(coverScreen = on) }
             }
+            if (ui.coverScreen) {
+                HorizontalDivider()
+                Toggle(stringResource(R.string.recover_screen), stringResource(R.string.recover_screen_hint), ui.recoverScreen) { on ->
+                    onUi { it.copy(recoverScreen = on) }
+                }
+                if (ui.recoverScreen) {
+                    Row(
+                        Modifier.horizontalScroll(rememberScrollState()).padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        for (seconds in RECOVER_SECONDS) {
+                            FilterChip(
+                                selected = ui.recoverSeconds == seconds,
+                                onClick = { onUi { it.copy(recoverSeconds = seconds) } },
+                                label = {
+                                    Text(
+                                        if (seconds < 60) stringResource(R.string.duration_seconds, seconds)
+                                        else stringResource(R.string.duration_minutes, seconds / 60),
+                                    )
+                                },
+                            )
+                        }
+                    }
+                }
+            }
             HorizontalDivider()
             BatteryItem(batteryExempt, onBattery)
         }
@@ -130,6 +155,9 @@ fun SettingsScreen(
         )
     }
 }
+
+/** The choices for covering the screen again. */
+private val RECOVER_SECONDS = listOf(5, 10, 30, 60, 300)
 
 @Composable
 private fun Item(title: String, value: String, onClick: () -> Unit) {

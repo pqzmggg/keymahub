@@ -34,6 +34,9 @@ data class UiPrefs(
     val touchKeyboard: Boolean = true,
     /** Cover the phone's screen in black while another device is controlled (capture.ScreenCover). */
     val coverScreen: Boolean = true,
+    /** Cover it again after the phone goes untouched for [recoverSeconds], once a touch uncovered it. */
+    val recoverScreen: Boolean = true,
+    val recoverSeconds: Int = 10,
     /** The tutorial version last seen or skipped (0: never; see ui.TUTORIAL_VERSION). */
     val tutorialSeen: Int = 0,
 )
@@ -94,6 +97,8 @@ object Hub {
                 showHud = p.getBoolean("show_hud", true),
                 touchKeyboard = p.getBoolean("touch_keyboard", true),
                 coverScreen = p.getBoolean("cover_screen", true),
+                recoverScreen = p.getBoolean("recover_screen", true),
+                recoverSeconds = p.getInt("recover_seconds", 10),
                 tutorialSeen = p.getInt("tutorial_seen", 0),
             )
             uiLoaded = true
@@ -108,6 +113,8 @@ object Hub {
             .putBoolean("show_hud", u.showHud)
             .putBoolean("touch_keyboard", u.touchKeyboard)
             .putBoolean("cover_screen", u.coverScreen)
+            .putBoolean("recover_screen", u.recoverScreen)
+            .putInt("recover_seconds", u.recoverSeconds)
             .putInt("tutorial_seen", u.tutorialSeen)
             .apply()
         _ui.value = u

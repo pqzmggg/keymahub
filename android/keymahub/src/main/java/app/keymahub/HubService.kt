@@ -91,7 +91,7 @@ class HubService : Service(), BleHid.Listener {
         sender = s
         capture = c
         hud = HudOverlay(a11y)
-        cover = ScreenCover(a11y)
+        cover = ScreenCover(a11y) { Hub.ui.value.takeIf { it.recoverScreen }?.let { it.recoverSeconds * 1000L } }
         pointerCapture = PointerCaptureOverlay(a11y, c::onCapturedPointer) { captured ->
             // Without capture, fall back to accessibility interception (the phone's pointer keeps moving).
             if (c.slot != 0) a11y.interceptMouse(!captured)
