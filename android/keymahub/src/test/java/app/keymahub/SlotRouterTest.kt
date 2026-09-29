@@ -11,8 +11,6 @@ import org.junit.Test
 
 class SlotRouterTest {
     private class Rec(private val name: String, private val out: MutableList<String>) : InputSink {
-        override fun enter() { out += "$name enter" }
-        override fun leave() { out += "$name leave" }
         override fun key(usage: Int, down: Boolean) { out += "$name key $usage ${if (down) "down" else "up"}" }
         override fun move(dx: Int, dy: Int) { out += "$name move $dx $dy" }
         override fun button(button: Int, down: Boolean) { out += "$name button $button ${if (down) "down" else "up"}" }
@@ -63,7 +61,7 @@ class SlotRouterTest {
         assertEquals(
             listOf(
                 "local key ${0xE1} down", "local key ${0xE2} down",
-                "remote enter", "select 1",
+                "select 1",
                 "local key ${0xE2} up", "local key ${0xE1} up",
             ),
             out,
@@ -80,7 +78,7 @@ class SlotRouterTest {
         // An unused key between the modifiers' press and release, so Windows does not switch language.
         assertEquals(listOf("remote key $mask down", "remote key $mask up"), out.subList(2, 4))
         assertEquals(setOf("remote key ${0xE1} up", "remote key ${0xE2} up"), out.subList(4, 6).toSet())
-        assertEquals(listOf("remote releaseAll", "remote leave", "select 0"), out.drop(6))
+        assertEquals(listOf("remote releaseAll", "select 0"), out.drop(6))
         out.clear()
         up(digit(1)); up(alt); up(shift)
         assertEquals(emptyList<String>(), out) // physical releases already delivered: swallowed
@@ -132,7 +130,6 @@ class SlotRouterTest {
         down(shift); down(alt); down(digit(3))
         assertEquals(2, router.slot)
         assertTrue("remote key ${0x04} up" in out)
-        assertFalse("remote enter" in out) // still remote, only the target changes
         assertEquals("select 2", out.last())
         out.clear()
         up(a) // released on the old target already

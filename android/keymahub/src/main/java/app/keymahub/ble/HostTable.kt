@@ -107,22 +107,17 @@ class HostTable(
         if (subs.keys.retainAll(paired)) persist(saved())
     }
 
-    /** Every link was let go (hosting stopped, Bluetooth off). Returns the hosts that were ready. */
+    /** Every link was let go (hosting stopped, Bluetooth off). */
     @Synchronized
-    fun dropLinks(): List<String> {
-        val gone = ready.toList()
+    fun dropLinks() {
         linked.clear()
         targets.clear()
         ready.clear()
-        return gone
     }
 
     /** Ready hosts, in the order they became ready. */
     @Synchronized
     fun ready(): Set<String> = LinkedHashSet(ready)
-
-    @Synchronized
-    fun linked(): Set<String> = LinkedHashSet(linked)
 
     private fun saved(): Map<String, Set<Report>> = subs.mapValues { it.value.toSet() }
 

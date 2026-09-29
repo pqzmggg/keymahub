@@ -96,10 +96,8 @@ object BleHid {
     /** Hosting: advertising, accepting targets and sending input. */
     @Volatile private var running = false
     private val main = Handler(Looper.getMainLooper())
-    /** Timeouts of the phone's joins ([join]); kept apart from [main], which stop() clears. */
+    /** Timeouts of the phone's joins ([join]) and retries of stalled sends ([pump]); kept apart from [main], which stop() clears. */
     private val timers = Handler(Looper.getMainLooper())
-    /** Retries of stalled sends ([pump]); kept apart from [main], which stop() clears. */
-    private val retries = Handler(Looper.getMainLooper())
 
     private lateinit var keyboardIn: BluetoothGattCharacteristic
     private lateinit var mouseIn: BluetoothGattCharacteristic
@@ -148,7 +146,7 @@ object BleHid {
      * for a while (see [refresh]): it has forgotten the keyboard and has to pair again. Called on a
      * Bluetooth thread with the host's address and name. Set by the accessibility service.
      */
-    @Volatile var onForgotten: ((address: String, name: String) -> Unit)? = null
+    @Volatile var onForgotten: ((name: String) -> Unit)? = null
 
     /** Devices the user disconnected: refused when they reconnect. Set by the service. */
     @Volatile var isBlocked: (address: String) -> Boolean = { false }
@@ -616,7 +614,7 @@ object BleHid {
         // would wait for the next input (a key release held back keeps the key down on the host).
         if (q.size > 0 && retrying.add(address)) {
             val full = (inFlight[address] ?: 0) >= WINDOW
-            retries.postDelayed({
+            timers.postDelayed({
                 synchronized(lock) {
                     retrying.remove(address)
                     pump(address)
@@ -641,11 +639,7 @@ object BleHid {
 
     private fun characteristic(uuid: Int, props: Int, perms: Int) = BluetoothGattCharacteristic(uuid16(uuid), props, perms)
 
-    private fun descriptor(uuid: UUID, perms: Int, value: ByteArray? = null) =
-        BluetoothGattDescriptor(uuid, perms).also { d ->
-            @Suppress("DEPRECATION")
-            if (value != null) d.value = value
-        }
+    private fun descriptor(uuid: UUID, perms: Int) = BluetoothGattDescriptor(uuid, perms)
 
     private val values = HashMap<Any, ByteArray>() // characteristic/descriptor -> static value
 
@@ -771,7 +765,7 @@ object BleHid {
                     val since = synchronized(lock) { refreshing.remove(address) }
                     if (since != null && SystemClock.uptimeMillis() - since <= FORGET_WINDOW_MS) {
                         Hub.log("BLE HID: ${nameOf(address)} dropped the link without looking at the keyboard again: it has forgotten it (pair again)")
-                        onForgotten?.invoke(address, nameOf(address))
+                        onForgotten?.invoke(nameOf(address))
                     }
                     if (change == Change.GONE) gone(address)
                     advertise() // hosts reconnect to it (a no-op while not hosting)

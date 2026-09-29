@@ -163,7 +163,7 @@ class TextRelay(context: Context, parent: ViewGroup) {
             super.onSelectionChanged(selStart, selEnd)
             // Called from EditText's constructor, before this class's fields are set.
             @Suppress("SENSELESS_COMPARISON")
-            if (this@TextRelay.field != null && !muted && node != null) pushSelection()
+            if (this@TextRelay.field != null && !muted) pushSelection()
         }
     }
 }

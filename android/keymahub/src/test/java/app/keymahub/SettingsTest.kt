@@ -46,8 +46,8 @@ class SettingsTest {
         var s = Settings().deviceConnected("A", "Desk").deviceConnected("B", "Laptop")
         assertEquals(1, s.active.slotOf("A"))
         assertEquals(2, s.active.slotOf("B"))
-        s = s.assign(s.activeId, 1, null).deviceConnected("C", "iPad")
-        assertEquals(1, s.active.slotOf("C"))
+        s = s.moveReceiver(s.activeId, 1, 3).deviceConnected("C", "iPad") // B on 1, A on 3: 2 is free
+        assertEquals(2, s.active.slotOf("C"))
         assertEquals(s, s.deviceConnected("B", "renamed?")) // known and placed: nothing changes
         assertEquals(listOf("Desk", "Laptop", "iPad"), s.devices.map { it.name })
     }
@@ -109,21 +109,12 @@ class SettingsTest {
         s = s.addReceiver(id, "B").addReceiver(id, "A")
         assertEquals(mapOf(1 to "B", 2 to "A"), s.profile(id)!!.receivers)
         assertEquals(s, s.addReceiver(id, "A")) // already there
-        s = s.moveReceiver(id, 2, 9).deviceConnected("C", "c").assign(id, 2, null) // A on 9, the last number
-        s = s.addReceiver(id, "C")
-        assertEquals(mapOf(1 to "B", 2 to "C", 9 to "A"), s.profile(id)!!.receivers) // into the first gap
-    }
-
-    @Test
-    fun assignMovesAndSwaps() {
-        var s = Settings().deviceConnected("A", "a").deviceConnected("B", "b")
-        val id = s.activeId
-        s = s.assign(id, 2, "A") // A was on 1, B on 2: they swap
-        assertEquals("A", s.active.addressOf(2))
-        assertEquals("B", s.active.addressOf(1))
-        s = s.assign(id, 5, "B") // 5 was empty: B just moves
-        assertEquals("B", s.active.addressOf(5))
-        assertNull(s.active.addressOf(1))
+        // The last number taken: into the first gap.
+        s = Settings(
+            devices = listOf(Device("A", "a"), Device("B", "b"), Device("C", "c")),
+            profiles = listOf(Profile("p", "", mapOf(1 to "B", 9 to "A"))),
+        ).addReceiver("p", "C")
+        assertEquals(mapOf(1 to "B", 2 to "C", 9 to "A"), s.profile("p")!!.receivers)
     }
 
     @Test
@@ -208,7 +199,7 @@ class SettingsTest {
         val home = s.activeId // A=1, B=2, C=3
         var office = ""
         s = s.addProfile("Office").let { (n, id) -> office = id; n }
-            .assign(office, 3, null) // Office: A, B (and it is on top)
+            .excludeReceiver(office, 3) // Office: A, B (and it is on top)
         s = s.resolve(setOf("A", "B"))
         assertEquals(office, s.activeId) // 2 each: 2 of 2 beats 2 of 3
         assertEquals(home, s.resolve(setOf("A", "B", "C")).activeId) // 3 beats 2
@@ -311,7 +302,7 @@ class SettingsTest {
         s = s.touch("AA:BB", 1_700_000_000_000L).setBlocked("CC:DD", true)
         s = s.setMods(Mods.META or Mods.SHIFT)
         val (next, office) = s.addProfile("Office")
-        s = next.setMode(ActivationMode.RULES).assign(office, 1, null)
+        s = next.setMode(ActivationMode.RULES).excludeReceiver(office, 1)
             .setWhenConnected(office, setOf("AA:BB", "CC:DD"))
             .activate(office)
         val back = Settings.decode(s.encode())

@@ -23,7 +23,7 @@ class SlotRouter(
     /** Focus changed to [slot] (0 = this phone). Called after the old target's keys were released. */
     private val onSelect: (slot: Int) -> Unit,
     /** The hotkey of [slot] was pressed but nothing is connected there. */
-    private val onUnavailable: (slot: Int) -> Unit = {},
+    private val onUnavailable: (slot: Int) -> Unit,
 ) {
     private enum class Dest { LOCAL, REMOTE, SWALLOWED }
 
@@ -109,13 +109,12 @@ class SlotRouter(
             target == slot -> {}
             target == 0 -> {
                 releaseRemote()
-                remote.leave()
                 slot = 0
                 onSelect(0)
             }
             !isAvailable(target) -> onUnavailable(target)
             else -> {
-                if (isRemote) releaseRemote() else remote.enter()
+                if (isRemote) releaseRemote()
                 slot = target
                 onSelect(target)
             }

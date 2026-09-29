@@ -89,8 +89,8 @@ class HostTableTest {
         val t = HostTable(subscribed(pc) + subscribed(tab))
         t.linkUp(pc, bonded = true)
         t.linkUp(tab, bonded = true)
-        assertEquals(listOf(pc, tab), t.dropLinks())
-        assertTrue(t.ready().isEmpty() && t.linked().isEmpty())
+        t.dropLinks()
+        assertTrue(t.ready().isEmpty() && !t.isLinked(pc) && !t.isLinked(tab))
         assertEquals(Change.READY, t.linkUp(tab, bonded = true))
     }
 
