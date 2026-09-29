@@ -170,4 +170,17 @@
     <string name="notif_channel_hosts">Devices</string>
     <string name="host_forgot_title">%1$s forgot this keyboard</string>
     <string name="host_forgot_text">Remove this device on %1$s and add it again. Pairing mode is on.</string>
+    <string name="tutorial_title">How to use KeymaHub</string>
+    <string name="tutorial_menu">How to use</string>
+    <string name="tutorial_skip">Skip</string>
+    <string name="tutorial_next">Next</string>
+    <string name="tutorial_start">Start</string>
+    <string name="tutorial_input_title">Connect a keyboard and mouse</string>
+    <string name="tutorial_input_body">KeymaHub controls other devices with the keyboard and mouse connected to this device. First pair them in this device\'s Bluetooth settings (USB works too).</string>
+    <string name="tutorial_keyboard">Keyboard</string>
+    <string name="tutorial_mouse">Mouse</string>
+    <string name="tutorial_pair_title">Add a PC or tablet</string>
+    <string name="tutorial_pair_body">Turn on pairing mode, then add this device in the Bluetooth settings of the PC or tablet. Later, use \'Add a new device\' on the main screen.</string>
+    <string name="tutorial_switch_title">Switch with hotkeys</string>
+    <string name="tutorial_switch_body">Devices go on the numbers in the order they are added; profiles and the hotkey keys can be changed later.</string>
 </resources>

@@ -167,4 +167,17 @@
     <string name="notif_channel_hosts">设备</string>
     <string name="host_forgot_title">%1$s 已无法识别此键盘</string>
     <string name="host_forgot_text">请在 %1$s 上删除本设备后重新添加。已开启配对模式。</string>
+    <string name="tutorial_title">KeymaHub 使用方法</string>
+    <string name="tutorial_menu">使用方法</string>
+    <string name="tutorial_skip">跳过</string>
+    <string name="tutorial_next">下一步</string>
+    <string name="tutorial_start">开始</string>
+    <string name="tutorial_input_title">连接键盘和鼠标</string>
+    <string name="tutorial_input_body">KeymaHub 用连接到本设备的键盘和鼠标控制其他设备。请先在本设备的蓝牙设置中配对键盘和鼠标（也可以用 USB 连接）。</string>
+    <string name="tutorial_keyboard">键盘</string>
+    <string name="tutorial_mouse">鼠标</string>
+    <string name="tutorial_pair_title">添加电脑或平板</string>
+    <string name="tutorial_pair_body">打开配对模式，然后在电脑或平板的蓝牙设置中添加本设备。以后可以使用主界面的“添加新设备”。</string>
+    <string name="tutorial_switch_title">用快捷键切换</string>
+    <string name="tutorial_switch_body">设备按添加顺序放在各个数字上。配置和快捷键的修饰键以后可以更改。</string>
 </resources>
