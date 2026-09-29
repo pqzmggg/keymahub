@@ -41,6 +41,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.keymahub.R
+import app.keymahub.core.ActivationMode
 import app.keymahub.core.Profile
 import app.keymahub.core.Settings
 
@@ -73,6 +74,10 @@ fun Badge(text: String, highlighted: Boolean) {
         }
     }
 }
+
+/** What the top profile is for in the automatic [mode]s: used when nothing matches. */
+fun fallbackLabel(mode: ActivationMode) =
+    if (mode == ActivationMode.AUTO) R.string.profile_fallback_auto else R.string.profile_fallback
 
 @Composable
 fun profileName(p: Profile) = p.name.ifEmpty { stringResource(R.string.profile_default) }

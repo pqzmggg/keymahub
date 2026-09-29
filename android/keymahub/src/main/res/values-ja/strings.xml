@@ -132,6 +132,7 @@
     <string name="profile_activate">有効にする</string>
     <string name="drag_handle">ドラッグして優先順位を変更</string>
     <string name="drag_to_renumber">ドラッグして別の番号に移動</string>
+    <string name="profile_fallback_auto">接続されたデバイスがないときに使用</string>
     <string name="profile_fallback">条件に合うプロファイルがないときに使用</string>
     <string name="settings_hotkeys">ホットキー</string>
     <string name="hotkeys_mods_hint">これらのキーを押しながら数字キーを押します。\n%1$s + 1：このデバイス\n%1$s + 2〜9、0：プロファイルでその数字に割り当てたデバイス</string>
@@ -150,7 +151,7 @@
     <string name="profile_devices_connected">%2$d 台中 %1$d 台接続</string>
     <string name="profiles_hint_auto">デバイスが最も多く接続されたプロファイルを使います。ドラッグで並べ替えます。</string>
     <string name="profiles_hint_manual">手動で有効にしたプロファイルを使います。</string>
-    <string name="mode_fallback_note">どちらの自動モードでも、合うプロファイルがない場合は最後に有効にしたプロファイルを使います。手動で有効にすると、接続中のデバイスが変わるまで自動の選択より優先されます。</string>
+    <string name="mode_fallback_note">どちらの自動方式でも、合うプロファイルがなければ一番上のプロファイルを使います。手動で有効にすると、接続中のデバイスが変わるまで自動の選択より優先されます。</string>
     <string name="device_connect">接続</string>
     <string name="device_connecting">%1$s に接続しています。デバイスの電源が入っていて近くにあれば接続されます。</string>
     <string name="log_note_hint">メモ: 何をして、どうなったか</string>

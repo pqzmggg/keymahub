@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import app.keymahub.KeyLabels
 import app.keymahub.R
+import app.keymahub.core.ActivationMode
 import app.keymahub.core.HubStatus
 import app.keymahub.core.Profile
 import app.keymahub.core.Settings
@@ -106,7 +107,7 @@ fun ProfileScreen(
             stringResource(
                 when {
                     active -> R.string.profile_in_use
-                    settings.chosenId == profile.id -> R.string.profile_fallback
+                    settings.mode != ActivationMode.MANUAL && settings.profiles.first().id == profile.id -> fallbackLabel(settings.mode)
                     else -> R.string.profile_not_in_use
                 },
             ),

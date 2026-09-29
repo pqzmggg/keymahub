@@ -379,8 +379,8 @@ private fun ProfileRow(
                 )
                 val state = when {
                     active -> stringResource(R.string.profile_in_use)
-                    // The fallback only means something while profiles switch by themselves.
-                    p.id == settings.chosenId && settings.mode != ActivationMode.MANUAL -> stringResource(R.string.profile_fallback)
+                    // The fallback only means something while profiles switch by themselves: the top one.
+                    p.id == settings.profiles.first().id && settings.mode != ActivationMode.MANUAL -> stringResource(fallbackLabel(settings.mode))
                     else -> null
                 }
                 if (state != null) {
