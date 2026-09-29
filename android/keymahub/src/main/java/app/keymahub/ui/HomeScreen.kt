@@ -79,6 +79,8 @@ fun HomeScreen(
     onOpenProfile: (String) -> Unit,
     onDevices: () -> Unit,
     onSettings: () -> Unit,
+    /** Shows the tutorial again. */
+    onTutorial: () -> Unit,
     /** Copies [log] to the clipboard. */
     onCopyLog: (log: String) -> Unit,
     /** The profile shown next to the list (two panes), outlined in it; null with one pane. */
@@ -98,6 +100,7 @@ fun HomeScreen(
                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                     DropdownMenuItem(text = { Text(stringResource(R.string.devices_title)) }, onClick = { menu = false; onDevices() })
                     DropdownMenuItem(text = { Text(stringResource(R.string.settings_title)) }, onClick = { menu = false; onSettings() })
+                    DropdownMenuItem(text = { Text(stringResource(R.string.tutorial_menu)) }, onClick = { menu = false; onTutorial() })
                     HorizontalDivider()
                     DropdownMenuItem(text = { Text(stringResource(R.string.report_menu)) }, onClick = { menu = false; showLog = true })
                 }
