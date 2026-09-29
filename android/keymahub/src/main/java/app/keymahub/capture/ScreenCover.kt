@@ -96,6 +96,12 @@ class ScreenCover(
             if (Build.VERSION.SDK_INT >= 28) {
                 layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
             }
+            // Windows keep clear of the status and navigation bars by default (Android 11+): cover
+            // them too, the whole screen.
+            if (Build.VERSION.SDK_INT >= 30) {
+                fitInsetsTypes = 0
+                isFitInsetsIgnoringVisibility = true
+            }
         }
         runCatching { wm.addView(v, params) }
             .onSuccess {
