@@ -102,6 +102,19 @@ class SettingsTest {
     }
 
     @Test
+    fun addReceiverGoesLast() {
+        var s = Settings().deviceConnected("A", "a").deviceConnected("B", "b")
+        val id = s.activeId
+        s = s.excludeReceiver(id, 1).excludeReceiver(id, 1) // an empty profile, both still paired
+        s = s.addReceiver(id, "B").addReceiver(id, "A")
+        assertEquals(mapOf(1 to "B", 2 to "A"), s.profile(id)!!.receivers)
+        assertEquals(s, s.addReceiver(id, "A")) // already there
+        s = s.moveReceiver(id, 2, 9).deviceConnected("C", "c").assign(id, 2, null) // A on 9, the last number
+        s = s.addReceiver(id, "C")
+        assertEquals(mapOf(1 to "B", 2 to "C", 9 to "A"), s.profile(id)!!.receivers) // into the first gap
+    }
+
+    @Test
     fun assignMovesAndSwaps() {
         var s = Settings().deviceConnected("A", "a").deviceConnected("B", "b")
         val id = s.activeId
