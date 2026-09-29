@@ -96,6 +96,8 @@
     <string name="notif_pairing">Le mode d\'association est activé. Ajoutez cet appareil sur votre PC ou tablette.</string>
     <string name="devices_paired">Appareils associés</string>
     <string name="devices_empty">Aucun appareil associé. Activez le mode d\'association pour en ajouter un.</string>
+    <string name="pairing_add">Ajouter un appareil</string>
+    <string name="home_no_devices">Aucun PC ni tablette n\'est encore associé. Ajoutez-en un pour le contrôler depuis cet appareil.</string>
     <string name="pairing_title">Mode d\'association</string>
     <string name="pairing_off_hint">Activez-le pour ajouter un nouveau PC ou une tablette.</string>
     <string name="pairing_on">Encore %1$s</string>
