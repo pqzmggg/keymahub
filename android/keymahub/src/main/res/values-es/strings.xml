@@ -53,7 +53,7 @@
     <string name="assign_no_devices">Aún no hay dispositivos.</string>
     <string name="devices_title">Gestionar dispositivos</string>
     <string name="device_rename">Cambiar nombre</string>
-    <string name="guide_intro">En tu PC o tableta, añade este dispositivo desde los ajustes de Bluetooth. Los dispositivos nuevos reciben el siguiente atajo libre del perfil en uso.</string>
+    <string name="guide_intro">En tu PC o tableta, añade este dispositivo desde los ajustes de Bluetooth. Después ponlo en un atajo con «Añadir dispositivo» en un perfil.</string>
     <string name="guide_windows">Configuración → Bluetooth y dispositivos → Agregar dispositivo → Bluetooth → elige este dispositivo</string>
     <string name="guide_windows_hint">¿No aparece? Elige \"Mostrar todos los dispositivos\" en la ventana Agregar un dispositivo.</string>
     <string name="guide_mac">Ajustes del Sistema → Bluetooth → pulsa Conectar junto a este dispositivo</string>
@@ -195,5 +195,5 @@
     <string name="tutorial_pair_title">Añade un PC o una tableta</string>
     <string name="tutorial_pair_body">Activa el modo de emparejamiento y añade este dispositivo en los ajustes de Bluetooth del PC o la tableta. Más adelante, usa «Añadir un dispositivo» en la pantalla principal.</string>
     <string name="tutorial_switch_title">Cambia con atajos</string>
-    <string name="tutorial_switch_body">Los dispositivos ocupan los números en el orden en que se añaden; los perfiles y las teclas de los atajos se pueden cambiar después.</string>
+    <string name="tutorial_switch_body">Pon los dispositivos en los números con «Añadir dispositivo» en un perfil; los perfiles y las teclas de los atajos se pueden cambiar después.</string>
 </resources>

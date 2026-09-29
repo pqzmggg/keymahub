@@ -53,7 +53,7 @@
     <string name="assign_no_devices">还没有设备。</string>
     <string name="devices_title">设备管理</string>
     <string name="device_rename">重命名</string>
-    <string name="guide_intro">请在电脑或平板的蓝牙设置中添加本设备。新设备会使用当前配置中空闲的快捷键。</string>
+    <string name="guide_intro">请在电脑或平板的蓝牙设置中添加本设备。然后在配置中用「添加设备」把它放到快捷键上。</string>
     <string name="guide_windows">设置 → 蓝牙和其他设备 → 添加设备 → 蓝牙 → 选择本设备</string>
     <string name="guide_windows_hint">列表中没有？在添加设备窗口中选择“显示所有设备”。</string>
     <string name="guide_mac">系统设置 → 蓝牙 → 点按本设备旁的“连接”</string>
@@ -191,5 +191,5 @@
     <string name="tutorial_pair_title">添加电脑或平板</string>
     <string name="tutorial_pair_body">打开配对模式，然后在电脑或平板的蓝牙设置中添加本设备。以后可以使用主界面的“添加新设备”。</string>
     <string name="tutorial_switch_title">用快捷键切换</string>
-    <string name="tutorial_switch_body">设备按添加顺序放在各个数字上。配置和快捷键的修饰键以后可以更改。</string>
+    <string name="tutorial_switch_body">在配置中用「添加设备」把设备放到各个数字上。配置和快捷键的修饰键以后可以更改。</string>
 </resources>

@@ -53,7 +53,7 @@
     <string name="assign_no_devices">아직 기기가 없습니다.</string>
     <string name="devices_title">기기 관리</string>
     <string name="device_rename">이름 변경</string>
-    <string name="guide_intro">PC나 태블릿의 블루투스 설정에서 이 기기를 추가하세요. 새 기기는 사용 중인 프로필의 빈 단축키에 들어갑니다.</string>
+    <string name="guide_intro">PC나 태블릿의 블루투스 설정에서 이 기기를 추가하세요. 그다음 프로필의 \'기기 추가\'로 단축키에 넣습니다.</string>
     <string name="guide_windows">설정 → 블루투스 및 장치 → 장치 추가 → 블루투스 → 이 기기 선택</string>
     <string name="guide_windows_hint">목록에 없으면 장치 추가 창에서 \'모든 장치 표시\'를 누르세요.</string>
     <string name="guide_mac">시스템 설정 → Bluetooth → 이 기기 옆의 \'연결\'</string>
@@ -191,5 +191,5 @@
     <string name="tutorial_pair_title">PC·태블릿 추가</string>
     <string name="tutorial_pair_body">페어링 모드를 켠 뒤 PC나 태블릿의 블루투스 설정에서 이 기기를 추가하세요. 나중에는 메인 화면의 \'새 기기 추가\'를 쓰면 됩니다.</string>
     <string name="tutorial_switch_title">단축키로 전환</string>
-    <string name="tutorial_switch_body">기기는 추가한 순서대로 번호에 들어갑니다. 프로필과 단축키의 보조키는 나중에 바꿀 수 있습니다.</string>
+    <string name="tutorial_switch_body">프로필의 \'기기 추가\'로 기기를 단축키 번호에 넣습니다. 프로필과 단축키의 보조키는 나중에 바꿀 수 있습니다.</string>
 </resources>
