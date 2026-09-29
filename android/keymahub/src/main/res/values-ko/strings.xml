@@ -47,7 +47,6 @@
     <string name="state_not_connected">연결 안 됨</string>
     <string name="unassign">기기 제외</string>
     <string name="profile_add_device">기기 추가</string>
-    <string name="add_device_all_in">모든 기기가 이미 이 프로필에 있습니다.</string>
     <string name="assign_no_devices">아직 기기가 없습니다.</string>
     <string name="devices_title">기기 관리</string>
     <string name="device_rename">이름 변경</string>

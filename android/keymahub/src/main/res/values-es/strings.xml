@@ -47,7 +47,6 @@
     <string name="state_not_connected">No conectado</string>
     <string name="unassign">Excluir dispositivo</string>
     <string name="profile_add_device">Añadir dispositivo</string>
-    <string name="add_device_all_in">Todos los dispositivos ya están en este perfil.</string>
     <string name="assign_no_devices">Aún no hay dispositivos.</string>
     <string name="devices_title">Gestionar dispositivos</string>
     <string name="device_rename">Cambiar nombre</string>

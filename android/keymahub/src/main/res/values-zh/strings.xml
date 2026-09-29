@@ -47,7 +47,6 @@
     <string name="state_not_connected">未连接</string>
     <string name="unassign">排除设备</string>
     <string name="profile_add_device">添加设备</string>
-    <string name="add_device_all_in">所有设备都已在此配置文件中。</string>
     <string name="assign_no_devices">还没有设备。</string>
     <string name="devices_title">设备管理</string>
     <string name="device_rename">重命名</string>
