@@ -77,6 +77,10 @@
     <string name="problem_ble_peripheral">This device cannot act as a Bluetooth LE keyboard (peripheral mode not supported).</string>
     <string name="problem_gatt">Could not start the Bluetooth keyboard service. Turn Bluetooth off and on, then try again.</string>
     <string name="action_back">Back</string>
+    <string name="input_missing_both">No keyboard or mouse is connected to this device. Connect them first in Bluetooth settings (or by USB).</string>
+    <string name="input_missing_keyboard">No keyboard is connected to this device.</string>
+    <string name="input_missing_mouse">No mouse is connected to this device.</string>
+    <string name="action_bluetooth_settings">Bluetooth settings</string>
     <string name="hosting_title">Hosting</string>
     <string name="hosting_off_hint">Turn on to use this device\'s keyboard and mouse on your devices.</string>
     <string name="settings_title">Settings</string>

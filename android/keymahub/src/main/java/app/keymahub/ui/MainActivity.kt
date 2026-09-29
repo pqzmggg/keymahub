@@ -79,6 +79,10 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun openBluetoothSettings() {
+        runCatching { startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS)) }
+    }
+
     override fun onDestroy() {
         // Closed (swiped away from recents), not just rotated: start the next visit with a fresh log.
         if (isFinishing && !isChangingConfigurations) Hub.clearLog()
@@ -112,6 +116,7 @@ class MainActivity : ComponentActivity() {
                 status = status,
                 log = log,
                 onHosting = { on -> if (on) HubService.start(this) else HubService.stop(this) },
+                onBluetoothSettings = ::openBluetoothSettings,
                 onPairing = { on -> HubService.pairing(this, on) },
                 onEdit = onEdit,
                 onOpenProfile = { id -> open("profile:$id") },
