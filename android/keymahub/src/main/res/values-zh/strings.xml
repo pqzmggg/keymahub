@@ -92,6 +92,8 @@
     <string name="notif_pairing">配对模式已开启。请在电脑或平板上添加本设备。</string>
     <string name="devices_paired">已配对的设备</string>
     <string name="devices_empty">还没有已配对的设备。开启配对模式来添加。</string>
+    <string name="pairing_add">添加新设备</string>
+    <string name="home_no_devices">尚未配对电脑或平板。添加后即可用本设备控制它。</string>
     <string name="pairing_title">配对模式</string>
     <string name="pairing_off_hint">开启后可添加新的电脑或平板。</string>
     <string name="pairing_on">剩余 %1$s</string>

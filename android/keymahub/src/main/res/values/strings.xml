@@ -93,6 +93,8 @@
     <string name="notif_pairing">Pairing mode is on. Add this device on your PC or tablet.</string>
     <string name="devices_paired">Paired devices</string>
     <string name="devices_empty">No paired devices yet. Turn on pairing mode to add one.</string>
+    <string name="pairing_add">Add a new device</string>
+    <string name="home_no_devices">No PC or tablet is paired yet. Add one to control it from this device.</string>
     <string name="pairing_title">Pairing mode</string>
     <string name="pairing_off_hint">Turn on to add a new PC or tablet.</string>
     <string name="pairing_on">On for %1$s more</string>
