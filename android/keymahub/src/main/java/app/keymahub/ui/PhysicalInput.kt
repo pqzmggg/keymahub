@@ -59,11 +59,14 @@ fun rememberPhysicalInput(): PhysicalInput {
 }
 
 private fun physicalInput(im: InputManager?): PhysicalInput {
-    val devices = (im?.inputDeviceIds ?: IntArray(0)).mapNotNull { im?.getInputDevice(it) }
-        .filter { !it.isVirtual && (Build.VERSION.SDK_INT < 29 || it.isExternal) }
+    if (im == null) return PhysicalInput(keyboard = false, mouse = false)
+    val ids: IntArray = im.inputDeviceIds
+    val devices: List<InputDevice> = ids.toList()
+        .mapNotNull { id -> im.getInputDevice(id) }
+        .filter { d -> !d.isVirtual && (Build.VERSION.SDK_INT < 29 || d.isExternal) }
     return PhysicalInput(
-        keyboard = devices.any { it.keyboardType == InputDevice.KEYBOARD_TYPE_ALPHABETIC },
-        mouse = devices.any { it.supportsSource(InputDevice.SOURCE_MOUSE) },
+        keyboard = devices.any { d -> d.keyboardType == InputDevice.KEYBOARD_TYPE_ALPHABETIC },
+        mouse = devices.any { d -> d.supportsSource(InputDevice.SOURCE_MOUSE) },
     )
 }
 
