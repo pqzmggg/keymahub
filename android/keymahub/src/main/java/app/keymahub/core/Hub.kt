@@ -29,7 +29,6 @@ enum class ThemeMode { SYSTEM, LIGHT, DARK }
 /** Personalization (Settings screen). The language lives in [app.keymahub.Locales]. */
 data class UiPrefs(
     val theme: ThemeMode = ThemeMode.SYSTEM,
-    val dynamicColor: Boolean = true,
     val showHud: Boolean = true,
     /** Show the on-screen keyboard while the physical one controls another device (Android 10+). */
     val touchKeyboard: Boolean = true,
@@ -90,7 +89,6 @@ object Hub {
             val p = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             _ui.value = UiPrefs(
                 theme = ThemeMode.entries.firstOrNull { it.name == p.getString("theme", null) } ?: ThemeMode.SYSTEM,
-                dynamicColor = p.getBoolean("dynamic_color", true),
                 showHud = p.getBoolean("show_hud", true),
                 touchKeyboard = p.getBoolean("touch_keyboard", true),
                 tutorialSeen = p.getInt("tutorial_seen", 0),
@@ -104,7 +102,6 @@ object Hub {
         val u = change(loadUi(context))
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
             .putString("theme", u.theme.name)
-            .putBoolean("dynamic_color", u.dynamicColor)
             .putBoolean("show_hud", u.showHud)
             .putBoolean("touch_keyboard", u.touchKeyboard)
             .putInt("tutorial_seen", u.tutorialSeen)

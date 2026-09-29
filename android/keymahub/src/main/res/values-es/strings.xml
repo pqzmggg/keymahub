@@ -117,8 +117,6 @@
     <string name="theme_system">Predeterminado del sistema</string>
     <string name="theme_light">Claro</string>
     <string name="theme_dark">Oscuro</string>
-    <string name="dynamic_color">Color dinámico</string>
-    <string name="dynamic_color_hint">Colores del fondo de pantalla</string>
     <string name="show_hud">Aviso de cambio</string>
     <string name="show_hud_hint">Muestra brevemente a qué dispositivo cambiaste</string>
     <string name="version">Versión %1$s</string>

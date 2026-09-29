@@ -37,7 +37,7 @@ import app.keymahub.core.Mods
 import app.keymahub.core.ThemeMode
 import app.keymahub.core.UiPrefs
 
-/** App-wide settings: hotkey modifiers, language, theme, colors, switch popup. */
+/** App-wide settings: hotkey modifiers, language, theme, switch popup. */
 @Composable
 fun SettingsScreen(
     ui: UiPrefs,
@@ -72,12 +72,6 @@ fun SettingsScreen(
                     ThemeMode.DARK to R.string.theme_dark,
                 )) {
                     Choice(stringResource(label), null, selected = ui.theme == mode) { onUi { it.copy(theme = mode) } }
-                }
-            }
-            if (Build.VERSION.SDK_INT >= 31) {
-                HorizontalDivider()
-                Toggle(stringResource(R.string.dynamic_color), stringResource(R.string.dynamic_color_hint), ui.dynamicColor) { on ->
-                    onUi { it.copy(dynamicColor = on) }
                 }
             }
         }

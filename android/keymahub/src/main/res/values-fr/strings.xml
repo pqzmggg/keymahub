@@ -117,8 +117,6 @@
     <string name="theme_system">Thème du système</string>
     <string name="theme_light">Clair</string>
     <string name="theme_dark">Sombre</string>
-    <string name="dynamic_color">Couleurs dynamiques</string>
-    <string name="dynamic_color_hint">Couleurs du fond d\'écran</string>
     <string name="show_hud">Annonce de changement</string>
     <string name="show_hud_hint">Affiche brièvement l\'appareil choisi</string>
     <string name="version">Version %1$s</string>
