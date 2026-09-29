@@ -120,8 +120,6 @@
     <string name="theme_system">システムのデフォルト</string>
     <string name="theme_light">ライト</string>
     <string name="theme_dark">ダーク</string>
-    <string name="dynamic_color">ダイナミックカラー</string>
-    <string name="dynamic_color_hint">壁紙の色を使う</string>
     <string name="show_hud">切り替えポップアップ</string>
     <string name="show_hud_hint">切り替えたデバイスを一瞬表示</string>
     <string name="version">バージョン %1$s</string>

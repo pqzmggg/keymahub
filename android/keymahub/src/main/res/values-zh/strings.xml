@@ -120,8 +120,6 @@
     <string name="theme_system">跟随系统</string>
     <string name="theme_light">浅色</string>
     <string name="theme_dark">深色</string>
-    <string name="dynamic_color">动态颜色</string>
-    <string name="dynamic_color_hint">使用壁纸颜色</string>
     <string name="show_hud">切换提示</string>
     <string name="show_hud_hint">短暂显示切换到的设备</string>
     <string name="version">版本 %1$s</string>

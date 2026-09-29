@@ -120,8 +120,6 @@
     <string name="theme_system">시스템 기본값</string>
     <string name="theme_light">밝게</string>
     <string name="theme_dark">어둡게</string>
-    <string name="dynamic_color">동적 색상</string>
-    <string name="dynamic_color_hint">배경화면 색상 사용</string>
     <string name="show_hud">전환 팝업</string>
     <string name="show_hud_hint">어느 기기로 전환했는지 잠깐 표시</string>
     <string name="version">버전 %1$s</string>
