@@ -92,6 +92,8 @@
     <string name="notif_pairing">페어링 모드가 켜져 있습니다. PC나 태블릿에서 이 기기를 추가하세요.</string>
     <string name="devices_paired">페어링된 기기</string>
     <string name="devices_empty">아직 페어링된 기기가 없습니다. 페어링 모드를 켜서 추가하세요.</string>
+    <string name="pairing_add">새 기기 추가</string>
+    <string name="home_no_devices">아직 연결된 PC나 태블릿이 없습니다. 기기를 추가하면 이 기기로 조작할 수 있습니다.</string>
     <string name="pairing_title">페어링 모드</string>
     <string name="pairing_off_hint">켜면 새 PC나 태블릿을 추가할 수 있습니다.</string>
     <string name="pairing_on">%1$s 남음</string>

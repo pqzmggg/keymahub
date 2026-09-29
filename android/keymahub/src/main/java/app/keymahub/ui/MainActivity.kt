@@ -114,6 +114,7 @@ class MainActivity : ComponentActivity() {
                 status = status,
                 log = log,
                 onHosting = { on -> if (on) HubService.start(this) else HubService.stop(this) },
+                onPairing = { on -> HubService.pairing(this, on) },
                 onEdit = onEdit,
                 onOpenProfile = { id -> open("profile:$id") },
                 onDevices = { open("devices") },
