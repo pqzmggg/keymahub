@@ -132,6 +132,7 @@
     <string name="profile_activate">Activer</string>
     <string name="drag_handle">Faites glisser pour changer la priorité</string>
     <string name="drag_to_renumber">Faites glisser pour le déplacer vers un autre numéro</string>
+    <string name="profile_fallback_auto">Utilisé quand aucun appareil n\'est connecté</string>
     <string name="profile_fallback">Utilisé quand aucune condition n\'est remplie</string>
     <string name="settings_hotkeys">Raccourcis</string>
     <string name="hotkeys_mods_hint">Maintenez ces touches et appuyez sur une touche numérique.\n%1$s + 1 : cet appareil\n%1$s + 2–9, 0 : l\'appareil placé sur ce chiffre dans le profil</string>
@@ -150,7 +151,7 @@
     <string name="profile_devices_connected">%1$d appareil(s) connecté(s) sur %2$d</string>
     <string name="profiles_hint_auto">Le profil qui a le plus d\'appareils connectés est utilisé. Faites glisser pour réordonner.</string>
     <string name="profiles_hint_manual">Le profil que vous activez est utilisé.</string>
-    <string name="mode_fallback_note">Dans les deux modes automatiques, si rien ne correspond, le dernier profil activé est utilisé. Activer un profil à la main l\'emporte aussi sur le choix automatique jusqu\'à ce que les appareils connectés changent.</string>
+    <string name="mode_fallback_note">Dans les deux modes automatiques, si rien ne correspond, le profil du haut est utilisé. Activer un profil à la main l\'emporte sur le choix automatique jusqu\'à ce que les appareils connectés changent.</string>
     <string name="device_connect">Connecter</string>
     <string name="device_connecting">Connexion à %1$s. Elle se fera quand l\'appareil sera allumé et à proximité.</string>
     <string name="log_note_hint">Note : ce que vous avez fait, ce qui s\'est passé</string>

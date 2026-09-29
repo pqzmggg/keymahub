@@ -138,7 +138,7 @@ class SettingsTest {
     }
 
     @Test
-    fun conditionsByPriorityElseTheLastActivated() {
+    fun conditionsByPriorityElseTheTopProfile() {
         var s = Settings(mode = ActivationMode.RULES)
             .deviceConnected("OFFICE", "Office PC").deviceConnected("HOME", "Home PC").deviceConnected("TAB", "Tablet")
         val home = s.activeId // no conditions
@@ -148,17 +148,19 @@ class SettingsTest {
         s = s.addProfile("Tablet").let { (n, id) -> tablet = id; n }.setWhenConnected(tablet, setOf("TAB"))
         // order: Tablet, Work, Home
         assertEquals(work, s.resolve(setOf("OFFICE")).activeId)
-        assertEquals(home, s.resolve(setOf("HOME")).activeId) // no rule for it: last activated
-        assertEquals(home, s.resolve(none).activeId) // nothing connected
+        assertEquals(tablet, s.resolve(setOf("HOME")).activeId) // no rule for it: the top profile
+        assertEquals(tablet, s.resolve(none).activeId) // nothing connected: the top profile
         assertEquals(tablet, s.resolve(setOf("OFFICE", "TAB")).activeId) // both match: higher wins
         s = s.moveProfile(tablet, 1) // Work above Tablet now
         assertEquals(work, s.resolve(setOf("OFFICE", "TAB")).activeId)
+        assertEquals(work, s.resolve(none).activeId) // the new top profile
         assertEquals(listOf(work, tablet, home), s.profiles.map { it.id })
         assertEquals(s, s.moveProfile(work, -1)) // already on top
 
-        // The fallback is whatever was activated last, conditions or not.
+        // Activated by hand while nothing matches: used until something does.
         s = s.activate(tablet).resolve(none)
         assertEquals(tablet, s.activeId)
+        assertEquals(work, s.resolve(setOf("OFFICE")).activeId)
     }
 
     @Test
@@ -185,8 +187,12 @@ class SettingsTest {
         assertEquals(office, s.activeId) // 2 each: 2 of 2 beats 2 of 3
         assertEquals(home, s.resolve(setOf("A", "B", "C")).activeId) // 3 beats 2
         assertEquals(office, s.resolve(setOf("A")).activeId) // 1 each: 1 of 2 beats 1 of 3
-        // Nothing connected: the last activated one.
-        assertEquals(home, s.activate(home).resolve(none).activeId)
+        // Nothing connected: the top profile; one activated by hand then stays until a device connects.
+        val none0 = s.resolve(none)
+        assertEquals(office, none0.activeId)
+        val byHand = none0.activate(home)
+        assertEquals(home, byHand.resolve(none).activeId)
+        assertEquals(office, byHand.resolve(none).resolve(setOf("A")).activeId)
         // Conditions do not matter in this mode.
         val ruled = s.setWhenConnected(home, setOf("C")).resolve(setOf("A", "B"))
         assertEquals(office, ruled.activeId)
@@ -235,8 +241,8 @@ class SettingsTest {
         assertEquals(work, s.overriddenId)
         assertEquals(work, s.automatic().resolve(setOf("W")).activeId) // "automatic" gives it back
 
-        s = s.resolve(none) // Work stops matching: the override ends
-        assertEquals(home, s.activeId)
+        s = s.resolve(none) // Work stops matching: the override ends, and the top profile (Work) is used
+        assertEquals(work, s.activeId)
         assertNull(s.overriddenId)
         assertEquals(work, s.resolve(setOf("W")).activeId) // it matches again later
 

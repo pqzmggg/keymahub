@@ -85,12 +85,11 @@ enum class ActivationMode {
  * Everything the user configures. Immutable: every change returns a new value.
  *
  * Which profile is active:
- * - In [ActivationMode.AUTO] and [ActivationMode.RULES], a profile may match right now
- *   ([matchedId]); it is used.
- * - Otherwise (and always in [ActivationMode.MANUAL]) the profile the user activated last
- *   ([chosenId]) is used.
- * - Activating a profile by hand also overrides the profile matching at that moment
- *   ([overriddenId]) until the matching changes (another profile matches, or none does).
+ * - In [ActivationMode.AUTO] and [ActivationMode.RULES], the profile matching right now
+ *   ([matchedId]), or with none the top profile: the choice is automatic.
+ * - Activating a profile by hand there overrides that choice ([overriddenId], the profile it
+ *   replaces) until the matching changes (another profile matches, or none does).
+ * - In [ActivationMode.MANUAL], the profile the user activated last ([chosenId]).
  */
 data class Settings(
     val devices: List<Device> = emptyList(),
@@ -135,16 +134,23 @@ data class Settings(
             ActivationMode.RULES -> profiles.firstOrNull { it.matches(connected) }?.id
             ActivationMode.MANUAL -> null
         }
-        val overridden = overriddenId?.takeIf { it == matched }
         val chosen = profile(chosenId)?.id ?: profiles.first().id
-        val active = if (matched != null && overridden == null) matched else chosen
+        if (mode == ActivationMode.MANUAL) return copy(activeId = chosen, chosenId = chosen, matchedId = null, overriddenId = null)
+        val auto = matched ?: profiles.first().id
+        // A choice by hand lasts while the matching stays as it was when it was made.
+        val overridden = overriddenId?.takeIf { matched == matchedId && it == auto && chosen != auto }
+        val active = if (overridden != null) chosen else auto
         return copy(activeId = active, chosenId = chosen, matchedId = matched, overriddenId = overridden)
     }
 
-    /** The user activated [id]: it is used now, and whenever no conditions match. */
+    /**
+     * The user activated [id]: it is used now. In the automatic modes it replaces the automatic
+     * choice until the matching changes; in [ActivationMode.MANUAL], for good.
+     */
     fun activate(id: String): Settings {
         if (profile(id) == null) return this
-        return copy(chosenId = id, activeId = id, overriddenId = matchedId?.takeIf { it != id })
+        val auto = if (mode == ActivationMode.MANUAL) null else matchedId ?: profiles.first().id
+        return copy(chosenId = id, activeId = id, overriddenId = auto?.takeIf { it != id })
     }
 
     /** Ends a manual override: the matching profile takes over again (applied by the next [resolve]). */
