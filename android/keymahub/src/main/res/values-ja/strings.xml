@@ -96,6 +96,8 @@
     <string name="notif_pairing">ペアリングモードがオンです。PC やタブレットでこのデバイスを追加してください。</string>
     <string name="devices_paired">ペアリング済みのデバイス</string>
     <string name="devices_empty">ペアリング済みのデバイスはまだありません。ペアリングモードをオンにして追加してください。</string>
+    <string name="pairing_add">新しいデバイスを追加</string>
+    <string name="home_no_devices">まだ PC やタブレットがペアリングされていません。追加すると、このデバイスで操作できます。</string>
     <string name="pairing_title">ペアリングモード</string>
     <string name="pairing_off_hint">オンにすると新しい PC やタブレットを追加できます。</string>
     <string name="pairing_on">残り %1$s</string>

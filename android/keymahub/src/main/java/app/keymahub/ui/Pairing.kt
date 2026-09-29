@@ -1,0 +1,79 @@
+package app.keymahub.ui
+
+import android.os.SystemClock
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import app.keymahub.R
+import app.keymahub.core.HubStatus
+import kotlinx.coroutines.delay
+
+/** Pairing mode on/off, its time left, and how to add this device on each kind of host (home and devices screens). */
+@Composable
+fun PairingCard(status: HubStatus, onPairing: (Boolean) -> Unit) {
+    val on = status.pairingUntil != 0L
+    var left by remember { mutableLongStateOf(0L) }
+    LaunchedEffect(status.pairingUntil) {
+        while (status.pairingUntil != 0L) {
+            left = ((status.pairingUntil - SystemClock.elapsedRealtime()) / 1000).coerceAtLeast(0)
+            delay(1000)
+        }
+    }
+    Card(
+        Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = if (on) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+        ),
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                // Room between the text and the switch.
+                Column(Modifier.weight(1f).padding(end = 12.dp)) {
+                    Text(stringResource(R.string.pairing_title), style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        if (on) stringResource(R.string.pairing_on, "%d:%02d".format(left / 60, left % 60))
+                        else stringResource(R.string.pairing_off_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+                Switch(checked = on, onCheckedChange = onPairing)
+            }
+            if (on) {
+                HorizontalDivider()
+                Text(stringResource(R.string.guide_intro), style = MaterialTheme.typography.bodyMedium)
+                GuideLine("Windows", stringResource(R.string.guide_windows))
+                Text(stringResource(R.string.guide_windows_hint), style = MaterialTheme.typography.bodySmall)
+                GuideLine("Mac", stringResource(R.string.guide_mac))
+                GuideLine("iPad / iPhone / Android", stringResource(R.string.guide_mobile))
+                Text(stringResource(R.string.guide_note), style = MaterialTheme.typography.bodySmall)
+            }
+        }
+    }
+}
+
+@Composable
+private fun GuideLine(platform: String, steps: String) {
+    Column {
+        Text(platform, fontWeight = FontWeight.SemiBold)
+        Text(steps, style = MaterialTheme.typography.bodyMedium)
+    }
+}

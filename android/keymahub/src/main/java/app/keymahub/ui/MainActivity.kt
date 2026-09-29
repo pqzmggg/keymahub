@@ -117,6 +117,7 @@ class MainActivity : ComponentActivity() {
                 log = log,
                 onHosting = { on -> if (on) HubService.start(this) else HubService.stop(this) },
                 onBluetoothSettings = ::openBluetoothSettings,
+                onPairing = { on -> HubService.pairing(this, on) },
                 onEdit = onEdit,
                 onOpenProfile = { id -> open("profile:$id") },
                 onDevices = { open("devices") },

@@ -96,6 +96,8 @@
     <string name="notif_pairing">El modo de emparejamiento está activado. Añade este dispositivo en tu PC o tableta.</string>
     <string name="devices_paired">Dispositivos emparejados</string>
     <string name="devices_empty">Aún no hay dispositivos emparejados. Activa el modo de emparejamiento para añadir uno.</string>
+    <string name="pairing_add">Añadir un dispositivo</string>
+    <string name="home_no_devices">Aún no hay ningún PC ni tableta emparejado. Añade uno para controlarlo desde este dispositivo.</string>
     <string name="pairing_title">Modo de emparejamiento</string>
     <string name="pairing_off_hint">Actívalo para añadir un PC o una tableta nuevos.</string>
     <string name="pairing_on">Activo %1$s más</string>
