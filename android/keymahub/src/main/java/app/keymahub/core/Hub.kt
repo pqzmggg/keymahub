@@ -32,6 +32,8 @@ data class UiPrefs(
     val showHud: Boolean = true,
     /** Show the on-screen keyboard while the physical one controls another device (Android 10+). */
     val touchKeyboard: Boolean = true,
+    /** Cover the phone's screen in black while another device is controlled (capture.ScreenCover). */
+    val coverScreen: Boolean = true,
     /** The tutorial version last seen or skipped (0: never; see ui.TUTORIAL_VERSION). */
     val tutorialSeen: Int = 0,
 )
@@ -91,6 +93,7 @@ object Hub {
                 theme = ThemeMode.entries.firstOrNull { it.name == p.getString("theme", null) } ?: ThemeMode.SYSTEM,
                 showHud = p.getBoolean("show_hud", true),
                 touchKeyboard = p.getBoolean("touch_keyboard", true),
+                coverScreen = p.getBoolean("cover_screen", true),
                 tutorialSeen = p.getInt("tutorial_seen", 0),
             )
             uiLoaded = true
@@ -104,6 +107,7 @@ object Hub {
             .putString("theme", u.theme.name)
             .putBoolean("show_hud", u.showHud)
             .putBoolean("touch_keyboard", u.touchKeyboard)
+            .putBoolean("cover_screen", u.coverScreen)
             .putInt("tutorial_seen", u.tutorialSeen)
             .apply()
         _ui.value = u

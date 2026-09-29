@@ -127,6 +127,9 @@
     <string name="report_message">此日志用于排查问题，包含应用运行记录和设备名称，不包含您输入的内容。复制后粘贴到您报告问题的地方。</string>
     <string name="report_copy">复制</string>
     <string name="report_copied">日志已复制到剪贴板。</string>
+    <string name="cover_screen">控制其他设备时遮住屏幕</string>
+    <string name="cover_screen_hint">控制其他设备时用黑屏遮住，点击或按键点亮屏幕时也不显示内容。触摸屏幕即可取消。</string>
+    <string name="cover_hint">触摸以显示屏幕</string>
     <string name="touch_keyboard">控制其他设备时的屏幕键盘</string>
     <string name="touch_keyboard_hint">实体键盘控制其他设备时仍显示屏幕键盘</string>
     <string name="profile_activate">启用</string>

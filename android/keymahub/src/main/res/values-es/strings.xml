@@ -127,6 +127,9 @@
     <string name="report_message">Este registro ayuda a investigar problemas. Incluye los eventos de la app y los nombres de los dispositivos, nunca lo que escribes. Cópialo y pégalo donde informes del problema.</string>
     <string name="report_copy">Copiar</string>
     <string name="report_copied">Registro copiado al portapapeles.</string>
+    <string name="cover_screen">Cubrir la pantalla al controlar</string>
+    <string name="cover_screen_hint">Pantalla negra mientras controlas otro dispositivo: los clics y teclas que encienden la pantalla no muestran nada. Toca la pantalla para descubrirla.</string>
+    <string name="cover_hint">Toca para ver la pantalla</string>
     <string name="touch_keyboard">Teclado en pantalla al controlar otro dispositivo</string>
     <string name="touch_keyboard_hint">Mantiene el teclado en pantalla mientras el físico controla otro dispositivo</string>
     <string name="profile_activate">Activar</string>

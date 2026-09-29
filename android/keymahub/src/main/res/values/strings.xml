@@ -128,6 +128,9 @@
     <string name="report_message">This log helps look into problems. It has the app\'s events and device names, never what you type. Copy it and paste it where you report the problem.</string>
     <string name="report_copy">Copy</string>
     <string name="report_copied">Log copied to the clipboard.</string>
+    <string name="cover_screen">Cover the screen while controlling</string>
+    <string name="cover_screen_hint">Black screen while another device is controlled, so clicks and keys that turn the screen on show nothing. Touch the screen to uncover it.</string>
+    <string name="cover_hint">Touch to show the screen</string>
     <string name="touch_keyboard">On-screen keyboard while controlling</string>
     <string name="touch_keyboard_hint">Keep the on-screen keyboard while the physical one controls another device</string>
     <string name="profile_activate">Activate</string>
