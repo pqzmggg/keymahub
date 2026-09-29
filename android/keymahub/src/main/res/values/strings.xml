@@ -49,6 +49,8 @@
     <string name="unassign">Exclude device</string>
     <string name="profile_add_device">Add device</string>
     <string name="add_device_all_in">Every device is already in this profile.</string>
+    <string name="add_device_confirm">Add</string>
+    <string name="add_device_room">Up to %d more can be added.</string>
     <string name="assign_no_devices">No devices yet.</string>
     <string name="devices_title">Manage devices</string>
     <string name="device_rename">Rename</string>
