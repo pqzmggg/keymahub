@@ -110,6 +110,9 @@
     <string name="device_remove">削除</string>
     <string name="device_remove_confirm">「%1$s」を削除しますか？ペアリングが解除され、すべてのプロファイルから外れます。相手側でもこのデバイスを削除してください。</string>
     <string name="settings_appearance">表示</string>
+    <string name="settings_battery">バッテリー最適化</string>
+    <string name="settings_battery_off">対象外: KeymaHub は動作し続けます。</string>
+    <string name="settings_battery_on">対象: システムが KeymaHub を停止すると、デバイスとの接続が切れたりペアリングが中断されたりします。</string>
     <string name="settings_behavior">動作</string>
     <string name="language">言語</string>
     <string name="language_system">システムのデフォルト</string>
