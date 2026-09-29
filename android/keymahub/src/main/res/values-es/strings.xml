@@ -110,6 +110,9 @@
     <string name="device_remove">Quitar</string>
     <string name="device_remove_confirm">¿Quitar \"%1$s\"? Se desemparejará y se quitará de todos los perfiles. Quita también este dispositivo en los ajustes Bluetooth del otro dispositivo.</string>
     <string name="settings_appearance">Apariencia</string>
+    <string name="settings_battery">Optimización de batería</string>
+    <string name="settings_battery_off">Excluido: KeymaHub sigue en funcionamiento.</string>
+    <string name="settings_battery_on">Activa: el sistema puede detener KeymaHub, cortando las conexiones o el emparejamiento.</string>
     <string name="settings_behavior">Comportamiento</string>
     <string name="language">Idioma</string>
     <string name="language_system">Predeterminado del sistema</string>

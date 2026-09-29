@@ -17,6 +17,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -48,6 +49,10 @@ fun SettingsScreen(
     onBack: () -> Unit,
     onUi: ((UiPrefs) -> UiPrefs) -> Unit,
     onLanguage: (String) -> Unit,
+    /** Left out of battery optimization right now. */
+    batteryExempt: Boolean,
+    /** Asks to be left out ([batteryExempt] false) or opens the battery optimization settings. */
+    onBattery: () -> Unit,
 ) {
     var pickingLanguage by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -93,6 +98,8 @@ fun SettingsScreen(
                     onUi { it.copy(touchKeyboard = on) }
                 }
             }
+            HorizontalDivider()
+            BatteryItem(batteryExempt, onBattery)
         }
 
         Text(
@@ -131,6 +138,24 @@ private fun Item(title: String, value: String, onClick: () -> Unit) {
     Column(Modifier.fillMaxWidth().clickable(onClick = onClick).padding(16.dp)) {
         Text(title, style = MaterialTheme.typography.titleMedium)
         Text(value, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+    }
+}
+
+/** Battery optimization: whether KeymaHub is left out, and a way to the setting. */
+@Composable
+private fun BatteryItem(exempt: Boolean, onBattery: () -> Unit) {
+    Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.weight(1f).padding(end = 12.dp)) {
+            Text(stringResource(R.string.settings_battery), style = MaterialTheme.typography.titleMedium)
+            Text(
+                stringResource(if (exempt) R.string.settings_battery_off else R.string.settings_battery_on),
+                style = MaterialTheme.typography.bodySmall,
+                color = if (exempt) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error,
+            )
+        }
+        FilledTonalButton(onClick = onBattery) {
+            Text(stringResource(if (exempt) R.string.action_open_settings else R.string.action_battery))
+        }
     }
 }
 
