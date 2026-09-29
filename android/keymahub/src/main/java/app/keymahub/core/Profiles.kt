@@ -234,6 +234,20 @@ data class Settings(
     }
 
     /**
+     * Adds [address] to profile [id] after its last receiver (in a gap before it if the last number
+     * is taken). Unchanged if the device is already there or all nine numbers are in use.
+     */
+    fun addReceiver(id: String, address: String): Settings {
+        val p = profile(id) ?: return this
+        if (p.slotOf(address) != null) return this
+        val next = (p.receivers.keys.maxOrNull() ?: 0) + 1
+        val slot = next.takeIf { it < Profile.SLOTS }
+            ?: (1 until Profile.SLOTS).firstOrNull { it !in p.receivers }
+            ?: return this
+        return withProfile(p.copy(receivers = p.receivers + (slot to address)))
+    }
+
+    /**
      * Takes the device off receiver [slot] of profile [id]; the receivers after it move up one
      * place each (empty ones too), so the list closes the gap. The device stays paired.
      */

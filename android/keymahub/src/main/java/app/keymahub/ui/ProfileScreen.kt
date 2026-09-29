@@ -9,23 +9,24 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.materialIcon
+import androidx.compose.material.icons.materialPath
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -46,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -77,7 +79,7 @@ fun ProfileScreen(
         return
     }
     var renaming by remember { mutableStateOf(false) }
-    var assignFor by remember { mutableStateOf<Int?>(null) }
+    var adding by remember { mutableStateOf(false) }
     var deleting by remember { mutableStateOf(false) }
     val active = settings.activeId == profile.id
     // Hotkeys follow the active profile, so only its devices can take control.
@@ -123,15 +125,24 @@ fun ProfileScreen(
         )
 
         SectionTitle(stringResource(R.string.hotkeys_title), stringResource(R.string.hotkeys_hint))
+        // Nine numbers at most: the button goes quiet once they are all taken.
+        FilledTonalButton(
+            onClick = { adding = true },
+            enabled = profile.receivers.size < Profile.SLOTS - 1,
+            modifier = Modifier.align(Alignment.End),
+        ) {
+            Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(8.dp))
+            Text(stringResource(R.string.profile_add_device))
+        }
         Card(Modifier.fillMaxWidth()) {
-            SlotRow(0, profile, status, onSelect = if (canSelect) ({ onSelect(0) }) else null, onAssign = {}, onClear = {})
+            SlotRow(0, profile, status, onSelect = if (canSelect) ({ onSelect(0) }) else null, onRemove = {})
             ReceiverList(
                 profile = profile,
                 status = status,
                 canSelect = canSelect,
                 onSelect = onSelect,
-                onAssign = { slot -> assignFor = slot },
-                onClear = { slot -> rearrange { it.excludeReceiver(profileId, slot) } },
+                onRemove = { slot -> rearrange { it.excludeReceiver(profileId, slot) } },
                 onMove = { from, to -> rearrange { it.moveReceiver(profileId, from, to) } },
             )
         }
@@ -158,15 +169,14 @@ fun ProfileScreen(
             onConfirm = { deleting = false; onEdit { it.deleteProfile(profileId) }; onBack() },
         )
     }
-    assignFor?.let { slot ->
-        AssignDialog(
-            slot = slot,
+    if (adding) {
+        AddDeviceDialog(
             profile = profile,
-            settings = settings,
-            onDismiss = { assignFor = null },
+            status = status,
+            onDismiss = { adding = false },
             onPick = { address ->
-                assignFor = null
-                rearrange { it.assign(profileId, slot, address) }
+                adding = false
+                onEdit { it.addReceiver(profileId, address) }
             },
         )
     }
@@ -227,9 +237,10 @@ private fun ConnectedCard(settings: Settings, chosen: Set<String>, onChange: (Se
 // ---------------------------------------------------------------- hotkeys and receivers
 
 /**
- * The receivers (slots 1..9) under this phone's row. Dragging a row by its handle moves its device
- * (or its emptiness) to another number: the rows in between make room as it passes, and the new
- * order is saved on release. The numbers and hotkeys stay where they are.
+ * The profile's devices (their receiver slots, in order) under this phone's row; empty numbers are
+ * not shown. Dragging a row by its handle moves its device to another place in the list: the rows
+ * in between make room as it passes, and the new order is saved on release. The numbers and
+ * hotkeys stay where they are.
  */
 @Composable
 private fun ReceiverList(
@@ -237,11 +248,10 @@ private fun ReceiverList(
     status: HubStatus,
     canSelect: Boolean,
     onSelect: (slot: Int) -> Unit,
-    onAssign: (slot: Int) -> Unit,
-    onClear: (slot: Int) -> Unit,
+    onRemove: (slot: Int) -> Unit,
     onMove: (from: Int, to: Int) -> Unit,
 ) {
-    val slots = (1 until Profile.SLOTS).toList()
+    val slots = profile.receivers.keys.sorted()
     val reorder = rememberReorder<Int>()
     val from = reorder.from(slots)
     val target = reorder.target(slots)
@@ -260,8 +270,7 @@ private fun ReceiverList(
             SlotRow(
                 slot, profile, status,
                 onSelect = if (canSelect) ({ onSelect(slot) }) else null,
-                onAssign = { onAssign(slot) },
-                onClear = { onClear(slot) },
+                onRemove = { onRemove(slot) },
                 numberSlot = if (dragging) slots[target] else shown,
                 handle = reorder.handle(slot, slots) { a, b -> onMove(slots[a], slots[b]) },
             )
@@ -281,8 +290,7 @@ private fun slotShownAt(index: Int, from: Int, to: Int): Int = when {
 
 /**
  * One hotkey of [profile]: slot 0 is this phone, 1..9 a receiver. Tapping it moves control there
- * ([onSelect], null while that is not possible); tapping an empty slot picks its device. The ⋯
- * button holds the device choices.
+ * ([onSelect], null while that is not possible); the − button takes the device out of the profile.
  */
 @Composable
 private fun SlotRow(
@@ -290,8 +298,7 @@ private fun SlotRow(
     profile: Profile,
     status: HubStatus,
     onSelect: (() -> Unit)?,
-    onAssign: () -> Unit,
-    onClear: () -> Unit,
+    onRemove: () -> Unit,
     /** The number (and hotkey) to show; differs from [slot] while rows are being dragged. */
     numberSlot: Int = slot,
     /** The drag handle's gestures; null for this phone, which stays first. */
@@ -302,26 +309,17 @@ private fun SlotRow(
     val address = profile.addressOf(slot)
     val active = status.running && settings.activeId == profile.id && status.slot == slot
     val connected = address != null && address in status.ready
-    var menu by remember { mutableStateOf(false) }
 
-    val title = when {
-        slot == 0 -> stringResource(R.string.this_phone)
-        address == null -> stringResource(R.string.slot_empty)
-        else -> settings.device(address)?.name.orEmpty()
-    }
+    val title = if (slot == 0) stringResource(R.string.this_phone) else settings.device(address.orEmpty())?.name.orEmpty()
     val state = when {
         active -> stringResource(R.string.state_controlling)
         slot == 0 || address == null -> null
         connected -> stringResource(R.string.state_connected)
         else -> stringResource(R.string.state_not_connected)
     }
-    val tap: (() -> Unit)? = when {
-        slot != 0 && address == null -> onAssign
-        else -> onSelect
-    }
     Row(
         Modifier.fillMaxWidth()
-            .clickable(enabled = tap != null) { tap?.invoke() }
+            .clickable(enabled = onSelect != null) { onSelect?.invoke() }
             .padding(start = 4.dp, end = 4.dp, top = 4.dp, bottom = 4.dp)
             .heightIn(min = 52.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -340,11 +338,7 @@ private fun SlotRow(
         Badge(KeyLabels.key(hotkey.code), highlighted = active)
         Spacer(Modifier.width(16.dp))
         Column(Modifier.weight(1f)) {
-            Text(
-                title,
-                style = MaterialTheme.typography.titleMedium,
-                color = if (slot != 0 && address == null) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
-            )
+            Text(title, style = MaterialTheme.typography.titleMedium)
             Text(
                 listOfNotNull(KeyLabels.hotkey(hotkey), state).joinToString(" · "),
                 style = MaterialTheme.typography.bodySmall,
@@ -352,16 +346,8 @@ private fun SlotRow(
             )
         }
         if (slot != 0) {
-            Box {
-                IconButton(onClick = { menu = true }) {
-                    Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.menu))
-                }
-                DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                    DropdownMenuItem(text = { Text(stringResource(R.string.assign_device)) }, onClick = { menu = false; onAssign() })
-                    if (address != null) {
-                        DropdownMenuItem(text = { Text(stringResource(R.string.unassign)) }, onClick = { menu = false; onClear() })
-                    }
-                }
+            IconButton(onClick = onRemove) {
+                Icon(Minus, contentDescription = stringResource(R.string.unassign), tint = MaterialTheme.colorScheme.error)
             }
         } else {
             // Keeps this phone's row as tall as the others.
@@ -370,32 +356,51 @@ private fun SlotRow(
     }
 }
 
+/** The devices not in [profile] yet; the one picked goes to the end of its list. */
 @Composable
-private fun AssignDialog(slot: Int, profile: Profile, settings: Settings, onDismiss: () -> Unit, onPick: (String?) -> Unit) {
-    val current = profile.addressOf(slot)
+private fun AddDeviceDialog(profile: Profile, status: HubStatus, onDismiss: () -> Unit, onPick: (String) -> Unit) {
+    val settings = status.settings
+    val devices = settings.devices.filter { profile.slotOf(it.address) == null }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.assign_title, KeyLabels.hotkey(settings.hotkey(slot)))) },
+        title = { Text(stringResource(R.string.profile_add_device)) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState())) {
-                if (settings.devices.isEmpty()) Text(stringResource(R.string.assign_no_devices))
-                for (d in settings.devices) {
-                    val other = profile.slotOf(d.address)?.takeIf { it != slot }
-                    Choice(
-                        label = d.name,
-                        detail = other?.let { stringResource(R.string.assign_now_on, KeyLabels.hotkey(settings.hotkey(it))) },
-                        selected = d.address == current,
-                        onClick = { onPick(d.address) },
-                        big = true,
-                    )
+                when {
+                    settings.devices.isEmpty() -> Text(stringResource(R.string.assign_no_devices))
+                    devices.isEmpty() -> Text(stringResource(R.string.add_device_all_in))
                 }
-                Choice(stringResource(R.string.assign_none), null, selected = current == null, onClick = { onPick(null) }, big = true)
-                Spacer(Modifier.height(8.dp))
-                Text(stringResource(R.string.assign_swap_hint), style = MaterialTheme.typography.bodySmall)
+                for (d in devices) {
+                    val connected = d.address in status.ready
+                    Column(
+                        Modifier.fillMaxWidth()
+                            .clickable { onPick(d.address) }
+                            .padding(vertical = 10.dp),
+                    ) {
+                        Text(d.name, style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            stringResource(if (connected) R.string.state_connected else R.string.state_not_connected),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (connected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
             }
         },
         confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_close)) } },
     )
+}
+
+/** A minus sign (Material's "remove" icon), not in the core icon set. */
+private val Minus: ImageVector = materialIcon(name = "Filled.Remove") {
+    materialPath {
+        moveTo(19f, 13f)
+        horizontalLineTo(5f)
+        verticalLineToRelative(-2f)
+        horizontalLineToRelative(14f)
+        verticalLineToRelative(2f)
+        close()
+    }
 }
 
 /** [big]: the label as large as a device's name in the devices list (picking a device). */
