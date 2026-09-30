@@ -44,6 +44,17 @@ import app.keymahub.R
 import app.keymahub.core.ActivationMode
 import app.keymahub.core.Profile
 import app.keymahub.core.Settings
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.text.input.ImeAction
 
 @Composable
 fun Page(content: @Composable ColumnScope.() -> Unit) {
@@ -146,18 +157,35 @@ fun NameDialog(
     extra: (@Composable () -> Unit)? = null,
 ) {
     var text by remember { mutableStateOf(initial) }
+    val save = { if (text.isNotBlank()) onConfirm(text.trim()) }
+    // Typing starts right away; Enter saves (as Save does) and Esc cancels, from a keyboard too.
+    val focus = remember { FocusRequester() }
+    LaunchedEffect(Unit) { focus.requestFocus() }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 message?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
-                OutlinedTextField(text, { text = it.take(40) }, Modifier.fillMaxWidth(), singleLine = true)
+                OutlinedTextField(
+                    text,
+                    { text = it.take(40) },
+                    Modifier.fillMaxWidth().focusRequester(focus).onPreviewKeyEvent { e ->
+                        when (e.key) {
+                            Key.Enter, Key.NumPadEnter -> { if (e.type == KeyEventType.KeyDown) save(); true }
+                            Key.Escape -> { if (e.type == KeyEventType.KeyDown) onDismiss(); true }
+                            else -> false
+                        }
+                    },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = { save() }),
+                )
                 extra?.invoke()
             }
         },
         confirmButton = {
-            TextButton(onClick = { onConfirm(text.trim()) }, enabled = text.isNotBlank()) { Text(stringResource(R.string.action_save)) }
+            TextButton(onClick = save, enabled = text.isNotBlank()) { Text(stringResource(R.string.action_save)) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
