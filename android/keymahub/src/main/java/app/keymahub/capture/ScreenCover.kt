@@ -56,6 +56,25 @@ class ScreenCover(
         uncover()
     }
 
+    /**
+     * A message is showing over the cover (HudOverlay): the screen at its usual brightness for
+     * [ms], so it can be read, then dimmed again.
+     */
+    fun lift(ms: Long) = main.post {
+        val v = view ?: return@post
+        brightness(v, WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE)
+        main.removeCallbacks(dim)
+        main.postDelayed(dim, ms)
+    }
+
+    private val dim = Runnable { view?.let { brightness(it, WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF) } }
+
+    private fun brightness(v: View, value: Float) {
+        val p = v.layoutParams as? WindowManager.LayoutParams ?: return
+        p.screenBrightness = value
+        runCatching { wm.updateViewLayout(v, p) }
+    }
+
     /** On the main thread. */
     private fun cover() {
         if (view != null) return
@@ -113,6 +132,7 @@ class ScreenCover(
 
     /** On the main thread. */
     private fun uncover() {
+        main.removeCallbacks(dim)
         val v = view ?: return
         view = null
         runCatching { wm.removeView(v) }

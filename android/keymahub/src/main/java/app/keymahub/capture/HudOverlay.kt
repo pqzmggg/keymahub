@@ -19,7 +19,9 @@ class HudOverlay(private val service: AccessibilityService) {
     private val hide = Runnable { remove() }
 
     fun show(text: String) = main.post {
-        val v = view ?: TextView(service).apply {
+        // Added again each time, so it is above a screen cover put up since the last one.
+        remove()
+        val v = TextView(service).apply {
             setTextColor(Color.WHITE)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f)
             val pad = (16 * resources.displayMetrics.density).toInt()
@@ -44,7 +46,11 @@ class HudOverlay(private val service: AccessibilityService) {
         }
         v.text = text
         main.removeCallbacks(hide)
-        main.postDelayed(hide, 1200)
+        main.postDelayed(hide, SHOW_MS)
+    }
+
+    companion object {
+        const val SHOW_MS = 1200L
     }
 
     fun remove() {

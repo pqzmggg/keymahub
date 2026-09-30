@@ -173,7 +173,9 @@ class HubService : Service(), BleHid.Listener {
     private fun profileLabel() = profile.name.ifEmpty { getString(R.string.profile_default) }
 
     private fun showHud(text: String) {
-        if (Hub.ui.value.showHud) hud?.show(text)
+        if (!Hub.ui.value.showHud) return
+        hud?.show(text)
+        cover?.lift(HudOverlay.SHOW_MS) // readable over the black, dimmed screen
     }
 
     private fun onSelect(slot: Int) {
