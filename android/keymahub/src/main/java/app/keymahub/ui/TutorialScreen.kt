@@ -45,6 +45,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalDensity
 
 /**
  * The tutorial's version. It shows once after setup and again when this goes up (the saved
@@ -162,10 +163,13 @@ private fun Steps(vararg steps: Int) {
 private fun Tip(text: String, image: Int? = null) {
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            val style = MaterialTheme.typography.bodyMedium
             Row {
-                Icon(Icons.Default.Info, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                // As tall as one line of the text, so it sits level with the first line.
+                val line = with(LocalDensity.current) { style.lineHeight.toDp() }
+                Icon(Icons.Default.Info, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(line))
                 Spacer(Modifier.width(8.dp))
-                Text(text, style = MaterialTheme.typography.bodyMedium)
+                Text(text, style = style)
             }
             image?.let {
                 Image(
