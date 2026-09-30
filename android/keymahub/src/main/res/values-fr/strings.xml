@@ -56,6 +56,10 @@
     <string name="guide_intro">Sur votre PC ou tablette, ajoutez cet appareil depuis les paramètres Bluetooth. Placez-le ensuite sur un raccourci avec « Ajouter un appareil » dans un profil.</string>
     <string name="guide_windows">Paramètres → Bluetooth et appareils → Ajouter un appareil → Bluetooth → choisissez cet appareil</string>
     <string name="guide_windows_hint">Absent de la liste ? Choisissez « Afficher tous les appareils » dans la fenêtre Ajouter un appareil.</string>
+    <!-- Windows' own words in its "Add a device" window (drawn in the Windows tip). -->
+    <string name="windows_add_device">Ajouter un appareil</string>
+    <string name="windows_add_device_body">Vérifiez que votre appareil est allumé et détectable. Sélectionnez ci-dessous l\'appareil à connecter.</string>
+    <string name="windows_show_all">Afficher tous les appareils</string>
     <string name="guide_mac">Réglages Système → Bluetooth → cliquez sur Se connecter à côté de cet appareil</string>
     <string name="guide_mobile">Réglages → Bluetooth → choisissez cet appareil</string>
     <string name="guide_note">Si cet appareil demande l\'association, acceptez. Gardez l\'écran des paramètres Bluetooth de cet appareil fermé pendant la connexion.</string>

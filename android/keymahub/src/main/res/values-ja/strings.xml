@@ -56,6 +56,10 @@
     <string name="guide_intro">PC やタブレットの Bluetooth 設定からこのデバイスを追加してください。その後、プロファイルの「デバイスを追加」でホットキーに入れます。</string>
     <string name="guide_windows">設定 → Bluetooth とデバイス → デバイスの追加 → Bluetooth → このデバイスを選択</string>
     <string name="guide_windows_hint">表示されない場合は、デバイスの追加画面で「すべてのデバイスを表示」を選んでください。</string>
+    <!-- Windows' own words in its "Add a device" window (drawn in the Windows tip). -->
+    <string name="windows_add_device">デバイスを追加する</string>
+    <string name="windows_add_device_body">デバイスの電源が入っていて、検出可能であることを確認してください。接続するデバイスを以下から選択してください。</string>
+    <string name="windows_show_all">すべてのデバイスを表示</string>
     <string name="guide_mac">システム設定 → Bluetooth → このデバイスの横の「接続」</string>
     <string name="guide_mobile">設定 → Bluetooth → このデバイスを選択</string>
     <string name="guide_note">このデバイスにペアリングの確認が表示されたら許可してください。接続中はこのデバイスの Bluetooth 設定画面を閉じておいてください。</string>

@@ -57,6 +57,10 @@
     <string name="guide_intro">On your PC or tablet, add this device from the Bluetooth settings. Then put it on a hotkey with Add device in a profile.</string>
     <string name="guide_windows">Settings → Bluetooth &amp; devices → Add device → Bluetooth → select this device</string>
     <string name="guide_windows_hint">Not listed? Choose \"Show all devices\" in the Add a device window.</string>
+    <!-- Windows' own words in its "Add a device" window (drawn in the Windows tip). -->
+    <string name="windows_add_device">Add a device</string>
+    <string name="windows_add_device_body">Make sure your device is turned on and discoverable. Select a device below to connect.</string>
+    <string name="windows_show_all">Show all devices</string>
     <string name="guide_mac">System Settings → Bluetooth → click Connect next to this device</string>
     <string name="guide_mobile">Settings → Bluetooth → select this device</string>
     <string name="guide_note">If this device asks to pair, allow it. Keep this device\'s Bluetooth settings screen closed while connecting.</string>
