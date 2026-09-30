@@ -79,8 +79,6 @@ class MainActivity : ComponentActivity() {
                     !setup.done && !status.running -> Setup(setup)
                     tutorial || ui.tutorialSeen < TUTORIAL_VERSION -> TutorialScreen(
                         status = status,
-                        onBluetoothSettings = ::openBluetoothSettings,
-                        onPairing = { on -> HubService.pairing(this, on) },
                         onDone = {
                             tutorial = false
                             Hub.editUi(this) { it.copy(tutorialSeen = TUTORIAL_VERSION) }

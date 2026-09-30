@@ -189,10 +189,10 @@
     <string name="tutorial_start">Start</string>
     <string name="tutorial_input_title">Connect a keyboard and mouse</string>
     <string name="tutorial_input_body">KeymaHub controls other devices with the keyboard and mouse connected to this device. First pair them in this device\'s Bluetooth settings (USB works too).</string>
-    <string name="tutorial_keyboard">Keyboard</string>
-    <string name="tutorial_mouse">Mouse</string>
     <string name="tutorial_pair_title">Add a PC or tablet</string>
-    <string name="tutorial_pair_body">Turn on pairing mode, then add this device in the Bluetooth settings of the PC or tablet. Later, use \'Add a new device\' on the main screen.</string>
+    <string name="tutorial_pair_body">Tap \'Add a new device\' on the main screen to turn on pairing mode. Then add this device in the Bluetooth settings of the PC or tablet.</string>
+    <string name="tutorial_profile_title">Put devices in a profile</string>
+    <string name="tutorial_profile_body">A profile says which device is on which hotkey number. In a profile, add your PCs and tablets with \'Add device\': they take the numbers in list order, from 2. Make a profile for each place (home, office): the one that fits the devices connected is used by itself, or pick one by hand.</string>
     <string name="tutorial_switch_title">Switch with hotkeys</string>
-    <string name="tutorial_switch_body">Put devices on the numbers with Add device in a profile; profiles and the hotkey keys can be changed later.</string>
+    <string name="tutorial_switch_body">The hotkey keys can be changed in Settings.</string>
 </resources>

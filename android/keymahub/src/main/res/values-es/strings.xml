@@ -190,10 +190,10 @@
     <string name="tutorial_start">Empezar</string>
     <string name="tutorial_input_title">Conecta un teclado y un ratón</string>
     <string name="tutorial_input_body">KeymaHub controla otros dispositivos con el teclado y el ratón conectados a este dispositivo. Primero emparéjalos en los ajustes de Bluetooth de este dispositivo (también sirve USB).</string>
-    <string name="tutorial_keyboard">Teclado</string>
-    <string name="tutorial_mouse">Ratón</string>
     <string name="tutorial_pair_title">Añade un PC o una tableta</string>
-    <string name="tutorial_pair_body">Activa el modo de emparejamiento y añade este dispositivo en los ajustes de Bluetooth del PC o la tableta. Más adelante, usa «Añadir un dispositivo» en la pantalla principal.</string>
+    <string name="tutorial_pair_body">Toca «Añadir un dispositivo» en la pantalla principal para activar el modo de emparejamiento. Después añade este dispositivo en los ajustes de Bluetooth del PC o la tableta.</string>
+    <string name="tutorial_profile_title">Poner dispositivos en un perfil</string>
+    <string name="tutorial_profile_body">Un perfil indica qué dispositivo está en qué número de atajo. En un perfil, añade tus PC y tabletas con «Añadir dispositivo»: toman los números en el orden de la lista, desde el 2. Crea un perfil para cada lugar (casa, oficina): se usa solo el que corresponde a los dispositivos conectados, o elígelo tú.</string>
     <string name="tutorial_switch_title">Cambia con atajos</string>
-    <string name="tutorial_switch_body">Pon los dispositivos en los números con «Añadir dispositivo» en un perfil; los perfiles y las teclas de los atajos se pueden cambiar después.</string>
+    <string name="tutorial_switch_body">Las teclas de los atajos se pueden cambiar en Ajustes.</string>
 </resources>
