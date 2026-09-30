@@ -138,7 +138,7 @@ fun SettingsScreen(
             onDismissRequest = { pickingLanguage = false },
             title = { Text(stringResource(R.string.language)) },
             text = {
-                Column(Modifier.verticalScroll(rememberScrollState())) {
+                Column(Modifier.dialogKeys(onEnter = null, onEscape = { pickingLanguage = false }).verticalScroll(rememberScrollState())) {
                     Choice(stringResource(R.string.language_system), selected = language.isEmpty()) {
                         pickingLanguage = false
                         onLanguage("")

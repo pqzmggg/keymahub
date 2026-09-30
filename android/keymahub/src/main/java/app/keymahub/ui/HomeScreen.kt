@@ -197,7 +197,7 @@ fun HomeScreen(
             onDismissRequest = { showLog = false },
             title = { Text(stringResource(R.string.diagnostics_title)) },
             text = {
-                Column {
+                Column(Modifier.dialogKeys(onEnter = null, onEscape = { showLog = false })) {
                     Text(stringResource(R.string.report_message), style = MaterialTheme.typography.bodyMedium)
                     Spacer(Modifier.height(12.dp))
                     Surface(
@@ -212,15 +212,17 @@ fun HomeScreen(
                     // A note lands in the log at this moment: what was tried, what happened.
                     var note by remember { mutableStateOf("") }
                     Row(verticalAlignment = Alignment.CenterVertically) {
+                        val addNote = { if (note.isNotBlank()) { Hub.log("NOTE: ${note.trim()}"); note = "" } }
                         OutlinedTextField(
                             value = note,
                             onValueChange = { note = it },
                             placeholder = { Text(stringResource(R.string.log_note_hint)) },
                             singleLine = true,
-                            modifier = Modifier.weight(1f),
+                            // Enter adds the note (Esc still closes, above).
+                            modifier = Modifier.weight(1f).dialogKeys(onEnter = addNote, onEscape = { showLog = false }, textField = true, autoFocus = false),
                         )
                         TextButton(
-                            onClick = { Hub.log("NOTE: ${note.trim()}"); note = "" },
+                            onClick = addNote,
                             enabled = note.isNotBlank(),
                         ) { Text(stringResource(R.string.log_note_add)) }
                     }
@@ -474,7 +476,7 @@ private fun ModeRow(mode: ActivationMode, onMode: (ActivationMode) -> Unit) {
             onDismissRequest = { help = false },
             title = { Text(stringResource(R.string.settings_activation)) },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(Modifier.dialogKeys(onEnter = { help = false }, onEscape = { help = false }), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     for ((m, label, hint) in MODES) {
                         Column {
                             Text(
