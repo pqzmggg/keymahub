@@ -69,16 +69,32 @@ class A11yCapture(
 
     /** Returns true to consume the key (it went to a target or was a hotkey). */
     fun onKeyEvent(e: KeyEvent): Boolean {
-        val dev = e.device ?: return false
-        // Only physical full keyboards; leave volume/power buttons and virtual keys alone.
-        if (dev.isVirtual || dev.keyboardType != InputDevice.KEYBOARD_TYPE_ALPHABETIC) return false
-        val code = e.scanCode.takeIf { it != 0 } ?: return false
+        val dev = e.device
+        val keyboard = dev != null && !dev.isVirtual && dev.keyboardType == InputDevice.KEYBOARD_TYPE_ALPHABETIC
+        // The language switch key handed over without a scan code or from a virtual device (the 한/영
+        // key on some tablets), which would otherwise stay on this device: to the target as 한/영
+        // (Lang1). Keys that come with their scan code are sent as that key, as before.
+        val language = e.keyCode == KeyEvent.KEYCODE_LANGUAGE_SWITCH && (!keyboard || e.scanCode == 0)
+        // Otherwise only physical full keyboards; leave volume/power buttons and virtual keys alone.
+        if (!language && !keyboard) {
+            // Not the phone's own buttons (volume, power): those are not worth a line.
+            if (dev == null || dev.isVirtual) unrouted(e, "virtual device")
+            return false
+        }
+        val code = if (language) LANGUAGE_SWITCH_CODE else e.scanCode.takeIf { it != 0 } ?: run {
+            unrouted(e, "no scan code")
+            return false
+        }
         synchronized(router) {
             if (e.action == KeyEvent.ACTION_DOWN && e.repeatCount > 0) {
                 return !router.isHeldLocally(code)
             }
             if (e.action != KeyEvent.ACTION_DOWN && e.action != KeyEvent.ACTION_UP) return false
-            val hid = ConsumerKeys.fromKeycode(e.keyCode) ?: EvdevKeymap.toHid(code) ?: HidKeycodes.fromKeycode(e.keyCode)
+            val hid = if (language) {
+                HidKeycodes.LANG1_HANGUL
+            } else {
+                ConsumerKeys.fromKeycode(e.keyCode) ?: EvdevKeymap.toHid(code) ?: HidKeycodes.fromKeycode(e.keyCode)
+            }
             if (hid == null) {
                 // Not sendable: leave local use alone; on a target, drop it (and say so for diagnosis).
                 if (router.isRemote && e.action == KeyEvent.ACTION_DOWN) {
@@ -89,6 +105,17 @@ class A11yCapture(
             local.pass = false
             router.onKey(code, hid, e.action == KeyEvent.ACTION_DOWN)
             return !local.pass
+        }
+    }
+
+    /**
+     * A key left to this device while a target has control, for diagnosis (e.g. a 한/영 key the
+     * system hands over in an unexpected form). Not typing: printing keys are not logged.
+     */
+    private fun unrouted(e: KeyEvent, why: String) {
+        if (e.action != KeyEvent.ACTION_DOWN || e.repeatCount > 0 || e.isPrintingKey) return
+        if (synchronized(router) { router.isRemote }) {
+            Hub.log("key left to this device ($why): ${KeyEvent.keyCodeToString(e.keyCode)} scan ${e.scanCode}")
         }
     }
 
@@ -148,6 +175,9 @@ class A11yCapture(
     }
 
     private companion object {
+        /** Stands for the language switch key where a scan code would (above the evdev range). */
+        const val LANGUAGE_SWITCH_CODE = 0x10000 + KeyEvent.KEYCODE_LANGUAGE_SWITCH
+
         val BUTTON_BITS = listOf(
             MotionEvent.BUTTON_PRIMARY to Buttons.LEFT,
             MotionEvent.BUTTON_SECONDARY to Buttons.RIGHT,
