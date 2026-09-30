@@ -204,6 +204,10 @@
     <string name="tutorial_profile_step1">In a profile, add PCs and tablets with \'Add device\'.</string>
     <string name="tutorial_profile_step2">They take the numbers in the order added, from 2.</string>
     <string name="tutorial_profile_step3">Make one per place (home, office): the one that fits the connected devices is used by itself.</string>
+    <string name="tutorial_auto_title">Automatic profile activation</string>
+    <string name="tutorial_auto_lead">The profile changes by itself to fit the connected devices.</string>
+    <string name="tutorial_auto_where">Pick how on the main screen, under \'Automatic profile activation\'.</string>
+    <string name="tutorial_auto_routine_tip">Galaxy: Modes and Routines can also switch profiles. Add KeymaHub\'s \'Activate (profile)\' shortcut as a routine action. In that case, turning the app\'s automatic profile activation off is recommended, so the app doesn\'t change the profile the routine picked.</string>
     <string name="tutorial_switch_lead">Hold the keys below and press a number.</string>
     <string name="tutorial_switch_phone">this device</string>
     <string name="tutorial_switch_target">the device on that number in the profile</string>

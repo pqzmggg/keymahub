@@ -205,6 +205,10 @@
     <string name="tutorial_profile_step1">Dans un profil, ajoutez PC et tablettes avec « Ajouter un appareil ».</string>
     <string name="tutorial_profile_step2">Ils prennent les chiffres dans l\'ordre d\'ajout, à partir de 2.</string>
     <string name="tutorial_profile_step3">Créez-en un par lieu (maison, bureau) : celui qui correspond aux appareils connectés est utilisé tout seul.</string>
+    <string name="tutorial_auto_title">Activation automatique des profils</string>
+    <string name="tutorial_auto_lead">Le profil change tout seul selon les appareils connectés.</string>
+    <string name="tutorial_auto_where">Choisissez comment sur l\'écran principal, dans « Activation automatique des profils ».</string>
+    <string name="tutorial_auto_routine_tip">Galaxy : Modes et routines peut aussi changer de profil. Ajoutez le raccourci « Activer (profil) » de KeymaHub comme action d\'une routine. Dans ce cas, il est recommandé de désactiver l\'activation automatique des profils de l\'app, pour qu\'elle ne change pas le profil choisi par la routine.</string>
     <string name="tutorial_switch_lead">Maintenez les touches ci-dessous et appuyez sur un chiffre.</string>
     <string name="tutorial_switch_phone">cet appareil</string>
     <string name="tutorial_switch_target">l\'appareil placé sur ce chiffre dans le profil</string>

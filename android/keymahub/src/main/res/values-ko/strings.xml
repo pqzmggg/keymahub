@@ -201,6 +201,10 @@
     <string name="tutorial_profile_step1">프로필에서 \'기기 추가\'로 PC·태블릿을 넣습니다.</string>
     <string name="tutorial_profile_step2">넣은 순서대로 2번부터 번호가 붙습니다.</string>
     <string name="tutorial_profile_step3">집·회사처럼 장소마다 만들어 두면, 연결된 기기에 맞는 프로필이 자동으로 쓰입니다.</string>
+    <string name="tutorial_auto_title">프로필 자동 활성화</string>
+    <string name="tutorial_auto_lead">연결된 기기에 맞춰 프로필이 저절로 바뀝니다.</string>
+    <string name="tutorial_auto_where">메인 화면의 \'프로필 자동 활성화\'에서 방식을 고릅니다.</string>
+    <string name="tutorial_auto_routine_tip">갤럭시: 모드 및 루틴으로도 프로필을 바꿀 수 있습니다. 루틴 동작에 KeymaHub의 \'(프로필) 활성화\' 바로가기를 넣으세요. 이 경우 앱이 루틴이 고른 프로필을 바꾸지 않도록, 앱의 프로필 자동 활성화는 끄는 것을 권장합니다.</string>
     <string name="tutorial_switch_lead">아래 키를 누른 채 숫자를 누르세요.</string>
     <string name="tutorial_switch_phone">이 기기</string>
     <string name="tutorial_switch_target">프로필에서 그 번호에 둔 기기</string>
