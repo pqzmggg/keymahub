@@ -152,7 +152,7 @@ fun NameDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 message?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
-                OutlinedTextField(text, { text = it.take(40) }, singleLine = true)
+                OutlinedTextField(text, { text = it.take(40) }, Modifier.fillMaxWidth(), singleLine = true)
                 extra?.invoke()
             }
         },
