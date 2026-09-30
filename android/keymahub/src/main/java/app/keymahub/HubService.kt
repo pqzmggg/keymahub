@@ -8,11 +8,13 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.database.ContentObserver
 import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.os.SystemClock
+import android.provider.Settings
 import app.keymahub.ble.BleHid
 import app.keymahub.ble.HidSender
 import app.keymahub.capture.A11yCapture
@@ -37,6 +39,7 @@ class HubService : Service(), BleHid.Listener {
     private var pointerCapture: PointerCaptureOverlay? = null
     private var hud: HudOverlay? = null
     private var cover: ScreenCover? = null
+    private var inputLanguage: ContentObserver? = null
     private val main = Handler(Looper.getMainLooper())
     private var pendingPairing = false
 
@@ -97,6 +100,16 @@ class HubService : Service(), BleHid.Listener {
             if (c.slot != 0) a11y.interceptMouse(!captured)
         }
         a11y.capture = c
+        // The input language switched on this device (see A11yCapture.onInputLanguageChanged).
+        val languageObserver = object : ContentObserver(main) {
+            override fun onChange(selfChange: Boolean) = c.onInputLanguageChanged()
+        }
+        runCatching {
+            contentResolver.registerContentObserver(
+                Settings.Secure.getUriFor(Settings.Secure.SELECTED_INPUT_METHOD_SUBTYPE), false, languageObserver,
+            )
+            inputLanguage = languageObserver
+        }.onFailure { Hub.log("input language not watched: $it") }
         // Another profile may put other receivers on the hotkeys: start again from the phone.
         Hub.onProfileChanged = {
             c.select(0)
@@ -119,6 +132,8 @@ class HubService : Service(), BleHid.Listener {
     }
 
     override fun onDestroy() {
+        inputLanguage?.let { runCatching { contentResolver.unregisterContentObserver(it) } }
+        inputLanguage = null
         destroyed = true
         running = false
         ready = false

@@ -1,5 +1,6 @@
 package app.keymahub.capture
 
+import android.os.SystemClock
 import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -54,6 +55,8 @@ class A11yCapture(
         onSelect(it)
     }, onUnavailable = onUnavailable)
     private var buttons = 0
+    /** When 한/영 (Lang1) last went to a target from the key itself ([onKeyEvent]), uptime millis. */
+    private var lastLang1 = 0L
     private var lastX = Float.NaN
     private var lastY = Float.NaN
     private var subX = 0f
@@ -104,8 +107,23 @@ class A11yCapture(
             }
             local.pass = false
             router.onKey(code, hid, e.action == KeyEvent.ACTION_DOWN)
+            if (hid == HidKeycodes.LANG1_HANGUL && router.isRemote) lastLang1 = SystemClock.uptimeMillis()
             return !local.pass
         }
+    }
+
+    /**
+     * This device's input language changed (its keyboard app's language). Some devices (a Lenovo
+     * tablet) switch it on the 한/영 key themselves, before the key reaches accessibility, so the
+     * key never reaches [onKeyEvent]: while a target has control, 한/영 (Lang1) goes to it instead.
+     * Not when the key itself was just sent (devices that pass it on switch nothing here, but just in case).
+     */
+    fun onInputLanguageChanged() = synchronized(router) {
+        if (!router.isRemote) return@synchronized
+        if (SystemClock.uptimeMillis() - lastLang1 < LANG1_ECHO_MS) return@synchronized
+        Hub.log("input language changed on this device: 한/영 sent to the target")
+        router.onKey(LANGUAGE_SWITCH_CODE, HidKeycodes.LANG1_HANGUL, true)
+        router.onKey(LANGUAGE_SWITCH_CODE, HidKeycodes.LANG1_HANGUL, false)
     }
 
     /**
@@ -177,6 +195,9 @@ class A11yCapture(
     private companion object {
         /** Stands for the language switch key where a scan code would (above the evdev range). */
         const val LANGUAGE_SWITCH_CODE = 0x10000 + KeyEvent.KEYCODE_LANGUAGE_SWITCH
+
+        /** A language change this soon after sending 한/영 is that key's own doing. */
+        const val LANG1_ECHO_MS = 1000L
 
         val BUTTON_BITS = listOf(
             MotionEvent.BUTTON_PRIMARY to Buttons.LEFT,
