@@ -8,6 +8,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -268,7 +269,7 @@ class MainActivity : ComponentActivity() {
             onDisclosure = { disclosure = it },
             onNotifications = { requestRuntime(automatic = false, Manifest.permission.POST_NOTIFICATIONS) },
             onBluetooth = { requestRuntime(automatic = false, *BLUETOOTH) },
-            onAccessibility = { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },
+            onAccessibility = ::openAccessibilitySettings,
             onAppInfo = ::openAppInfo,
             onBattery = ::askBatteryExempt,
             onSkip = { Hub.editUi(this) { it.copy(batterySkipped = true) } },
@@ -315,6 +316,27 @@ class MainActivity : ComponentActivity() {
         permissions.launch(ask.toTypedArray())
     }
 
+    /**
+     * KeymaHub's own page in the accessibility settings (its on/off switch), not the top of the
+     * list where it is easy to miss (on Galaxy it is further down, under installed apps). Where that
+     * page can't be opened, the list, scrolled to KeymaHub and highlighted where the settings app
+     * supports it.
+     */
+    private fun openAccessibilitySettings() {
+        val service = ComponentName(this, KeymaAccessibilityService::class.java).flattenToString()
+        runCatching { startActivity(Intent(ACTION_ACCESSIBILITY_DETAILS).putExtra(Intent.EXTRA_COMPONENT_NAME, service)) }
+            .onFailure {
+                val highlight = Bundle().apply { putString(FRAGMENT_ARGS_KEY, service) }
+                runCatching {
+                    startActivity(
+                        Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+                            .putExtra(FRAGMENT_ARGS_KEY, service)
+                            .putExtra(SHOW_FRAGMENT_ARGS, highlight),
+                    )
+                }
+            }
+    }
+
     private fun openAppInfo() {
         startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName")))
     }
@@ -339,6 +361,13 @@ class MainActivity : ComponentActivity() {
 
     private companion object {
         val BLUETOOTH = arrayOf(Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_ADVERTISE)
+
+        /** The settings page of one accessibility service (Settings.ACTION_ACCESSIBILITY_DETAILS_SETTINGS), spelled out: not every SDK has the constant. */
+        const val ACTION_ACCESSIBILITY_DETAILS = "android.settings.ACCESSIBILITY_DETAILS_SETTINGS"
+
+        /** The settings app's extras for scrolling to and highlighting an entry in a list. */
+        const val FRAGMENT_ARGS_KEY = ":settings:fragment_args_key"
+        const val SHOW_FRAGMENT_ARGS = ":settings:show_fragment_args"
     }
 }
 
