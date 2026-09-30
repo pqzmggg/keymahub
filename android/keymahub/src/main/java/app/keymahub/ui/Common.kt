@@ -44,6 +44,18 @@ import app.keymahub.R
 import app.keymahub.core.ActivationMode
 import app.keymahub.core.Profile
 import app.keymahub.core.Settings
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.foundation.focusable
 
 @Composable
 fun Page(content: @Composable ColumnScope.() -> Unit) {
@@ -146,21 +158,54 @@ fun NameDialog(
     extra: (@Composable () -> Unit)? = null,
 ) {
     var text by remember { mutableStateOf(initial) }
+    val save = { if (text.isNotBlank()) onConfirm(text.trim()) }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 message?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
-                OutlinedTextField(text, { text = it.take(40) }, Modifier.fillMaxWidth(), singleLine = true)
+                OutlinedTextField(
+                    text,
+                    { text = it.take(40) },
+                    // Typing starts right away.
+                    Modifier.fillMaxWidth().dialogKeys(onEnter = save, onEscape = onDismiss, textField = true),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = { save() }),
+                )
                 extra?.invoke()
             }
         },
         confirmButton = {
-            TextButton(onClick = { onConfirm(text.trim()) }, enabled = text.isNotBlank()) { Text(stringResource(R.string.action_save)) }
+            TextButton(onClick = save, enabled = text.isNotBlank()) { Text(stringResource(R.string.action_save)) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
+}
+
+/**
+ * The same keys in every dialog: Enter does what its main button does ([onEnter]; null leaves Enter to
+ * the focused item, a choice in a list), Esc what Cancel or Close does. Put on the dialog's content
+ * (made focusable), or on a [textField]. [autoFocus]: it gets focus when the dialog opens.
+ */
+@Composable
+fun Modifier.dialogKeys(
+    onEnter: (() -> Unit)?,
+    onEscape: () -> Unit,
+    textField: Boolean = false,
+    autoFocus: Boolean = true,
+): Modifier {
+    val focus = remember { FocusRequester() }
+    if (autoFocus) LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
+    val keys = onPreviewKeyEvent { e ->
+        when (e.key) {
+            Key.Enter, Key.NumPadEnter -> onEnter != null && true.also { if (e.type == KeyEventType.KeyDown) onEnter() }
+            Key.Escape -> true.also { if (e.type == KeyEventType.KeyDown) onEscape() }
+            else -> false
+        }
+    }.focusRequester(focus)
+    return if (textField) keys else keys.focusable()
 }
 
 @Composable
@@ -168,7 +213,7 @@ fun ConfirmDialog(message: String, confirm: String, onDismiss: () -> Unit, onCon
     // A whole question, so body text: the title slot's headline size is far larger than the rest of the app.
     AlertDialog(
         onDismissRequest = onDismiss,
-        text = { Text(message, style = MaterialTheme.typography.bodyLarge) },
+        text = { Text(message, Modifier.dialogKeys(onEnter = onConfirm, onEscape = onDismiss), style = MaterialTheme.typography.bodyLarge) },
         confirmButton = { TextButton(onClick = onConfirm) { Text(confirm) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )

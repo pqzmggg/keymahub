@@ -86,7 +86,10 @@ fun SetupScreen(
             onDismissRequest = { onDisclosure(false) },
             title = { Text(stringResource(R.string.disclosure_title)) },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(
+                    Modifier.dialogKeys(onEnter = { onDisclosure(false); onAccessibility() }, onEscape = { onDisclosure(false) }),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
                     Text(stringResource(R.string.disclosure_intro))
                     Text(stringResource(R.string.disclosure_1))
                     Text(stringResource(R.string.disclosure_2))

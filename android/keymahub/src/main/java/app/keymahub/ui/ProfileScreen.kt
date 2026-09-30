@@ -366,11 +366,15 @@ private fun AddDeviceDialog(profile: Profile, status: HubStatus, onDismiss: () -
     val devices = settings.devices.filter { profile.slotOf(it.address) == null }
     val room = Profile.SLOTS - 1 - profile.receivers.size
     var picked by remember { mutableStateOf(listOf<String>()) }
+    // From a keyboard: Enter does what the confirm button does (Add, or Close with nothing to add), Esc cancels.
+    val confirm = { if (devices.isEmpty()) onDismiss() else if (picked.isNotEmpty()) onAdd(picked) }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.profile_add_device)) },
         text = {
-            Column(Modifier.verticalScroll(rememberScrollState())) {
+            Column(
+                Modifier.dialogKeys(onEnter = confirm, onEscape = onDismiss).verticalScroll(rememberScrollState()),
+            ) {
                 when {
                     settings.devices.isEmpty() -> Text(stringResource(R.string.assign_no_devices))
                     devices.isEmpty() -> Text(stringResource(R.string.add_device_all_in))
