@@ -146,6 +146,7 @@
     <string name="condition_devices_off">Peu importe</string>
     <string name="condition_devices_on">Quand %1$s est connecté</string>
     <string name="condition_devices_hint">Quand l\'hôte est actif, les appareils associés à proximité se reconnectent d\'eux-mêmes.</string>
+    <string name="condition_no_devices">Ce profil n\'a pas encore d\'appareils. Ajoutez-les d\'abord ci-dessous.</string>
     <string name="settings_activation">Activation automatique des profils</string>
     <string name="mode_auto">Entièrement automatique</string>
     <string name="mode_auto_hint">Utilise le profil dont le plus d\'appareils sont connectés.</string>

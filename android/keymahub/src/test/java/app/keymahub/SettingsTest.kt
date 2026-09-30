@@ -191,6 +191,23 @@ class SettingsTest {
     }
 
     @Test
+    fun conditionsHoldOnlyTheProfilesOwnDevices() {
+        var s = Settings().connect("A", "Desk").connect("B", "Laptop")
+        val home = s.activeId
+        val (next, other) = s.addProfile("Other") // empty
+        s = next.setWhenConnected(other, setOf("A"))
+        assertTrue(s.profile(other)!!.whenConnected.isEmpty()) // A is not in it
+        s = s.setWhenConnected(home, setOf("A", "B")).excludeReceiver(home, 1)
+        assertEquals(setOf("B"), s.profile(home)!!.whenConnected) // A left the profile, and the condition
+        // Saved by an early build: a condition on a device outside the profile is dropped.
+        val old = Settings(
+            devices = listOf(Device("A", "a"), Device("B", "b")),
+            profiles = listOf(Profile("p", "", mapOf(1 to "B"), whenConnected = setOf("A", "B"))),
+        )
+        assertEquals(setOf("B"), Settings.decode(old.encode()).profile("p")!!.whenConnected)
+    }
+
+    @Test
     fun fullyAutomaticPicksTheProfileWithTheMostConnectedDevices() {
         var s = Settings().connect("A", "Desk").connect("B", "Laptop").connect("C", "iPad")
         assertEquals(ActivationMode.AUTO, s.mode) // the default
@@ -307,7 +324,7 @@ class SettingsTest {
         assertEquals(s, back)
         assertEquals(listOf(Device("AA:BB", "My Desk", 1_700_000_000_000L), Device("CC:DD", "Tab", 0, true)), back.devices)
         assertEquals(office, back.activeId)
-        assertEquals(setOf("AA:BB", "CC:DD"), back.profile(office)!!.whenConnected)
+        assertEquals(setOf("CC:DD"), back.profile(office)!!.whenConnected) // AA:BB left the profile
     }
 
     @Test

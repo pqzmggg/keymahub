@@ -146,6 +146,7 @@
     <string name="condition_devices_off">Cualquiera</string>
     <string name="condition_devices_on">Cuando %1$s está conectado</string>
     <string name="condition_devices_hint">Con el anfitrión activo, los dispositivos emparejados cercanos se reconectan solos.</string>
+    <string name="condition_no_devices">Este perfil aún no tiene dispositivos. Añádelos primero abajo.</string>
     <string name="settings_activation">Activación automática de perfiles</string>
     <string name="mode_auto">Totalmente automática</string>
     <string name="mode_auto_hint">Usa el perfil con más de sus dispositivos conectados.</string>

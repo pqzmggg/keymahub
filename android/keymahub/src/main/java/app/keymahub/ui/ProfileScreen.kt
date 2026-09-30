@@ -119,6 +119,7 @@ fun ProfileScreen(
         SectionTitle(stringResource(R.string.conditions_title), stringResource(R.string.conditions_hint))
         ConnectedCard(
             settings = settings,
+            profile = profile,
             chosen = profile.whenConnected,
             onChange = { set -> onEdit { it.setWhenConnected(profileId, set) } },
         )
@@ -183,9 +184,10 @@ fun ProfileScreen(
 
 // ---------------------------------------------------------------- conditions
 
-/** "While one of these devices is connected": a checklist of the paired devices. */
+/** "While one of these devices is connected": a checklist of the profile's devices, in hotkey order. */
 @Composable
-private fun ConnectedCard(settings: Settings, chosen: Set<String>, onChange: (Set<String>) -> Unit) {
+private fun ConnectedCard(settings: Settings, profile: Profile, chosen: Set<String>, onChange: (Set<String>) -> Unit) {
+    val devices = profile.receivers.entries.sortedBy { it.key }.mapNotNull { settings.device(it.value) }
     var open by remember { mutableStateOf(chosen.isNotEmpty()) }
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -212,10 +214,10 @@ private fun ConnectedCard(settings: Settings, chosen: Set<String>, onChange: (Se
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                if (settings.devices.isEmpty()) {
-                    Text(stringResource(R.string.assign_no_devices), style = MaterialTheme.typography.bodyMedium)
+                if (devices.isEmpty()) {
+                    Text(stringResource(R.string.condition_no_devices), style = MaterialTheme.typography.bodyMedium)
                 }
-                for (d in settings.devices) {
+                for (d in devices) {
                     val on = d.address in chosen
                     Row(
                         Modifier.fillMaxWidth()

@@ -146,6 +146,7 @@
     <string name="condition_devices_off">不限</string>
     <string name="condition_devices_on">%1$s 连接时</string>
     <string name="condition_devices_hint">主机开启时，附近已配对的设备会自动重新连接。</string>
+    <string name="condition_no_devices">此配置还没有设备。请先在下方添加。</string>
     <string name="settings_activation">配置自动启用</string>
     <string name="mode_auto">全自动</string>
     <string name="mode_auto_hint">使用设备连接最多的配置。</string>

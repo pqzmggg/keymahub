@@ -147,6 +147,7 @@
     <string name="condition_devices_off">Any</string>
     <string name="condition_devices_on">When %1$s is connected</string>
     <string name="condition_devices_hint">Nearby paired devices reconnect by themselves while hosting is on.</string>
+    <string name="condition_no_devices">This profile has no devices yet. Add them below first.</string>
     <string name="settings_activation">Automatic profile activation</string>
     <string name="mode_auto">Fully automatic</string>
     <string name="mode_auto_hint">Uses the profile with the most of its devices connected.</string>
