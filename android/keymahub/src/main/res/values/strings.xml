@@ -188,11 +188,24 @@
     <string name="tutorial_next">Next</string>
     <string name="tutorial_start">Start</string>
     <string name="tutorial_input_title">Connect a keyboard and mouse</string>
-    <string name="tutorial_input_body">KeymaHub controls other devices with the keyboard and mouse connected to this device. First pair them in this device\'s Bluetooth settings (USB works too).</string>
     <string name="tutorial_pair_title">Add a PC or tablet</string>
-    <string name="tutorial_pair_body">Tap \'Add a new device\' on the main screen to turn on pairing mode. Then add this device in the Bluetooth settings of the PC or tablet.</string>
     <string name="tutorial_profile_title">Put devices in a profile</string>
-    <string name="tutorial_profile_body">A profile says which device is on which hotkey number. In a profile, add your PCs and tablets with \'Add device\': they take the numbers in list order, from 2. Make a profile for each place (home, office): the one that fits the devices connected is used by itself, or pick one by hand.</string>
     <string name="tutorial_switch_title">Switch with hotkeys</string>
+    <string name="tutorial_input_lead">Control other devices with the keyboard and mouse connected to this device.</string>
+    <string name="tutorial_input_step1">Open this device\'s Bluetooth settings.</string>
+    <string name="tutorial_input_step2">Pair the keyboard and the mouse.</string>
+    <string name="tutorial_input_tip">USB works too.</string>
+    <string name="tutorial_pair_lead">Add this device to the PC or tablet as a Bluetooth keyboard.</string>
+    <string name="tutorial_pair_step1">On the main screen, tap \'Add a new device\'. Pairing mode turns on.</string>
+    <string name="tutorial_pair_step2">On the PC or tablet, open Bluetooth settings and add a device.</string>
+    <string name="tutorial_pair_step3">Pick this device in the list.</string>
+    <string name="tutorial_pair_tip">Windows: if this device isn\'t in the list, click \'Show all devices\'.</string>
+    <string name="tutorial_profile_lead">A profile decides which device is on which hotkey number.</string>
+    <string name="tutorial_profile_step1">In a profile, add PCs and tablets with \'Add device\'.</string>
+    <string name="tutorial_profile_step2">They take the numbers in the order added, from 2.</string>
+    <string name="tutorial_profile_step3">Make one per place (home, office): the one that fits the connected devices is used by itself.</string>
+    <string name="tutorial_switch_lead">Hold the keys below and press a number.</string>
+    <string name="tutorial_switch_phone">this device</string>
+    <string name="tutorial_switch_target">the device on that number in the profile</string>
     <string name="tutorial_switch_body">The hotkey keys can be changed in Settings.</string>
 </resources>

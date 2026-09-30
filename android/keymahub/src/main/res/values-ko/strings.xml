@@ -185,11 +185,24 @@
     <string name="tutorial_next">다음</string>
     <string name="tutorial_start">시작하기</string>
     <string name="tutorial_input_title">키보드와 마우스 연결</string>
-    <string name="tutorial_input_body">KeymaHub는 이 기기에 연결한 키보드와 마우스로 다른 기기를 조작합니다. 먼저 이 기기의 블루투스 설정에서 키보드와 마우스를 페어링하세요(USB로 연결해도 됩니다).</string>
     <string name="tutorial_pair_title">PC·태블릿 추가</string>
-    <string name="tutorial_pair_body">메인 화면의 \'새 기기 추가\'를 누르면 페어링 모드가 켜집니다. 그 상태에서 PC나 태블릿의 블루투스 설정에서 이 기기를 추가하세요.</string>
     <string name="tutorial_profile_title">프로필에 기기 넣기</string>
-    <string name="tutorial_profile_body">프로필은 어떤 기기를 몇 번 단축키에 둘지 정한 묶음입니다. 프로필의 \'기기 추가\'로 PC나 태블릿을 넣으면 목록 순서대로 2번부터 번호가 붙습니다. 집·회사처럼 장소마다 프로필을 만들어 두면 연결된 기기에 맞는 프로필이 자동으로 쓰이고, 직접 고를 수도 있습니다.</string>
     <string name="tutorial_switch_title">단축키로 전환</string>
+    <string name="tutorial_input_lead">이 기기에 연결한 키보드·마우스로 다른 기기를 조작합니다.</string>
+    <string name="tutorial_input_step1">이 기기의 블루투스 설정을 엽니다.</string>
+    <string name="tutorial_input_step2">키보드와 마우스를 페어링합니다.</string>
+    <string name="tutorial_input_tip">USB로 연결해도 됩니다.</string>
+    <string name="tutorial_pair_lead">조작할 PC나 태블릿에 이 기기를 블루투스 키보드로 추가합니다.</string>
+    <string name="tutorial_pair_step1">메인 화면에서 \'새 기기 추가\'를 누릅니다. 페어링 모드가 켜집니다.</string>
+    <string name="tutorial_pair_step2">PC·태블릿의 블루투스 설정에서 기기 추가를 누릅니다.</string>
+    <string name="tutorial_pair_step3">목록에서 이 기기를 선택합니다.</string>
+    <string name="tutorial_pair_tip">Windows: 목록에 이 기기가 없으면 \'모든 장치 표시\'를 누르세요.</string>
+    <string name="tutorial_profile_lead">프로필은 어떤 기기를 몇 번 단축키에 둘지 정한 묶음입니다.</string>
+    <string name="tutorial_profile_step1">프로필에서 \'기기 추가\'로 PC·태블릿을 넣습니다.</string>
+    <string name="tutorial_profile_step2">넣은 순서대로 2번부터 번호가 붙습니다.</string>
+    <string name="tutorial_profile_step3">집·회사처럼 장소마다 만들어 두면, 연결된 기기에 맞는 프로필이 자동으로 쓰입니다.</string>
+    <string name="tutorial_switch_lead">아래 키를 누른 채 숫자를 누르세요.</string>
+    <string name="tutorial_switch_phone">이 기기</string>
+    <string name="tutorial_switch_target">프로필에서 그 번호에 둔 기기</string>
     <string name="tutorial_switch_body">단축키의 보조키는 설정에서 바꿀 수 있습니다.</string>
 </resources>

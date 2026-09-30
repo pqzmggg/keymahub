@@ -185,11 +185,24 @@
     <string name="tutorial_next">次へ</string>
     <string name="tutorial_start">はじめる</string>
     <string name="tutorial_input_title">キーボードとマウスを接続</string>
-    <string name="tutorial_input_body">KeymaHub は、このデバイスにつないだキーボードとマウスでほかのデバイスを操作します。まずこのデバイスの Bluetooth 設定でキーボードとマウスをペアリングしてください（USB 接続でもかまいません）。</string>
     <string name="tutorial_pair_title">PC・タブレットを追加</string>
-    <string name="tutorial_pair_body">メイン画面の「新しいデバイスを追加」を押すとペアリングモードになります。その状態で PC やタブレットの Bluetooth 設定からこのデバイスを追加してください。</string>
     <string name="tutorial_profile_title">プロファイルにデバイスを入れる</string>
-    <string name="tutorial_profile_body">プロファイルは、どのデバイスを何番のホットキーに置くかをまとめたものです。プロファイルの「デバイスを追加」で PC やタブレットを入れると、リストの順に 2 番から番号が付きます。自宅・会社など場所ごとにプロファイルを作っておくと、つながっているデバイスに合うものが自動で使われます。手動で選ぶこともできます。</string>
     <string name="tutorial_switch_title">ホットキーで切り替え</string>
+    <string name="tutorial_input_lead">このデバイスにつないだキーボード・マウスでほかのデバイスを操作します。</string>
+    <string name="tutorial_input_step1">このデバイスの Bluetooth 設定を開きます。</string>
+    <string name="tutorial_input_step2">キーボードとマウスをペアリングします。</string>
+    <string name="tutorial_input_tip">USB 接続でもかまいません。</string>
+    <string name="tutorial_pair_lead">操作する PC やタブレットに、このデバイスを Bluetooth キーボードとして追加します。</string>
+    <string name="tutorial_pair_step1">メイン画面で「新しいデバイスを追加」を押します。ペアリングモードになります。</string>
+    <string name="tutorial_pair_step2">PC・タブレットの Bluetooth 設定でデバイスを追加します。</string>
+    <string name="tutorial_pair_step3">一覧からこのデバイスを選びます。</string>
+    <string name="tutorial_pair_tip">Windows：一覧にこのデバイスがなければ「すべてのデバイスを表示」を押してください。</string>
+    <string name="tutorial_profile_lead">プロファイルは、どのデバイスを何番のホットキーに置くかをまとめたものです。</string>
+    <string name="tutorial_profile_step1">プロファイルの「デバイスを追加」で PC・タブレットを入れます。</string>
+    <string name="tutorial_profile_step2">入れた順に 2 番から番号が付きます。</string>
+    <string name="tutorial_profile_step3">自宅・会社など場所ごとに作っておくと、つながっているデバイスに合うものが自動で使われます。</string>
+    <string name="tutorial_switch_lead">下のキーを押しながら数字を押します。</string>
+    <string name="tutorial_switch_phone">このデバイス</string>
+    <string name="tutorial_switch_target">プロファイルでその番号に置いたデバイス</string>
     <string name="tutorial_switch_body">ホットキーの修飾キーは設定で変更できます。</string>
 </resources>

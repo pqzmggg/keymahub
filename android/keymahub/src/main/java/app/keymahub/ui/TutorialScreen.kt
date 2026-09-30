@@ -35,13 +35,23 @@ import app.keymahub.KeyLabels
 import app.keymahub.R
 import app.keymahub.core.HubStatus
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 
 /**
  * The tutorial's version. It shows once after setup and again when this goes up (the saved
  * [app.keymahub.core.UiPrefs.tutorialSeen] is lower): raise it when how the app is used changes
  * enough that people who saw it should see it again.
  */
-const val TUTORIAL_VERSION = 2
+const val TUTORIAL_VERSION = 3
 
 private const val PAGES = 4
 
@@ -74,9 +84,20 @@ fun TutorialScreen(status: HubStatus, onDone: () -> Unit) {
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                     ) {
                         when (p) {
-                            0 -> TextPage(1, R.string.tutorial_input_title, R.string.tutorial_input_body)
-                            1 -> TextPage(2, R.string.tutorial_pair_title, R.string.tutorial_pair_body)
-                            2 -> TextPage(3, R.string.tutorial_profile_title, R.string.tutorial_profile_body)
+                            0 -> {
+                                Head(1, R.string.tutorial_input_title, R.string.tutorial_input_lead)
+                                Steps(R.string.tutorial_input_step1, R.string.tutorial_input_step2)
+                                Tip(stringResource(R.string.tutorial_input_tip))
+                            }
+                            1 -> {
+                                Head(2, R.string.tutorial_pair_title, R.string.tutorial_pair_lead)
+                                Steps(R.string.tutorial_pair_step1, R.string.tutorial_pair_step2, R.string.tutorial_pair_step3)
+                                Tip(stringResource(R.string.tutorial_pair_tip), R.drawable.tutorial_windows_show_all)
+                            }
+                            2 -> {
+                                Head(3, R.string.tutorial_profile_title, R.string.tutorial_profile_lead)
+                                Steps(R.string.tutorial_profile_step1, R.string.tutorial_profile_step2, R.string.tutorial_profile_step3)
+                            }
                             else -> SwitchPage(status)
                         }
                     }
@@ -111,19 +132,72 @@ private fun PageTitle(step: Int, title: String) {
     }
 }
 
+/** A page's number and title, and what it is about in one line. */
 @Composable
-private fun TextPage(step: Int, title: Int, body: Int) {
+private fun Head(step: Int, title: Int, lead: Int) {
     PageTitle(step, stringResource(title))
-    Text(stringResource(body), style = MaterialTheme.typography.bodyLarge)
+    Text(stringResource(lead), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
-/** 4. Switching with the hotkeys (the modifiers set now). */
+/** What to do, one short line per step, numbered. */
+@Composable
+private fun Steps(vararg steps: Int) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        steps.forEachIndexed { i, step ->
+            Row {
+                Surface(shape = CircleShape, color = MaterialTheme.colorScheme.secondaryContainer, modifier = Modifier.size(28.dp)) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text("${i + 1}", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                    }
+                }
+                Spacer(Modifier.width(12.dp))
+                Text(stringResource(step), Modifier.padding(top = 3.dp), style = MaterialTheme.typography.bodyLarge)
+            }
+        }
+    }
+}
+
+/** A side note, set apart; with a picture of what it points at. */
+@Composable
+private fun Tip(text: String, image: Int? = null) {
+    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row {
+                Icon(Icons.Default.Info, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                Spacer(Modifier.width(8.dp))
+                Text(text, style = MaterialTheme.typography.bodyMedium)
+            }
+            image?.let {
+                Image(
+                    painterResource(it),
+                    contentDescription = null, // the text says what it shows
+                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)),
+                    contentScale = ContentScale.FillWidth,
+                )
+            }
+        }
+    }
+}
+
+/** 4. Switching with the hotkeys (the modifiers set now), shown as keys. */
 @Composable
 private fun SwitchPage(status: HubStatus) {
-    PageTitle(4, stringResource(R.string.tutorial_switch_title))
-    Text(
-        stringResource(R.string.hotkeys_mods_hint, KeyLabels.mods(status.settings.mods)),
-        style = MaterialTheme.typography.bodyLarge,
-    )
-    Text(stringResource(R.string.tutorial_switch_body), style = MaterialTheme.typography.bodyMedium)
+    Head(4, R.string.tutorial_switch_title, R.string.tutorial_switch_lead)
+    val mods = KeyLabels.mods(status.settings.mods)
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        HotkeyLine("$mods + 1", stringResource(R.string.tutorial_switch_phone))
+        HotkeyLine("$mods + 2–9, 0", stringResource(R.string.tutorial_switch_target))
+    }
+    Tip(stringResource(R.string.tutorial_switch_body))
+}
+
+@Composable
+private fun HotkeyLine(keys: String, what: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Surface(shape = RoundedCornerShape(8.dp), color = MaterialTheme.colorScheme.secondaryContainer) {
+            Text(keys, Modifier.padding(horizontal = 10.dp, vertical = 6.dp), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        }
+        Spacer(Modifier.width(12.dp))
+        Text("→ $what", style = MaterialTheme.typography.bodyLarge)
+    }
 }
