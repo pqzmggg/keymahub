@@ -11,6 +11,7 @@
 - 설계: [docs/DESIGN.md](docs/DESIGN.md)
 - P0 기술 검증 가이드·결과: [docs/P0.md](docs/P0.md)
 - Android 제품 기획: [docs/ANDROID_PRODUCT.md](docs/ANDROID_PRODUCT.md)
+- 진행 기록 (결정·발견 로그, 변경마다 파일 하나): [docs/history/](docs/history/README.md)
 
 ## 현재 단계: KeymaHub (Android 블루투스 허브) v0.1 개발
 
@@ -55,5 +56,6 @@ base64 -w0 keymahub-upload.jks   # → KEYMAHUB_KEYSTORE_BASE64 (Ubuntu: sudo ap
 
 - 커밋 작성자: `dean <pqzmggg@gmail.com>`, 커밋 메시지에 공동 작성자·세션 줄을 넣지 않는다.
 - `main`에는 직접 푸시하지 않고 **항상 PR로 머지**한다.
+- 진행 기록은 변경마다 `docs/history/YYYY-MM-DD-이름.md` 파일 하나로 남긴다(한 파일에 쌓지 않는다: PR끼리 충돌).
 - CI(GitHub Actions)는 **PR에서만** 돈다(PR 생성·PR 브랜치에 푸시할 때, 필요하면 Actions 탭에서 수동 실행). `main` 머지 후에는 다시 돌지 않는다.
   Rust 테스트·clippy, Android APK를 빌드하고 산출물을 올린다. Android 빌드 검증은 CI 기준. 릴리스 빌드는 release 워크플로.
