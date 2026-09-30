@@ -189,11 +189,24 @@
     <string name="tutorial_next">Suivant</string>
     <string name="tutorial_start">Commencer</string>
     <string name="tutorial_input_title">Connecter un clavier et une souris</string>
-    <string name="tutorial_input_body">KeymaHub contrôle d\'autres appareils avec le clavier et la souris connectés à cet appareil. Associez-les d\'abord dans les paramètres Bluetooth de cet appareil (l\'USB fonctionne aussi).</string>
     <string name="tutorial_pair_title">Ajouter un PC ou une tablette</string>
-    <string name="tutorial_pair_body">Touchez « Ajouter un appareil » sur l\'écran principal pour activer le mode d\'association. Ajoutez ensuite cet appareil dans les paramètres Bluetooth du PC ou de la tablette.</string>
     <string name="tutorial_profile_title">Mettre les appareils dans un profil</string>
-    <string name="tutorial_profile_body">Un profil indique quel appareil se trouve sur quel chiffre de raccourci. Dans un profil, ajoutez vos PC et tablettes avec « Ajouter un appareil » : ils prennent les chiffres dans l\'ordre de la liste, à partir de 2. Créez un profil par lieu (maison, bureau) : celui qui correspond aux appareils connectés est utilisé tout seul, ou choisissez-le vous-même.</string>
     <string name="tutorial_switch_title">Changer avec les raccourcis</string>
+    <string name="tutorial_input_lead">Contrôlez d\'autres appareils avec le clavier et la souris connectés à cet appareil.</string>
+    <string name="tutorial_input_step1">Ouvrez les paramètres Bluetooth de cet appareil.</string>
+    <string name="tutorial_input_step2">Associez le clavier et la souris.</string>
+    <string name="tutorial_input_tip">L\'USB fonctionne aussi.</string>
+    <string name="tutorial_pair_lead">Ajoutez cet appareil au PC ou à la tablette comme clavier Bluetooth.</string>
+    <string name="tutorial_pair_step1">Sur l\'écran principal, touchez « Ajouter un appareil ». Le mode d\'association s\'active.</string>
+    <string name="tutorial_pair_step2">Sur le PC ou la tablette, ouvrez les paramètres Bluetooth et ajoutez un appareil.</string>
+    <string name="tutorial_pair_step3">Choisissez cet appareil dans la liste.</string>
+    <string name="tutorial_pair_tip">Windows : si cet appareil n\'est pas dans la liste, cliquez sur « Afficher tous les appareils ».</string>
+    <string name="tutorial_profile_lead">Un profil indique quel appareil se trouve sur quel chiffre de raccourci.</string>
+    <string name="tutorial_profile_step1">Dans un profil, ajoutez PC et tablettes avec « Ajouter un appareil ».</string>
+    <string name="tutorial_profile_step2">Ils prennent les chiffres dans l\'ordre d\'ajout, à partir de 2.</string>
+    <string name="tutorial_profile_step3">Créez-en un par lieu (maison, bureau) : celui qui correspond aux appareils connectés est utilisé tout seul.</string>
+    <string name="tutorial_switch_lead">Maintenez les touches ci-dessous et appuyez sur un chiffre.</string>
+    <string name="tutorial_switch_phone">cet appareil</string>
+    <string name="tutorial_switch_target">l\'appareil placé sur ce chiffre dans le profil</string>
     <string name="tutorial_switch_body">Les touches des raccourcis se modifient dans les paramètres.</string>
 </resources>
