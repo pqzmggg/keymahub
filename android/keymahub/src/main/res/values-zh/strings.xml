@@ -201,6 +201,10 @@
     <string name="tutorial_profile_step1">在配置中用“添加设备”加入电脑或平板。</string>
     <string name="tutorial_profile_step2">按加入的顺序从 2 开始编号。</string>
     <string name="tutorial_profile_step3">为家里、公司等地点各建一个，会自动使用与已连接设备相符的配置。</string>
+    <string name="tutorial_auto_title">配置自动启用</string>
+    <string name="tutorial_auto_lead">配置会根据已连接的设备自动切换。</string>
+    <string name="tutorial_auto_where">在主界面的“配置自动启用”中选择方式。</string>
+    <string name="tutorial_auto_routine_tip">Galaxy：模式和例程也能切换配置。请把 KeymaHub 的“启用(配置)”快捷方式添加为例程的操作。这种情况下，建议关闭应用的配置自动启用，以免应用改掉例程选好的配置。</string>
     <string name="tutorial_switch_lead">按住下面的键再按数字。</string>
     <string name="tutorial_switch_phone">本设备</string>
     <string name="tutorial_switch_target">配置中放在该数字上的设备</string>

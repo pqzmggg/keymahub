@@ -201,6 +201,10 @@
     <string name="tutorial_profile_step1">プロファイルの「デバイスを追加」で PC・タブレットを入れます。</string>
     <string name="tutorial_profile_step2">入れた順に 2 番から番号が付きます。</string>
     <string name="tutorial_profile_step3">自宅・会社など場所ごとに作っておくと、つながっているデバイスに合うものが自動で使われます。</string>
+    <string name="tutorial_auto_title">プロファイルの自動切り替え</string>
+    <string name="tutorial_auto_lead">つながっているデバイスに合わせて、プロファイルが自動で切り替わります。</string>
+    <string name="tutorial_auto_where">メイン画面の「プロファイルの自動切り替え」で方式を選びます。</string>
+    <string name="tutorial_auto_routine_tip">Galaxy：モードとルーチンでもプロファイルを切り替えられます。ルーチンの動作に KeymaHub の「(プロファイル)を有効化」ショートカットを追加してください。この場合、ルーチンが選んだプロファイルをアプリが変えないよう、アプリのプロファイル自動切り替えはオフにすることをおすすめします。</string>
     <string name="tutorial_switch_lead">下のキーを押しながら数字を押します。</string>
     <string name="tutorial_switch_phone">このデバイス</string>
     <string name="tutorial_switch_target">プロファイルでその番号に置いたデバイス</string>

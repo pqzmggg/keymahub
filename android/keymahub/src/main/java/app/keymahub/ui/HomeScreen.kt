@@ -428,7 +428,7 @@ private fun ProfileRow(
 }
 
 /** Label and explanation of each activation mode. */
-private val MODES = listOf(
+internal val MODES = listOf(
     Triple(ActivationMode.AUTO, R.string.mode_auto, R.string.mode_auto_hint),
     Triple(ActivationMode.RULES, R.string.mode_rules, R.string.mode_rules_hint),
     Triple(ActivationMode.MANUAL, R.string.mode_manual, R.string.mode_manual_hint),

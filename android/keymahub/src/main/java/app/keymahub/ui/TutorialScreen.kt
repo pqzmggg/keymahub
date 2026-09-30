@@ -52,14 +52,14 @@ import androidx.compose.ui.platform.LocalDensity
  * [app.keymahub.core.UiPrefs.tutorialSeen] is lower): raise it when how the app is used changes
  * enough that people who saw it should see it again.
  */
-const val TUTORIAL_VERSION = 3
+const val TUTORIAL_VERSION = 4
 
-private const val PAGES = 4
+private const val PAGES = 5
 
 /**
- * How to use the app, in four pages to read (nothing to operate here): connect a keyboard and
- * mouse to this device; add a PC or tablet; put devices on hotkeys in a profile; switch with the
- * hotkeys. Shown after setup, and from the home menu. [onDone] also when skipped.
+ * How to use the app, in five pages to read (nothing to operate here): connect a keyboard and
+ * mouse to this device; add a PC or tablet; put devices on hotkeys in a profile; how a profile is
+ * picked by itself; switch with the hotkeys. Shown after setup, and from the home menu. [onDone] also when skipped.
  */
 @Composable
 fun TutorialScreen(status: HubStatus, onDone: () -> Unit) {
@@ -99,6 +99,7 @@ fun TutorialScreen(status: HubStatus, onDone: () -> Unit) {
                                 Head(3, R.string.tutorial_profile_title, R.string.tutorial_profile_lead)
                                 Steps(R.string.tutorial_profile_step1, R.string.tutorial_profile_step2, R.string.tutorial_profile_step3)
                             }
+                            3 -> AutoPage()
                             else -> SwitchPage(status)
                         }
                     }
@@ -183,10 +184,26 @@ private fun Tip(text: String, image: Int? = null) {
     }
 }
 
-/** 4. Switching with the hotkeys (the modifiers set now), shown as keys. */
+/** 4. The ways a profile is picked by itself, and Galaxy routines as another way. */
+@Composable
+private fun AutoPage() {
+    Head(4, R.string.tutorial_auto_title, R.string.tutorial_auto_lead)
+    Text(stringResource(R.string.tutorial_auto_where), style = MaterialTheme.typography.bodyLarge)
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        for ((_, label, hint) in MODES) {
+            Column {
+                Text(stringResource(label), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(hint), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+    Tip(stringResource(R.string.tutorial_auto_routine_tip))
+}
+
+/** 5. Switching with the hotkeys (the modifiers set now), shown as keys. */
 @Composable
 private fun SwitchPage(status: HubStatus) {
-    Head(4, R.string.tutorial_switch_title, R.string.tutorial_switch_lead)
+    Head(5, R.string.tutorial_switch_title, R.string.tutorial_switch_lead)
     val mods = KeyLabels.mods(status.settings.mods)
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         HotkeyLine("$mods + 1", stringResource(R.string.tutorial_switch_phone))
