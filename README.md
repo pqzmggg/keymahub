@@ -9,7 +9,6 @@
 
 ## 문서
 - 설계: [docs/DESIGN.md](docs/DESIGN.md)
-- 진행 기록 (결정·발견 로그): [docs/HISTORY.md](docs/HISTORY.md)
 - P0 기술 검증 가이드·결과: [docs/P0.md](docs/P0.md)
 - Android 제품 기획: [docs/ANDROID_PRODUCT.md](docs/ANDROID_PRODUCT.md)
 
@@ -52,3 +51,9 @@ base64 -w0 keymahub-upload.jks   # → KEYMAHUB_KEYSTORE_BASE64 (Ubuntu: sudo ap
 키스토어 파일과 비밀번호는 따로 안전하게 보관한다 (잃어버리면 Play 업로드 키 재설정 절차가 필요).
 예전 이름(`KEMAHUB_*`)으로 등록한 secret도 그대로 읽는다. secrets가 없으면 워크플로는 디버그 서명본을 올리지 않고 실패한다.
 
+## 운영 규칙
+
+- 커밋 작성자: `dean <pqzmggg@gmail.com>`, 커밋 메시지에 공동 작성자·세션 줄을 넣지 않는다.
+- `main`에는 직접 푸시하지 않고 **항상 PR로 머지**한다.
+- CI(GitHub Actions)는 **PR에서만** 돈다(PR 생성·PR 브랜치에 푸시할 때, 필요하면 Actions 탭에서 수동 실행). `main` 머지 후에는 다시 돌지 않는다.
+  Rust 테스트·clippy, Android APK를 빌드하고 산출물을 올린다. Android 빌드 검증은 CI 기준. 릴리스 빌드는 release 워크플로.
