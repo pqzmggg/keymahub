@@ -127,7 +127,7 @@
     <string name="report_copied">日志已复制到剪贴板。</string>
     <string name="cover_screen">控制其他设备时遮住屏幕</string>
     <string name="cover_screen_hint">控制其他设备时用黑屏遮住，点击或按键点亮屏幕时也不显示内容。触摸屏幕即可取消。</string>
-    <string name="cover_hint">触摸以显示屏幕</string>
+    <string name="cover_hint">为保护电池，屏幕已停用。\n触摸屏幕即可重新启用。</string>
     <string name="recover_screen">无触摸时重新遮住</string>
     <string name="recover_screen_hint">触摸取消遮挡后，手机在以下时间内未被触摸就再次遮住屏幕。</string>
     <string name="duration_seconds">%d秒</string>

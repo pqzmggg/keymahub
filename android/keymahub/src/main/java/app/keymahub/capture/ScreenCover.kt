@@ -14,6 +14,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
 import android.widget.FrameLayout
+import android.widget.LinearLayout
 import android.widget.TextView
 import app.keymahub.R
 import app.keymahub.core.Hub
@@ -80,11 +81,25 @@ class ScreenCover(
         if (view != null) return
         val v = FrameLayout(service).apply {
             setBackgroundColor(Color.BLACK)
+            // The app's name, a little larger, over why the screen is black and how to bring it back;
+            // barely there on black.
             addView(
-                TextView(service).apply {
-                    text = service.getString(R.string.cover_hint)
-                    setTextColor(0xFF3A3A3A.toInt()) // barely there on black
-                    setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
+                LinearLayout(service).apply {
+                    orientation = LinearLayout.VERTICAL
+                    gravity = Gravity.CENTER_HORIZONTAL
+                    addView(TextView(service).apply {
+                        text = service.getString(R.string.app_name)
+                        setTextColor(0xFF4A4A4A.toInt())
+                        setTextSize(TypedValue.COMPLEX_UNIT_SP, 17f)
+                        gravity = Gravity.CENTER_HORIZONTAL
+                    })
+                    addView(TextView(service).apply {
+                        text = service.getString(R.string.cover_hint)
+                        setTextColor(0xFF3A3A3A.toInt())
+                        setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
+                        gravity = Gravity.CENTER_HORIZONTAL
+                        setPadding(0, (6 * service.resources.displayMetrics.density).toInt(), 0, 0)
+                    })
                 },
                 FrameLayout.LayoutParams(
                     FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT,

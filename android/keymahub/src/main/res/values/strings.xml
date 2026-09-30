@@ -128,7 +128,7 @@
     <string name="report_copied">Log copied to the clipboard.</string>
     <string name="cover_screen">Cover the screen while controlling</string>
     <string name="cover_screen_hint">Black screen while another device is controlled, so clicks and keys that turn the screen on show nothing. Touch the screen to uncover it.</string>
-    <string name="cover_hint">Touch to show the screen</string>
+    <string name="cover_hint">Screen turned off to save battery.\nTouch the screen to turn it back on.</string>
     <string name="recover_screen">Cover again when untouched</string>
     <string name="recover_screen_hint">Once a touch uncovers the screen, cover it again after the phone goes untouched for:</string>
     <string name="duration_seconds">%d s</string>
