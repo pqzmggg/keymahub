@@ -185,11 +185,11 @@
     <string name="tutorial_next">次へ</string>
     <string name="tutorial_start">はじめる</string>
     <string name="tutorial_input_title">キーボードとマウスを接続</string>
-    <string name="tutorial_input_body">KeymaHub は、このデバイスに接続したキーボードとマウスで他のデバイスを操作します。まずこのデバイスの Bluetooth 設定でキーボードとマウスをペアリングしてください（USB 接続でもかまいません）。</string>
-    <string name="tutorial_keyboard">キーボード</string>
-    <string name="tutorial_mouse">マウス</string>
+    <string name="tutorial_input_body">KeymaHub は、このデバイスにつないだキーボードとマウスでほかのデバイスを操作します。まずこのデバイスの Bluetooth 設定でキーボードとマウスをペアリングしてください（USB 接続でもかまいません）。</string>
     <string name="tutorial_pair_title">PC・タブレットを追加</string>
-    <string name="tutorial_pair_body">ペアリングモードをオンにして、PC やタブレットの Bluetooth 設定でこのデバイスを追加してください。あとからはメイン画面の「新しいデバイスを追加」を使います。</string>
+    <string name="tutorial_pair_body">メイン画面の「新しいデバイスを追加」を押すとペアリングモードになります。その状態で PC やタブレットの Bluetooth 設定からこのデバイスを追加してください。</string>
+    <string name="tutorial_profile_title">プロファイルにデバイスを入れる</string>
+    <string name="tutorial_profile_body">プロファイルは、どのデバイスを何番のホットキーに置くかをまとめたものです。プロファイルの「デバイスを追加」で PC やタブレットを入れると、リストの順に 2 番から番号が付きます。自宅・会社など場所ごとにプロファイルを作っておくと、つながっているデバイスに合うものが自動で使われます。手動で選ぶこともできます。</string>
     <string name="tutorial_switch_title">ホットキーで切り替え</string>
-    <string name="tutorial_switch_body">プロファイルの「デバイスを追加」でデバイスを番号に入れます。プロファイルとホットキーの修飾キーはあとから変更できます。</string>
+    <string name="tutorial_switch_body">ホットキーの修飾キーは設定で変更できます。</string>
 </resources>
