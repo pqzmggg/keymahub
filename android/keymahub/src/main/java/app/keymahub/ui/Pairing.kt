@@ -1,6 +1,11 @@
 package app.keymahub.ui
 
 import android.os.SystemClock
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -62,6 +67,13 @@ fun PairingCard(status: HubStatus, onPairing: (Boolean) -> Unit) {
                 Text(stringResource(R.string.guide_intro), style = MaterialTheme.typography.bodyMedium)
                 GuideLine("Windows", stringResource(R.string.guide_windows))
                 Text(stringResource(R.string.guide_windows_hint), style = MaterialTheme.typography.bodySmall)
+                // Where 'Show all devices' is (the tutorial's picture).
+                Image(
+                    painterResource(R.drawable.tutorial_windows_show_all),
+                    contentDescription = null, // the line above says what it shows
+                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)),
+                    contentScale = ContentScale.FillWidth,
+                )
                 GuideLine("Mac", stringResource(R.string.guide_mac))
                 GuideLine("iPad / iPhone / Android", stringResource(R.string.guide_mobile))
                 Text(stringResource(R.string.guide_note), style = MaterialTheme.typography.bodySmall)
