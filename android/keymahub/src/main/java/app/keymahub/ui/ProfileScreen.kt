@@ -58,6 +58,14 @@ import app.keymahub.core.ActivationMode
 import app.keymahub.core.HubStatus
 import app.keymahub.core.Profile
 import app.keymahub.core.Settings
+import androidx.compose.foundation.focusable
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 
 /** One profile: when it applies (connected devices) and which device is on which hotkey. */
 @Composable
@@ -366,11 +374,27 @@ private fun AddDeviceDialog(profile: Profile, status: HubStatus, onDismiss: () -
     val devices = settings.devices.filter { profile.slotOf(it.address) == null }
     val room = Profile.SLOTS - 1 - profile.receivers.size
     var picked by remember { mutableStateOf(listOf<String>()) }
+    // From a keyboard: Enter does what the confirm button does (Add, or Close with nothing to add), Esc cancels.
+    val confirm = { if (devices.isEmpty()) onDismiss() else if (picked.isNotEmpty()) onAdd(picked) }
+    val focus = remember { FocusRequester() }
+    LaunchedEffect(Unit) { focus.requestFocus() }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.profile_add_device)) },
         text = {
-            Column(Modifier.verticalScroll(rememberScrollState())) {
+            Column(
+                Modifier
+                    .onPreviewKeyEvent { e ->
+                        when (e.key) {
+                            Key.Enter, Key.NumPadEnter -> { if (e.type == KeyEventType.KeyDown) confirm(); true }
+                            Key.Escape -> { if (e.type == KeyEventType.KeyDown) onDismiss(); true }
+                            else -> false
+                        }
+                    }
+                    .focusRequester(focus)
+                    .focusable()
+                    .verticalScroll(rememberScrollState()),
+            ) {
                 when {
                     settings.devices.isEmpty() -> Text(stringResource(R.string.assign_no_devices))
                     devices.isEmpty() -> Text(stringResource(R.string.add_device_all_in))
