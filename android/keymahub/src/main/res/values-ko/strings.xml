@@ -35,7 +35,7 @@
     <string name="profile_default">기본</string>
     <string name="profile_new">새 프로필</string>
     <string name="profile_new_title">새 프로필</string>
-    <string name="profile_new_message">현재 프로필을 복사해서 만듭니다.</string>
+    <string name="profile_new_copy">사용 중인 프로필 복제 (%1$s)</string>
     <string name="profile_rename">프로필 이름 변경</string>
     <string name="profile_delete">프로필 삭제</string>
     <string name="profile_delete_confirm">\'%1$s\' 프로필을 삭제할까요?</string>

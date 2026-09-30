@@ -242,12 +242,12 @@ data class Settings(
     // ---------------------------------------------------------------- profiles
 
     /**
-     * Adds a profile named [name] at the top (highest priority), with the active profile's
-     * receivers but no conditions. Returns the settings and the new id.
+     * Adds a profile named [name] at the top (highest priority): empty, or with the active
+     * profile's receivers ([copyActive]), and no conditions. Returns the settings and the new id.
      */
-    fun addProfile(name: String): Pair<Settings, String> {
+    fun addProfile(name: String, copyActive: Boolean = false): Pair<Settings, String> {
         val n = (profiles.mapNotNull { it.id.removePrefix("p").toIntOrNull() }.maxOrNull() ?: 0) + 1
-        val p = active.copy(id = "p$n", name = clean(name), whenConnected = emptySet())
+        val p = Profile("p$n", clean(name), receivers = if (copyActive) active.receivers else emptyMap())
         return copy(profiles = listOf(p) + profiles) to p.id
     }
 

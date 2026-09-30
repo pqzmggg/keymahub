@@ -35,7 +35,7 @@
     <string name="profile_default">默认</string>
     <string name="profile_new">新建配置</string>
     <string name="profile_new_title">新建配置</string>
-    <string name="profile_new_message">将复制当前配置来创建。</string>
+    <string name="profile_new_copy">复制当前使用的配置 (%1$s)</string>
     <string name="profile_rename">重命名配置</string>
     <string name="profile_delete">删除配置</string>
     <string name="profile_delete_confirm">删除配置“%1$s”？</string>

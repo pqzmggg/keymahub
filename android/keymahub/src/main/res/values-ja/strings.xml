@@ -35,7 +35,7 @@
     <string name="profile_default">デフォルト</string>
     <string name="profile_new">新しいプロファイル</string>
     <string name="profile_new_title">新しいプロファイル</string>
-    <string name="profile_new_message">現在のプロファイルをコピーして作成します。</string>
+    <string name="profile_new_copy">使用中のプロファイルを複製 (%1$s)</string>
     <string name="profile_rename">プロファイル名を変更</string>
     <string name="profile_delete">プロファイルを削除</string>
     <string name="profile_delete_confirm">プロファイル「%1$s」を削除しますか？</string>
