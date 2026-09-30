@@ -146,6 +146,7 @@
     <string name="condition_devices_off">상관없음</string>
     <string name="condition_devices_on">%1$s 연결 시</string>
     <string name="condition_devices_hint">호스팅 중에는 가까이 있는 페어링된 기기가 알아서 다시 연결됩니다.</string>
+    <string name="condition_no_devices">이 프로필에 넣은 기기가 없습니다. 아래에서 먼저 기기를 추가하세요.</string>
     <string name="settings_activation">프로필 자동 활성화</string>
     <string name="mode_auto">완전 자동</string>
     <string name="mode_auto_hint">기기가 가장 많이 연결된 프로필을 사용합니다.</string>

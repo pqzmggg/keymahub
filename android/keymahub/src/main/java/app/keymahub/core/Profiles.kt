@@ -48,8 +48,9 @@ data class Device(val address: String, val name: String, val lastUsed: Long = 0,
  *
  * Slot 0 is this phone, slots 1..9 are receivers (see [Hotkeys]).
  * An empty [name] is the unnamed default profile (the UI shows a translated name).
- * Condition (rule-based activation): [whenConnected], any of these devices connected. Without
- * it, the profile is only used when activated by hand (or picked by fully automatic mode).
+ * Condition (rule-based activation): [whenConnected], any of these devices connected; always some
+ * of its own receivers (a device it can't switch to would make no sense). Without it, the profile
+ * is only used when activated by hand (or picked by fully automatic mode).
  */
 data class Profile(
     val id: String,
@@ -231,12 +232,18 @@ data class Settings(
         return withProfile(p.closeGap(slot))
     }
 
-    /** [slot] emptied, and the receivers after it one place up each (empty ones too). */
+    /**
+     * [slot] emptied, and the receivers after it one place up each (empty ones too). The device
+     * leaves the conditions too: they only hold the profile's own receivers.
+     */
     private fun Profile.closeGap(slot: Int): Profile {
         val order = (1 until Profile.SLOTS).map { receivers[it] }.toMutableList()
-        order.removeAt(slot - 1)
+        val gone = order.removeAt(slot - 1)
         order.add(null)
-        return copy(receivers = order.withIndex().mapNotNull { (i, a) -> a?.let { i + 1 to it } }.toMap())
+        return copy(
+            receivers = order.withIndex().mapNotNull { (i, a) -> a?.let { i + 1 to it } }.toMap(),
+            whenConnected = whenConnected - setOfNotNull(gone),
+        )
     }
 
     // ---------------------------------------------------------------- profiles
@@ -279,10 +286,10 @@ data class Settings(
         return copy(profiles = list)
     }
 
-    /** The profile applies while any of [addresses] is connected (empty: no such condition). */
+    /** The profile applies while any of [addresses] is connected (empty: no such condition); only its own receivers are kept. */
     fun setWhenConnected(id: String, addresses: Set<String>): Settings {
         val p = profile(id) ?: return this
-        return withProfile(p.copy(whenConnected = addresses.filter { device(it) != null }.toSet()))
+        return withProfile(p.copy(whenConnected = addresses.filter { it in p.receivers.values }.toSet()))
     }
 
     private fun withProfile(p: Profile) = copy(profiles = profiles.map { if (it.id == p.id) p else it })
@@ -341,7 +348,9 @@ data class Settings(
             if (profiles.isEmpty()) profiles += Profile("p1", "")
             val known = devices.map { it.address }.toSet()
             val cleaned = profiles.map { p ->
-                p.copy(receivers = p.receivers.filterValues { it in known }, whenConnected = p.whenConnected.filter { it in known }.toSet())
+                val receivers = p.receivers.filterValues { it in known }
+                // Conditions on devices outside the profile (allowed by early builds) go.
+                p.copy(receivers = receivers, whenConnected = p.whenConnected.filter { it in receivers.values }.toSet())
             }
             fun valid(id: String?) = id?.takeIf { i -> cleaned.any { it.id == i } }
             val activeId = valid(active) ?: cleaned.first().id

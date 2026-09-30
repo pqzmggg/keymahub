@@ -146,6 +146,7 @@
     <string name="condition_devices_off">指定なし</string>
     <string name="condition_devices_on">%1$s の接続時</string>
     <string name="condition_devices_hint">ホスティング中は、近くのペアリング済みデバイスが自動で再接続します。</string>
+    <string name="condition_no_devices">このプロファイルにはまだデバイスがありません。先に下で追加してください。</string>
     <string name="settings_activation">プロファイルの自動切り替え</string>
     <string name="mode_auto">完全自動</string>
     <string name="mode_auto_hint">デバイスが最も多く接続されているプロファイルを使います。</string>
