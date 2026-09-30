@@ -66,6 +66,9 @@ import app.keymahub.core.ActivationMode
 import app.keymahub.core.HubStatus
 import app.keymahub.core.Profile
 import app.keymahub.core.Settings
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.material3.Checkbox
+import androidx.compose.ui.semantics.Role
 
 /** Main screen: hosting on/off and the profiles in priority order. */
 @Composable
@@ -165,15 +168,26 @@ fun HomeScreen(
     }
 
     if (creating) {
+        // Empty unless asked: starts unchecked each time the dialog opens.
+        var copy by remember { mutableStateOf(false) }
         NameDialog(
             title = stringResource(R.string.profile_new_title),
             initial = "",
-            message = stringResource(R.string.profile_new_message),
             onDismiss = { creating = false },
+            extra = {
+                Row(
+                    Modifier.fillMaxWidth().toggleable(copy, role = Role.Checkbox) { copy = it },
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Checkbox(checked = copy, onCheckedChange = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.profile_new_copy, profileName(settings.active)))
+                }
+            },
             onConfirm = { name ->
                 creating = false
                 var id = ""
-                onEdit { s -> s.addProfile(name).let { (next, newId) -> id = newId; next } }
+                onEdit { s -> s.addProfile(name, copyActive = copy).let { (next, newId) -> id = newId; next } }
                 if (id.isNotEmpty()) onOpenProfile(id)
             },
         )

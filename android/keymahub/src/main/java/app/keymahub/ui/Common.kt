@@ -136,7 +136,15 @@ fun connectedText(settings: Settings, addresses: Set<String>): String {
 
 /** Asks for a name. [onConfirm] gets the trimmed text; the button is off while it is empty. */
 @Composable
-fun NameDialog(title: String, initial: String, onDismiss: () -> Unit, onConfirm: (String) -> Unit, message: String? = null) {
+fun NameDialog(
+    title: String,
+    initial: String,
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit,
+    message: String? = null,
+    /** Under the name field (a new profile's options). */
+    extra: (@Composable () -> Unit)? = null,
+) {
     var text by remember { mutableStateOf(initial) }
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -145,6 +153,7 @@ fun NameDialog(title: String, initial: String, onDismiss: () -> Unit, onConfirm:
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 message?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
                 OutlinedTextField(text, { text = it.take(40) }, singleLine = true)
+                extra?.invoke()
             }
         },
         confirmButton = {

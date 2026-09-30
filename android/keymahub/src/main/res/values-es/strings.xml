@@ -35,7 +35,7 @@
     <string name="profile_default">Predeterminado</string>
     <string name="profile_new">Nuevo perfil</string>
     <string name="profile_new_title">Nuevo perfil</string>
-    <string name="profile_new_message">Se crea como copia del perfil actual.</string>
+    <string name="profile_new_copy">Copiar el perfil en uso (%1$s)</string>
     <string name="profile_rename">Cambiar nombre del perfil</string>
     <string name="profile_delete">Eliminar perfil</string>
     <string name="profile_delete_confirm">¿Eliminar el perfil \"%1$s\"?</string>

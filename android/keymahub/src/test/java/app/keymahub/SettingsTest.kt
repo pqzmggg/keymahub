@@ -57,7 +57,7 @@ class SettingsTest {
     fun knownDevicesReconnectingStayWhereTheyWere() {
         var s = Settings().connect("A", "Desk")
         val first = s.activeId
-        val (next, other) = s.addProfile("Other") // a copy: A on 1
+        val (next, other) = s.addProfile("Other", copyActive = true) // a copy: A on 1
         s = next.excludeReceiver(other, 1).activate(other) // A taken out of Other, Other active
         s = s.deviceConnected("A", "Desk") // A reconnects
         assertNull(s.profile(other)!!.slotOf("A")) // not put back
@@ -73,6 +73,13 @@ class SettingsTest {
         s = s.connect("X", "extra")
         assertNull(s.active.slotOf("X"))
         assertTrue(s.device("X") != null)
+    }
+
+    @Test
+    fun newProfilesStartEmptyUnlessCopied() {
+        val s = Settings().connect("A", "Desk").connect("B", "Laptop")
+        val (next, id) = s.addProfile("Empty")
+        assertTrue(next.profile(id)!!.receivers.isEmpty()) // copying: newProfilesGoOnTopAsACopyWithoutConditions
     }
 
     @Test
@@ -123,7 +130,7 @@ class SettingsTest {
         var s = Settings(mode = ActivationMode.RULES).connect("A", "Desk")
         val first = s.activeId
         s = s.setWhenConnected(first, setOf("A"))
-        val (next, home) = s.addProfile("Home")
+        val (next, home) = s.addProfile("Home", copyActive = true)
         s = next
         assertEquals(listOf(home, first), s.profiles.map { it.id })
         assertEquals("A", s.profile(home)!!.addressOf(1)) // copied receivers
@@ -136,11 +143,11 @@ class SettingsTest {
     fun renameAndDeleteProfiles() {
         var s = Settings()
         val first = s.activeId
-        val home = s.addProfile("Home").second
-        s = s.addProfile("Home").first.renameProfile(home, "  Home\tPC ").activate(home).deleteProfile(first)
+        val home = s.addProfile("Home", copyActive = true).second
+        s = s.addProfile("Home", copyActive = true).first.renameProfile(home, "  Home\tPC ").activate(home).deleteProfile(first)
         assertEquals(listOf("Home PC"), s.profiles.map { it.name })
         assertEquals(s, s.deleteProfile(home)) // the last one stays
-        val (more, x) = s.addProfile("x")
+        val (more, x) = s.addProfile("x", copyActive = true)
         s = more.activate(x).deleteProfile(x)
         assertEquals(home, s.chosenId) // a deleted choice falls back to what is left
     }
@@ -152,8 +159,8 @@ class SettingsTest {
         val home = s.activeId // no conditions
         var work = ""
         var tablet = ""
-        s = s.addProfile("Work").let { (n, id) -> work = id; n }.setWhenConnected(work, setOf("OFFICE"))
-        s = s.addProfile("Tablet").let { (n, id) -> tablet = id; n }.setWhenConnected(tablet, setOf("TAB"))
+        s = s.addProfile("Work", copyActive = true).let { (n, id) -> work = id; n }.setWhenConnected(work, setOf("OFFICE"))
+        s = s.addProfile("Tablet", copyActive = true).let { (n, id) -> tablet = id; n }.setWhenConnected(tablet, setOf("TAB"))
         // order: Tablet, Work, Home
         assertEquals(work, s.resolve(setOf("OFFICE")).activeId)
         assertEquals(tablet, s.resolve(setOf("HOME")).activeId) // no rule for it: the top profile
@@ -189,7 +196,7 @@ class SettingsTest {
         assertEquals(ActivationMode.AUTO, s.mode) // the default
         val home = s.activeId // A=1, B=2, C=3
         var office = ""
-        s = s.addProfile("Office").let { (n, id) -> office = id; n }
+        s = s.addProfile("Office", copyActive = true).let { (n, id) -> office = id; n }
             .excludeReceiver(office, 3) // Office: A, B (and it is on top)
         s = s.resolve(setOf("A", "B"))
         assertEquals(office, s.activeId) // 2 each: 2 of 2 beats 2 of 3
@@ -211,7 +218,7 @@ class SettingsTest {
         var s = Settings().connect("A", "a").connect("B", "b")
             .connect("C", "c").connect("D", "d")
         val home = s.activeId // A, B, C, D
-        val (next, office) = s.addProfile("Office") // on top, A, B, C, D too
+        val (next, office) = s.addProfile("Office", copyActive = true) // on top, A, B, C, D too
         s = next.excludeReceiver(home, 3).excludeReceiver(home, 3) // home: A, B
         // 2 connected each: home has 2 of 2, office 2 of 4: home, though lower.
         assertEquals(home, s.resolve(setOf("A", "B")).activeId)
@@ -226,7 +233,7 @@ class SettingsTest {
     fun manualIgnoresEverythingButTheChoice() {
         var s = Settings(mode = ActivationMode.MANUAL).connect("A", "Desk")
         val first = s.activeId
-        val (next, other) = s.addProfile("Other")
+        val (next, other) = s.addProfile("Other", copyActive = true)
         s = next.setWhenConnected(other, setOf("A"))
         assertEquals(first, s.resolve(setOf("A")).activeId)
         assertEquals(other, s.activate(other).resolve(none).activeId)
@@ -240,7 +247,7 @@ class SettingsTest {
         var s = Settings(mode = ActivationMode.RULES).connect("W", "Work PC")
         val home = s.activeId
         var work = ""
-        s = s.addProfile("Work").let { (n, id) -> work = id; n }.setWhenConnected(work, setOf("W"))
+        s = s.addProfile("Work", copyActive = true).let { (n, id) -> work = id; n }.setWhenConnected(work, setOf("W"))
         s = s.resolve(setOf("W"))
         assertEquals(work, s.activeId)
 
@@ -270,7 +277,7 @@ class SettingsTest {
     @Test
     fun forgetPullsTheDevicesAfterItUpInEveryProfile() {
         var s = Settings().connect("A", "a").connect("B", "b").connect("C", "c")
-        val (next, two) = s.addProfile("Two") // same numbers: A 1, B 2, C 3
+        val (next, two) = s.addProfile("Two", copyActive = true) // same numbers: A 1, B 2, C 3
         s = next.moveReceiver(two, 1, 3) // Two: B 1, C 2, A 3
         val one = s.profiles.last().id
         s = s.forgetDevice("A")
@@ -280,7 +287,7 @@ class SettingsTest {
 
     @Test
     fun forgetRemovesTheDeviceEverywhere() {
-        var s = Settings().connect("A", "Desk").addProfile("Two").first
+        var s = Settings().connect("A", "Desk").addProfile("Two", copyActive = true).first
         s = s.forgetDevice("A")
         assertTrue(s.devices.isEmpty())
         assertTrue(s.profiles.all { it.receivers.isEmpty() })
@@ -292,7 +299,7 @@ class SettingsTest {
         s = s.renameDevice("CC:DD", "  ") // blank names are ignored
         s = s.touch("AA:BB", 1_700_000_000_000L).setBlocked("CC:DD", true)
         s = s.setMods(Mods.META or Mods.SHIFT)
-        val (next, office) = s.addProfile("Office")
+        val (next, office) = s.addProfile("Office", copyActive = true)
         s = next.setMode(ActivationMode.RULES).excludeReceiver(office, 1)
             .setWhenConnected(office, setOf("AA:BB", "CC:DD"))
             .activate(office)

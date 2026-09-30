@@ -36,7 +36,7 @@
     <string name="profile_default">Default</string>
     <string name="profile_new">New profile</string>
     <string name="profile_new_title">New profile</string>
-    <string name="profile_new_message">Starts as a copy of the current profile.</string>
+    <string name="profile_new_copy">Copy the profile in use (%1$s)</string>
     <string name="profile_rename">Rename profile</string>
     <string name="profile_delete">Delete profile</string>
     <string name="profile_delete_confirm">Delete profile \"%1$s\"?</string>
