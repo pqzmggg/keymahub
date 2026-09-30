@@ -1,5 +1,9 @@
 package app.keymahub.ui
 
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothManager
+import android.content.BroadcastReceiver
+import android.content.IntentFilter
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.ClipData
@@ -94,6 +98,35 @@ class MainActivity : ComponentActivity() {
 
     private fun openBluetoothSettings() {
         runCatching { startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS)) }
+    }
+
+    /**
+     * Bluetooth turned back on: a "Bluetooth is off" notice left by hosting stopping no longer holds.
+     * Only the notice goes; hosting stays off until turned on. Checked on opening too (the change
+     * may have come while the app was not on screen).
+     */
+    private val bluetoothOn = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1) == BluetoothAdapter.STATE_ON) clearBluetoothOff()
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
+        if (Build.VERSION.SDK_INT >= 33) registerReceiver(bluetoothOn, filter, Context.RECEIVER_EXPORTED)
+        else registerReceiver(bluetoothOn, filter)
+        clearBluetoothOff()
+    }
+
+    override fun onStop() {
+        runCatching { unregisterReceiver(bluetoothOn) }
+        super.onStop()
+    }
+
+    private fun clearBluetoothOff() {
+        val on = runCatching { getSystemService(BluetoothManager::class.java)?.adapter?.isEnabled == true }.getOrDefault(false)
+        if (on) Hub.update { if (it.problem == R.string.problem_bt_off) it.copy(problem = null) else it }
     }
 
     override fun onDestroy() {
