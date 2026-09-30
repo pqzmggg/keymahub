@@ -35,16 +35,12 @@ import app.keymahub.KeyLabels
 import app.keymahub.R
 import app.keymahub.core.HubStatus
 import kotlinx.coroutines.launch
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.platform.LocalDensity
 
 /**
@@ -93,7 +89,7 @@ fun TutorialScreen(status: HubStatus, onDone: () -> Unit) {
                             1 -> {
                                 Head(2, R.string.tutorial_pair_title, R.string.tutorial_pair_lead)
                                 Steps(R.string.tutorial_pair_step1, R.string.tutorial_pair_step2, R.string.tutorial_pair_step3)
-                                Tip(stringResource(R.string.tutorial_pair_tip), R.drawable.tutorial_windows_show_all)
+                                Tip(stringResource(R.string.tutorial_pair_tip)) { WindowsAddDevice() }
                             }
                             2 -> {
                                 Head(3, R.string.tutorial_profile_title, R.string.tutorial_profile_lead)
@@ -161,7 +157,7 @@ private fun Steps(vararg steps: Int) {
 
 /** A side note, set apart; with a picture of what it points at. */
 @Composable
-private fun Tip(text: String, image: Int? = null) {
+private fun Tip(text: String, picture: (@Composable () -> Unit)? = null) {
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             val style = MaterialTheme.typography.bodyMedium
@@ -172,14 +168,7 @@ private fun Tip(text: String, image: Int? = null) {
                 Spacer(Modifier.width(8.dp))
                 Text(text, style = style)
             }
-            image?.let {
-                Image(
-                    painterResource(it),
-                    contentDescription = null, // the text says what it shows
-                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)),
-                    contentScale = ContentScale.FillWidth,
-                )
-            }
+            picture?.invoke()
         }
     }
 }

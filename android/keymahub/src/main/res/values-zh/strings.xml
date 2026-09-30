@@ -56,6 +56,10 @@
     <string name="guide_intro">请在电脑或平板的蓝牙设置中添加本设备。然后在配置中用「添加设备」把它放到快捷键上。</string>
     <string name="guide_windows">设置 → 蓝牙和其他设备 → 添加设备 → 蓝牙 → 选择本设备</string>
     <string name="guide_windows_hint">列表中没有？在添加设备窗口中选择“显示所有设备”。</string>
+    <!-- Windows' own words in its "Add a device" window (drawn in the Windows tip). -->
+    <string name="windows_add_device">添加设备</string>
+    <string name="windows_add_device_body">确保你的设备已打开并且可被发现。在下面选择要连接的设备。</string>
+    <string name="windows_show_all">显示所有设备</string>
     <string name="guide_mac">系统设置 → 蓝牙 → 点按本设备旁的“连接”</string>
     <string name="guide_mobile">设置 → 蓝牙 → 选择本设备</string>
     <string name="guide_note">如果本设备上出现配对请求，请允许。连接时请关闭本设备的蓝牙设置界面。</string>

@@ -1,11 +1,12 @@
 package app.keymahub.ui
 
 import android.os.SystemClock
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -67,18 +68,38 @@ fun PairingCard(status: HubStatus, onPairing: (Boolean) -> Unit) {
                 Text(stringResource(R.string.guide_intro), style = MaterialTheme.typography.bodyMedium)
                 GuideLine("Windows", stringResource(R.string.guide_windows))
                 Text(stringResource(R.string.guide_windows_hint), style = MaterialTheme.typography.bodySmall)
-                // Where 'Show all devices' is (the tutorial's picture).
-                Image(
-                    painterResource(R.drawable.tutorial_windows_show_all),
-                    contentDescription = null, // the line above says what it shows
-                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)),
-                    contentScale = ContentScale.FillWidth,
-                )
+                WindowsAddDevice()
                 GuideLine("Mac", stringResource(R.string.guide_mac))
                 GuideLine("iPad / iPhone / Android", stringResource(R.string.guide_mobile))
                 Text(stringResource(R.string.guide_note), style = MaterialTheme.typography.bodySmall)
             }
         }
+    }
+}
+
+/**
+ * Where 'Show all devices' is: the top of Windows' "Add a device" window, drawn like it (its dark
+ * background and white text, in Windows' own words) rather than a screenshot, so it follows the
+ * app's language. A little smaller than the real one. Same in the tutorial and here.
+ */
+@Composable
+fun WindowsAddDevice() {
+    Column(
+        Modifier.widthIn(max = 320.dp).fillMaxWidth()
+            .clip(RoundedCornerShape(6.dp))
+            .background(Color(0xFF2A2A2A))
+            .padding(horizontal = 10.dp, vertical = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Text(stringResource(R.string.windows_add_device), color = Color.White, fontSize = 18.sp, lineHeight = 22.sp)
+        Text(stringResource(R.string.windows_add_device_body), color = Color.White, fontSize = 10.sp, lineHeight = 14.sp)
+        Text(
+            stringResource(R.string.windows_show_all),
+            Modifier.padding(top = 4.dp),
+            color = Color.White,
+            fontSize = 10.sp,
+            lineHeight = 14.sp,
+        )
     }
 }
 
