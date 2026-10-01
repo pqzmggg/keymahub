@@ -169,14 +169,9 @@ object BleHid {
     /** Addresses of targets ready for input (none while not hosting). */
     fun readyTargets(): Set<String> = if (running) hosts.ready() else emptySet()
 
-    /** Sends subsequent reports to [address] (null: nowhere), and gives it the short connection interval (see [pace]). */
+    /** Sends subsequent reports to [address] (null: nowhere). */
     fun select(address: String?) {
-        synchronized(lock) {
-            val old = active
-            active = address
-            if (old == address) return
-            for (a in listOfNotNull(old, address)) holds[a]?.let { pace(a, it) }
-        }
+        synchronized(lock) { active = address }
     }
 
     fun nameOf(address: String): String {
@@ -424,30 +419,28 @@ object BleHid {
     }
 
     /**
-     * Asks for the connection interval the link should have while it is kept: short for the
-     * selected target, medium for the others. As a peripheral, Android never asks for one, so the
-     * host may pick 30-50 ms — far too slow for a mouse. The client role can: CONNECTION_PRIORITY_HIGH
-     * is roughly 11-15 ms. Only the selected target gets it: every link has its connection events
-     * even with nothing to send, and the phone's one radio serves them all (and the phone's own
-     * Bluetooth keyboard and mouse), so several short-interval links collide and delay the one in
-     * use. CONNECTION_PRIORITY_BALANCED (roughly 30-50 ms) keeps a switch quick: the new interval
-     * takes effect a few connection events after the request, and input goes over the link meanwhile.
+     * Asks for a short connection interval while the link is kept. As a peripheral, Android never
+     * asks for one, so the host may pick 30-50 ms — far too slow for a mouse. The client role can:
+     * CONNECTION_PRIORITY_HIGH is roughly 11-15 ms.
+     *
+     * Every kept link gets it, the selected target or not, and keeps it: a link changed on each
+     * switch (tried before) is slow until the host applies the change, or for good when the host
+     * ignores it, and input sent faster than the link carries piles up in the Bluetooth stack,
+     * where mouse motion cannot be merged (see [pump]): lag that only clears as the link drains it.
      * Holds [lock].
      */
     private fun pace(address: String, hold: Hold) {
         if (!hold.up || hold.ending) return
         val gatt = hold.gatt ?: return
-        val fast = address == active
-        val priority = if (fast) BluetoothGatt.CONNECTION_PRIORITY_HIGH else BluetoothGatt.CONNECTION_PRIORITY_BALANCED
-        val ok = runCatching { gatt.requestConnectionPriority(priority) }.getOrDefault(false)
-        logLater { "${if (fast) "short" else "medium"} connection interval requested from ${nameOf(address)}: $ok" }
+        val ok = runCatching { gatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH) }.getOrDefault(false)
+        logLater { "short connection interval requested from ${nameOf(address)}: $ok" }
     }
 
     /**
      * Lets go of [hold] (ending the link unless something else uses it), after asking for a long
      * connection interval: the stack keeps a link's last parameters after its apps let go, and a
      * link the phone cannot end (the host's system or another app uses it, see the class note)
-     * would otherwise stay at a short or medium one, taking radio time from the links in use and battery
+     * would otherwise stay at the short one, taking radio time from the links in use and battery
      * while nothing goes over it. CONNECTION_PRIORITY_LOW_POWER is roughly 100-125 ms. The hold
      * stays [LOW_POWER_SETTLE_MS] so the host gets the request over a link still in use.
      */
@@ -616,7 +609,10 @@ object BleHid {
 
     /**
      * Keeps up to [WINDOW] notifications outstanding per target (a few fit in one connection
-     * event); the rest wait in the [ReportQueue], where mouse motion merges. A wait of
+     * event); the rest wait in the [ReportQueue], where mouse motion merges. What is handed to the
+     * Bluetooth stack can no longer be merged: it goes out at the link's pace, so a backlog there
+     * is lag, not a jump. Hence the small window, and no more than it while confirmations are due
+     * ([IN_FLIGHT_TIMEOUT_MS]). A wait of
      * [SLOW_WAIT_MS] or more is logged with its cause, so a felt delay can be told apart from the
      * radio's. Holds [lock].
      */
@@ -1012,10 +1008,11 @@ object BleHid {
     private const val SETTLE_MS = 3_000L
     private const val WINDOW = 3
     /**
-     * How long sent notifications may stay unconfirmed before sending goes on. Confirmations come
-     * within a connection event or two (11-50 ms); waiting longer only holds input back.
+     * How long sent notifications may stay unconfirmed before they count as lost and sending goes on.
+     * Long on purpose: a slow link confirms late, and giving up too soon sends more into the
+     * Bluetooth stack, where it waits unmerged (see [pump]); a lost confirmation is rare.
      */
-    private const val IN_FLIGHT_TIMEOUT_MS = 60L
+    private const val IN_FLIGHT_TIMEOUT_MS = 250L
     /** A wait for sending this long or longer is logged (see [pump]). */
     private const val SLOW_WAIT_MS = 50L
     /** How soon a send the stack was too busy for is tried again. */
