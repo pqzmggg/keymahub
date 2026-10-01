@@ -212,7 +212,7 @@ private fun HotkeyCard(mods: Int, onMods: (Int) -> Unit) {
                 style = MaterialTheme.typography.bodyMedium,
             )
             Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                for ((bit, label) in listOf(Mods.CTRL to KeyLabels.CTRL, Mods.ALT to KeyLabels.ALT, Mods.SHIFT to "Shift", Mods.META to KeyLabels.META)) {
+                for ((bit, label) in KeyLabels.MODS) {
                     FilterChip(
                         selected = pending and bit != 0,
                         onClick = {

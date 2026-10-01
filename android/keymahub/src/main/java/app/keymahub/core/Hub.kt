@@ -1,6 +1,7 @@
 package app.keymahub.core
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.util.Log
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -43,6 +44,9 @@ data class UiPrefs(
     val tutorialSeen: Int = 0,
 )
 
+/** The app's one preferences file (settings, personalization and the language). */
+internal fun Context.keymaPrefs(): SharedPreferences = getSharedPreferences("keymahub", Context.MODE_PRIVATE)
+
 object Hub {
     private val _status = MutableStateFlow(HubStatus())
     val status: StateFlow<HubStatus> = _status.asStateFlow()
@@ -55,13 +59,12 @@ object Hub {
 
     // ---------------------------------------------------------------- settings (persisted)
 
-    private const val PREFS = "keymahub"
     private const val KEY_SETTINGS = "settings"
     private var loaded = false
 
     fun settings(context: Context): Settings = synchronized(this) {
         if (!loaded) {
-            val text = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_SETTINGS, null)
+            val text = context.keymaPrefs().getString(KEY_SETTINGS, null)
             _status.update { it.copy(settings = Settings.decode(text)) }
             loaded = true
         }
@@ -79,7 +82,7 @@ object Hub {
             before = settings(context)
             after = change(before).resolve(_status.value.ready)
             if (after == before) return
-            context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY_SETTINGS, after.encode()).apply()
+            context.keymaPrefs().edit().putString(KEY_SETTINGS, after.encode()).apply()
             _status.update { it.copy(settings = after) }
         }
         if (after.activeId != before.activeId) onProfileChanged?.invoke()
@@ -93,16 +96,17 @@ object Hub {
 
     fun loadUi(context: Context): UiPrefs = synchronized(this) {
         if (!uiLoaded) {
-            val p = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            val p = context.keymaPrefs()
+            val d = UiPrefs()
             _ui.value = UiPrefs(
-                theme = ThemeMode.entries.firstOrNull { it.name == p.getString("theme", null) } ?: ThemeMode.SYSTEM,
-                showHud = p.getBoolean("show_hud", true),
-                touchKeyboard = p.getBoolean("touch_keyboard", true),
-                coverScreen = p.getBoolean("cover_screen", true),
-                recoverScreen = p.getBoolean("recover_screen", true),
-                recoverSeconds = p.getInt("recover_seconds", 10),
-                batterySkipped = p.getBoolean("battery_skipped", false),
-                tutorialSeen = p.getInt("tutorial_seen", 0),
+                theme = ThemeMode.entries.firstOrNull { it.name == p.getString(K_THEME, null) } ?: d.theme,
+                showHud = p.getBoolean(K_SHOW_HUD, d.showHud),
+                touchKeyboard = p.getBoolean(K_TOUCH_KEYBOARD, d.touchKeyboard),
+                coverScreen = p.getBoolean(K_COVER_SCREEN, d.coverScreen),
+                recoverScreen = p.getBoolean(K_RECOVER_SCREEN, d.recoverScreen),
+                recoverSeconds = p.getInt(K_RECOVER_SECONDS, d.recoverSeconds),
+                batterySkipped = p.getBoolean(K_BATTERY_SKIPPED, d.batterySkipped),
+                tutorialSeen = p.getInt(K_TUTORIAL_SEEN, d.tutorialSeen),
             )
             uiLoaded = true
         }
@@ -111,18 +115,27 @@ object Hub {
 
     fun editUi(context: Context, change: (UiPrefs) -> UiPrefs) = synchronized(this) {
         val u = change(loadUi(context))
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
-            .putString("theme", u.theme.name)
-            .putBoolean("show_hud", u.showHud)
-            .putBoolean("touch_keyboard", u.touchKeyboard)
-            .putBoolean("cover_screen", u.coverScreen)
-            .putBoolean("recover_screen", u.recoverScreen)
-            .putInt("recover_seconds", u.recoverSeconds)
-            .putBoolean("battery_skipped", u.batterySkipped)
-            .putInt("tutorial_seen", u.tutorialSeen)
+        context.keymaPrefs().edit()
+            .putString(K_THEME, u.theme.name)
+            .putBoolean(K_SHOW_HUD, u.showHud)
+            .putBoolean(K_TOUCH_KEYBOARD, u.touchKeyboard)
+            .putBoolean(K_COVER_SCREEN, u.coverScreen)
+            .putBoolean(K_RECOVER_SCREEN, u.recoverScreen)
+            .putInt(K_RECOVER_SECONDS, u.recoverSeconds)
+            .putBoolean(K_BATTERY_SKIPPED, u.batterySkipped)
+            .putInt(K_TUTORIAL_SEEN, u.tutorialSeen)
             .apply()
         _ui.value = u
     }
+
+    private const val K_THEME = "theme"
+    private const val K_SHOW_HUD = "show_hud"
+    private const val K_TOUCH_KEYBOARD = "touch_keyboard"
+    private const val K_COVER_SCREEN = "cover_screen"
+    private const val K_RECOVER_SCREEN = "recover_screen"
+    private const val K_RECOVER_SECONDS = "recover_seconds"
+    private const val K_BATTERY_SKIPPED = "battery_skipped"
+    private const val K_TUTORIAL_SEEN = "tutorial_seen"
 
     // ---------------------------------------------------------------- log (diagnostics screen)
 
