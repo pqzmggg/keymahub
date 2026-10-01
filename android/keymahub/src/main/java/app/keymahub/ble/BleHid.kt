@@ -26,6 +26,7 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
 import android.os.ParcelUuid
+import android.os.Process
 import android.os.SystemClock
 import app.keymahub.R
 import app.keymahub.ble.HostTable.Change
@@ -100,7 +101,7 @@ object BleHid {
     /** Timeouts of the phone's joins ([join]) and service refreshes; kept apart from [main], which stop() clears. */
     private val timers = Handler(Looper.getMainLooper())
     /** Retries of stalled sends ([pump]): on their own thread, so a busy main thread (the app's UI) does not hold input back. */
-    private val sendTimers = Handler(HandlerThread("ble-send").apply { start() }.looper)
+    private val sendTimers = Handler(HandlerThread("ble-send", Process.THREAD_PRIORITY_DISPLAY).apply { start() }.looper)
 
     private lateinit var keyboardIn: BluetoothGattCharacteristic
     private lateinit var mouseIn: BluetoothGattCharacteristic
@@ -861,6 +862,10 @@ object BleHid {
             if (responseNeeded) server?.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, value)
         }
 
+        override fun onPhyUpdate(device: BluetoothDevice, txPhy: Int, rxPhy: Int, status: Int) {
+            Hub.log("BLE HID: ${nameOf(device.address)} PHY tx $txPhy rx $rxPhy (1: 1M, 2: 2M)${statusText(status)}")
+        }
+
         override fun onNotificationSent(device: BluetoothDevice, status: Int) {
             synchronized(lock) {
                 inFlight[device.address] = ((inFlight[device.address] ?: 1) - 1).coerceAtLeast(0)
@@ -887,10 +892,19 @@ object BleHid {
         if (running) listeners.forEach { it.onGone(address) }
     }
 
-    /** Joins the link (its connection interval, and a way to end it), and advertise again (some controllers stop on connect). */
+    /**
+     * Joins the link (its connection interval, and a way to end it), asks for the LE 2M PHY, and
+     * advertise again (some controllers stop on connect). 2M sends each packet in half the air time,
+     * leaving more room for the other links (and Wi-Fi) on the phone's radio; the host decides, and
+     * one that does not support it stays on 1M.
+     */
     private fun tune(device: BluetoothDevice) {
         if (!running || !hosts.isLinked(device.address)) return
         join(device, end = false)
+        val le2m = runCatching { appContext?.getSystemService(BluetoothManager::class.java)?.adapter?.isLe2MPhySupported }.getOrNull() == true
+        if (le2m) {
+            runCatching { server?.setPreferredPhy(device, BluetoothDevice.PHY_LE_2M_MASK, BluetoothDevice.PHY_LE_2M_MASK, BluetoothDevice.PHY_OPTION_NO_PREFERRED) }
+        }
         advertise()
     }
 
