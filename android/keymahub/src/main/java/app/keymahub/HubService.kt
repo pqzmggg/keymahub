@@ -189,7 +189,7 @@ class HubService : Service(), BleHid.Listener {
     }
 
     private fun receiverName(slot: Int): String? =
-        profile.addressOf(slot)?.let { Hub.settings(this).device(it)?.name }
+        Hub.settings(this).let { s -> s.active.addressOf(slot)?.let { s.device(it)?.name } }
 
     private fun hotkeyLabel(slot: Int) = KeyLabels.hotkey(Hub.settings(this).hotkey(slot))
 
@@ -257,6 +257,8 @@ class HubService : Service(), BleHid.Listener {
 
     // ---------------------------------------------------------------- notification
 
+    private val notifications get() = getSystemService(NotificationManager::class.java)!!
+
     private fun notification(): Notification {
         val status = Hub.status.value
         val title = if (status.slot == 0) {
@@ -285,12 +287,11 @@ class HubService : Service(), BleHid.Listener {
 
     private fun updateNotification() {
         if (destroyed) return
-        getSystemService(NotificationManager::class.java)!!.notify(NOTIFICATION_ID, notification())
+        notifications.notify(NOTIFICATION_ID, notification())
     }
 
     private fun startInForeground() {
-        getSystemService(NotificationManager::class.java)!!
-            .createNotificationChannel(NotificationChannel(CHANNEL, getString(R.string.notif_channel), NotificationManager.IMPORTANCE_LOW))
+        notifications.createNotificationChannel(NotificationChannel(CHANNEL, getString(R.string.notif_channel), NotificationManager.IMPORTANCE_LOW))
         if (Build.VERSION.SDK_INT >= 29) {
             startForeground(NOTIFICATION_ID, notification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE)
         } else {

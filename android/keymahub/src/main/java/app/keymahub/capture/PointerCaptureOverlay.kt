@@ -7,7 +7,6 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
-import android.view.Gravity
 import android.view.InputDevice
 import android.view.MotionEvent
 import android.view.WindowManager
@@ -56,32 +55,29 @@ class PointerCaptureOverlay(
         // Only a newly added window gets focus back; re-add it.
         view = null
         v.relay.end()
-        runCatching { wm.removeView(v) }
+        wm.removeQuietly(v)
         add()
     }
 
     /** Accessibility events while a target has focus: text fields touched on the phone (see [TextRelay]). */
     fun onAccessibilityEvent(event: AccessibilityEvent) {
         // The event is recycled once the service returns: take what the relay needs now.
+        if (event.packageName == service.packageName) return // this window's own field, and the app's own screens
         val type = event.eventType
         val source = event.source ?: return
-        if (event.packageName == service.packageName) return // this window's own field, and the app's own screens
         main.post { if (wanted) view?.relay?.onEvent(type, source) }
     }
 
     /** On the main thread. */
     private fun add() {
         val v = CaptureRoot(service)
-        val params = WindowManager.LayoutParams(
+        val params = overlayParams(
             1, 1,
-            WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
             // Focusable (no FLAG_NOT_FOCUSABLE): pointer capture is only granted to the focused window.
             // Not touchable, and not touch-modal: every touch goes to the windows below.
             WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
-            PixelFormat.TRANSLUCENT,
+            PixelFormat.TRANSLUCENT, "KeymaHub pointer capture",
         ).apply {
-            gravity = Gravity.TOP or Gravity.START
-            title = "KeymaHub pointer capture"
             // The on-screen keyboard shown for TextRelay must not move or resize this window.
             softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING or
                 WindowManager.LayoutParams.SOFT_INPUT_STATE_UNCHANGED
@@ -105,7 +101,7 @@ class PointerCaptureOverlay(
         view = null
         v.relay.end()
         runCatching { v.releasePointerCapture() }
-        runCatching { wm.removeView(v) }
+        wm.removeQuietly(v)
     }
 
     /** The window's content: holds focus and capture, and [TextRelay]'s hidden text field. */
