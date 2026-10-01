@@ -30,7 +30,6 @@ import android.os.Process
 import android.os.SystemClock
 import app.keymahub.R
 import app.keymahub.ble.HostTable.Change
-import app.keymahub.ble.HostTable.Report
 import app.keymahub.core.Hub
 import app.keymahub.hid.ConsumerReport
 import app.keymahub.hid.HidDescriptors
@@ -83,16 +82,8 @@ object BleHid {
         fun onBluetoothOff() {}
     }
 
-    private fun uuid16(v: Int): UUID = UUID.fromString("%08x-0000-1000-8000-00805f9b34fb".format(v))
-
-    private val HID_SERVICE = uuid16(0x1812)
-    private val CCCD = uuid16(0x2902)
-    private val REPORT_REFERENCE = uuid16(0x2908)
-    private val REPORT_MAP = uuid16(0x2A4B)
     /** An empty service added and removed only to send hosts a Service Changed (see [refresh]). */
     private val REFRESH_SERVICE = UUID.fromString("8a3f1c52-4d1e-4b8a-9f3e-2c7d5a6b1e90")
-    private const val INPUT = 1
-    private const val OUTPUT = 2
 
     @Volatile private var server: BluetoothGattServer? = null
     private var advertiser: BluetoothLeAdvertiser? = null
@@ -106,10 +97,8 @@ object BleHid {
     /** Retries of stalled sends ([pump]): on their own thread, so a busy main thread (the app's UI) does not hold input back. */
     private val sendTimers = Handler(HandlerThread("ble-send", Process.THREAD_PRIORITY_DISPLAY).apply { start() }.looper)
 
-    private lateinit var keyboardIn: BluetoothGattCharacteristic
-    private lateinit var mouseIn: BluetoothGattCharacteristic
-    private lateinit var consumerIn: BluetoothGattCharacteristic
-    private lateinit var batteryLevel: BluetoothGattCharacteristic
+    /** The services of the open GATT server. */
+    private lateinit var db: HidGattDatabase
 
     /** Hosts' links, targets and subscriptions (loaded in start). */
     @Volatile private var hosts = HostTable()
@@ -280,9 +269,9 @@ object BleHid {
         for (address in addresses) {
             val d = synchronized(lock) { devices[address] } ?: continue
             runCatching {
-                notify(d, keyboardIn, KeyboardReport().clear())
-                notify(d, mouseIn, MouseReport().clear())
-                notify(d, consumerIn, ConsumerReport().clear())
+                notify(d, db.keyboardIn, KeyboardReport().clear())
+                notify(d, db.mouseIn, MouseReport().clear())
+                notify(d, db.consumerIn, ConsumerReport().clear())
             }
         }
     }
@@ -483,12 +472,12 @@ object BleHid {
     private fun open(context: Context, manager: BluetoothManager): Int? {
         log("opening GATT server")
         val s = manager.openGattServer(context.applicationContext, callback) ?: return R.string.problem_gatt
-        values.clear()
+        db = HidGattDatabase()
         synchronized(lock) { refreshed.clear() }
         refreshService = null
         // One at a time, always in this order: a service is only in the database once
         // onServiceAdded says so, and hosts expect the same database every time.
-        for (svc in listOf(hidService(), batteryService(), deviceInfoService())) {
+        for (svc in db.services) {
             serviceAdded = CountDownLatch(1)
             if (!s.addService(svc) || !serviceAdded.await(3, TimeUnit.SECONDS)) {
                 s.close()
@@ -640,9 +629,9 @@ object BleHid {
         while (box.inFlight < WINDOW) {
             val item = q.poll() ?: break
             val ch = when (item.reportId) {
-                HidDescriptors.REPORT_ID_MOUSE -> mouseIn
-                HidDescriptors.REPORT_ID_CONSUMER -> consumerIn
-                else -> keyboardIn
+                HidDescriptors.REPORT_ID_MOUSE -> db.mouseIn
+                HidDescriptors.REPORT_ID_CONSUMER -> db.consumerIn
+                else -> db.keyboardIn
             }
             if (!notify(device, ch, item.data)) {
                 q.unpoll(item) // stack busy: retry on the next confirmation or report
@@ -685,87 +674,6 @@ object BleHid {
             s.notifyCharacteristicChanged(device, ch, false)
         }
     }
-
-    // ---------------------------------------------------------------- GATT database
-
-    private fun characteristic(uuid: Int, props: Int, perms: Int) = BluetoothGattCharacteristic(uuid16(uuid), props, perms)
-
-    private fun descriptor(uuid: UUID, perms: Int) = BluetoothGattDescriptor(uuid, perms)
-
-    private val values = HashMap<Any, ByteArray>() // characteristic/descriptor -> static value
-
-    private fun report(id: Int, type: Int): BluetoothGattCharacteristic {
-        val props = if (type == INPUT) {
-            BluetoothGattCharacteristic.PROPERTY_READ or BluetoothGattCharacteristic.PROPERTY_NOTIFY
-        } else {
-            BluetoothGattCharacteristic.PROPERTY_READ or BluetoothGattCharacteristic.PROPERTY_WRITE or
-                BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE
-        }
-        val c = characteristic(0x2A4D, props, ENC_READ or (if (type == OUTPUT) ENC_WRITE else 0))
-        if (type == INPUT) c.addDescriptor(descriptor(CCCD, ENC_READ or ENC_WRITE))
-        val ref = descriptor(REPORT_REFERENCE, ENC_READ)
-        values[ref] = byteArrayOf(id.toByte(), type.toByte())
-        c.addDescriptor(ref)
-        values[c] = ByteArray(
-            when {
-                id == HidDescriptors.REPORT_ID_MOUSE -> 7
-                id == HidDescriptors.REPORT_ID_CONSUMER -> 2
-                type == OUTPUT -> 1
-                else -> 8
-            },
-        )
-        return c
-    }
-
-    private fun hidService() = BluetoothGattService(HID_SERVICE, BluetoothGattService.SERVICE_TYPE_PRIMARY).apply {
-        // HID Information: bcdHID 1.11, country 0, flags = remote wake + normally connectable, as
-        // real keyboards report: hosts use them to decide whether to wait for the keyboard to come back.
-        addCharacteristic(characteristic(0x2A4A, BluetoothGattCharacteristic.PROPERTY_READ, ENC_READ)
-            .also { values[it] = byteArrayOf(0x11, 0x01, 0x00, 0x03) })
-        addCharacteristic(characteristic(0x2A4B, BluetoothGattCharacteristic.PROPERTY_READ, ENC_READ)
-            .also { values[it] = HidDescriptors.COMBO }) // Report Map
-        addCharacteristic(characteristic(0x2A4C, BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE, ENC_WRITE)
-            .also { values[it] = byteArrayOf(0) }) // HID Control Point
-        addCharacteristic(characteristic(
-            0x2A4E,
-            BluetoothGattCharacteristic.PROPERTY_READ or BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE,
-            ENC_READ or ENC_WRITE,
-        ).also { values[it] = byteArrayOf(1) }) // Protocol Mode = report
-        keyboardIn = report(HidDescriptors.REPORT_ID_KEYBOARD, INPUT).also(::addCharacteristic)
-        mouseIn = report(HidDescriptors.REPORT_ID_MOUSE, INPUT).also(::addCharacteristic)
-        consumerIn = report(HidDescriptors.REPORT_ID_CONSUMER, INPUT).also(::addCharacteristic)
-        addCharacteristic(report(HidDescriptors.REPORT_ID_KEYBOARD, OUTPUT)) // keyboard LEDs
-    }
-
-    private fun batteryService() = BluetoothGattService(uuid16(0x180F), BluetoothGattService.SERVICE_TYPE_PRIMARY).apply {
-        batteryLevel = characteristic(
-            0x2A19,
-            BluetoothGattCharacteristic.PROPERTY_READ or BluetoothGattCharacteristic.PROPERTY_NOTIFY,
-            BluetoothGattCharacteristic.PERMISSION_READ,
-        ).also {
-            values[it] = byteArrayOf(100)
-            it.addDescriptor(descriptor(CCCD, BluetoothGattDescriptor.PERMISSION_READ or BluetoothGattDescriptor.PERMISSION_WRITE))
-        }
-        addCharacteristic(batteryLevel)
-    }
-
-    private fun deviceInfoService() = BluetoothGattService(uuid16(0x180A), BluetoothGattService.SERVICE_TYPE_PRIMARY).apply {
-        addCharacteristic(characteristic(0x2A29, BluetoothGattCharacteristic.PROPERTY_READ, BluetoothGattCharacteristic.PERMISSION_READ)
-            .also { values[it] = "KeymaHub".toByteArray() })
-        // PnP ID: USB vendor-ID source, VID 0x1209 (pid.codes), PID 0x4B10, version 1.0 — little endian.
-        addCharacteristic(characteristic(0x2A50, BluetoothGattCharacteristic.PROPERTY_READ, BluetoothGattCharacteristic.PERMISSION_READ)
-            .also { values[it] = byteArrayOf(0x02, 0x09, 0x12, 0x10, 0x4B, 0x00, 0x01) })
-    }
-
-    /** The subscription a CCCD belongs to. */
-    private fun reportOf(ch: BluetoothGattCharacteristic): Report? = when {
-        ch === keyboardIn -> Report.KEYBOARD
-        ch === mouseIn -> Report.MOUSE
-        ch === consumerIn -> Report.CONSUMER
-        ch === batteryLevel -> Report.BATTERY
-        else -> null
-    }
-
 
     // ---------------------------------------------------------------- callbacks
 
@@ -829,18 +737,18 @@ object BleHid {
                 refreshing.remove(device.address)
             }
             if (!admit(device, requestId, isHid(ch))) return
-            respond(device, requestId, offset, values[ch] ?: ByteArray(0))
+            respond(device, requestId, offset, db.valueOf(ch))
         }
 
         override fun onDescriptorReadRequest(device: BluetoothDevice, requestId: Int, offset: Int, d: BluetoothGattDescriptor) {
             trace(device, "read ${label(d.characteristic)}/${short(d.uuid)}")
             if (!admit(device, requestId, isHid(d.characteristic))) return
-            val report = reportOf(d.characteristic)
+            val report = db.reportOf(d.characteristic)
             val value = if (d.uuid == CCCD && report != null) {
                 if (hosts.isSubscribed(device.address, report)) BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
                 else BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
             } else {
-                values[d] ?: ByteArray(0)
+                db.valueOf(d)
             }
             respond(device, requestId, offset, value)
         }
@@ -851,7 +759,7 @@ object BleHid {
         ) {
             trace(device, "write ${label(d.characteristic)}/${short(d.uuid)} = ${hex(value)}")
             if (!admit(device, requestId, isHid(d.characteristic))) return
-            val report = reportOf(d.characteristic)
+            val report = db.reportOf(d.characteristic)
             if (d.uuid == CCCD && report != null) {
                 // Recorded for targets only (see HostTable.subscribe); others just get an answer.
                 val on = value != null && value.isNotEmpty() && (value[0].toInt() and 0x01) != 0
@@ -1092,8 +1000,6 @@ object BleHid {
     private const val FORGET_WINDOW_MS = 15_000L
     /** How long a new link is left alone before tuning it or restarting advertising. */
     private const val SETTLE_MS = 3_000L
-    private const val ENC_READ = BluetoothGattCharacteristic.PERMISSION_READ_ENCRYPTED
-    private const val ENC_WRITE = BluetoothGattCharacteristic.PERMISSION_WRITE_ENCRYPTED
     private const val WINDOW = 3
     /**
      * How long sent notifications may stay unconfirmed before sending goes on. Confirmations come
