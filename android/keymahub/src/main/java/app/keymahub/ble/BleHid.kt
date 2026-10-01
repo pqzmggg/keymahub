@@ -23,6 +23,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
 import android.os.Handler
+import android.os.HandlerThread
 import android.os.Looper
 import android.os.ParcelUuid
 import android.os.SystemClock
@@ -61,7 +62,7 @@ import java.util.concurrent.TimeUnit
  * Ending a link: apps have no call for it. The stack ends an LE link about a second after the
  * last app using it lets go, but only if an app used it at all: a link the host opened and no
  * app joined stays up for good. So the phone joins every host's link with a client connection
- * of its own ([holds], also used to ask for a short connection interval) and ends the link by
+ * of its own ([holds], also used to ask for the connection interval, see [pace]) and ends the link by
  * letting go of it. When another app or the system also uses the link, it stays up (Windows
  * with this phone): no input goes over it, and hosting on takes it back at once. Before letting
  * go the phone asks for a long connection interval, so a link that stays up idles cheaply.
@@ -96,8 +97,10 @@ object BleHid {
     /** Hosting: advertising, accepting targets and sending input. */
     @Volatile private var running = false
     private val main = Handler(Looper.getMainLooper())
-    /** Timeouts of the phone's joins ([join]) and retries of stalled sends ([pump]); kept apart from [main], which stop() clears. */
+    /** Timeouts of the phone's joins ([join]) and service refreshes; kept apart from [main], which stop() clears. */
     private val timers = Handler(Looper.getMainLooper())
+    /** Retries of stalled sends ([pump]): on their own thread, so a busy main thread (the app's UI) does not hold input back. */
+    private val sendTimers = Handler(HandlerThread("ble-send").apply { start() }.looper)
 
     private lateinit var keyboardIn: BluetoothGattCharacteristic
     private lateinit var mouseIn: BluetoothGattCharacteristic
@@ -117,6 +120,8 @@ object BleHid {
     private val lastSent = HashMap<String, Long>()
     /** Targets with a [pump] retry scheduled. */
     private val retrying = HashSet<String>()
+    /** Since when reports have been waiting for each target, and why (logged when the wait was long, see [pump]). */
+    private val waiting = HashMap<String, Pair<Long, String>>()
     /** The phone's own client connection over each host's link (see the class note and [join]). */
     private val holds = HashMap<String, Hold>()
     /** Links the GATT server joined itself (links up before it was opened, see [rejoinLinks]). */
@@ -177,9 +182,15 @@ object BleHid {
     /** Addresses of targets ready for input (none while not hosting). */
     fun readyTargets(): Set<String> = if (running) hosts.ready() else emptySet()
 
-    /** Sends subsequent reports to [address] (null: nowhere). */
+    /** Sends subsequent reports to [address] (null: nowhere), and gives it the short connection interval (see [pace]). */
     fun select(address: String?) {
+        val old = active
         active = address
+        if (old == address) return
+        synchronized(lock) {
+            old?.let { a -> holds[a]?.let { pace(a, it) } }
+            address?.let { a -> holds[a]?.let { pace(a, it) } }
+        }
     }
 
     fun nameOf(address: String): String {
@@ -257,6 +268,7 @@ object BleHid {
             queues.clear()
             inFlight.clear()
             lastSent.clear()
+            waiting.clear()
             strangers.clear()
             devices.filterKeys { hosts.isTarget(it) || hosts.knows(it) }.values.toList()
         }
@@ -374,9 +386,9 @@ object BleHid {
                     h.ending = true
                     if (h.up) letGo(address, h)
                 } else if (!end && h.ending) {
-                    // Hosting came back on before the hold let go: keep it, with a short interval again.
+                    // Hosting came back on before the hold let go: keep it, with its interval again.
                     h.ending = false
-                    if (h.up) h.gatt?.let { speedUp(address, it) }
+                    pace(address, h)
                 }
                 return
             }
@@ -406,7 +418,7 @@ object BleHid {
                     hold.gatt = gatt
                     hold.up = true
                     synchronized(lock) {
-                        if (hold.ending) letGo(address, hold) else speedUp(address, gatt)
+                        if (hold.ending) letGo(address, hold) else pace(address, hold)
                     }
                 }
                 BluetoothProfile.STATE_DISCONNECTED -> {
@@ -419,20 +431,30 @@ object BleHid {
     }
 
     /**
-     * Asks for a short connection interval. As a peripheral, Android never asks for one, so the host
-     * may pick 30-50 ms — far too slow for a mouse. The client role can: CONNECTION_PRIORITY_HIGH is
-     * roughly 11-15 ms.
+     * Asks for the connection interval the link should have while it is kept: short for the
+     * selected target, medium for the others. As a peripheral, Android never asks for one, so the
+     * host may pick 30-50 ms — far too slow for a mouse. The client role can: CONNECTION_PRIORITY_HIGH
+     * is roughly 11-15 ms. Only the selected target gets it: every link has its connection events
+     * even with nothing to send, and the phone's one radio serves them all (and the phone's own
+     * Bluetooth keyboard and mouse), so several short-interval links collide and delay the one in
+     * use. CONNECTION_PRIORITY_BALANCED (roughly 30-50 ms) keeps a switch quick: the new interval
+     * takes effect a few connection events after the request, and input goes over the link meanwhile.
+     * Holds [lock].
      */
-    private fun speedUp(address: String, gatt: BluetoothGatt) {
-        val ok = runCatching { gatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH) }.getOrDefault(false)
-        Hub.log("BLE HID: short connection interval requested from ${nameOf(address)}: $ok")
+    private fun pace(address: String, hold: Hold) {
+        if (!hold.up || hold.ending) return
+        val gatt = hold.gatt ?: return
+        val fast = address == active
+        val priority = if (fast) BluetoothGatt.CONNECTION_PRIORITY_HIGH else BluetoothGatt.CONNECTION_PRIORITY_BALANCED
+        val ok = runCatching { gatt.requestConnectionPriority(priority) }.getOrDefault(false)
+        Hub.log("BLE HID: ${if (fast) "short" else "medium"} connection interval requested from ${nameOf(address)}: $ok")
     }
 
     /**
      * Lets go of [hold] (ending the link unless something else uses it), after asking for a long
      * connection interval: the stack keeps a link's last parameters after its apps let go, and a
      * link the phone cannot end (the host's system or another app uses it, see the class note)
-     * would otherwise stay at the short one, taking radio time from the links in use and battery
+     * would otherwise stay at a short or medium one, taking radio time from the links in use and battery
      * while nothing goes over it. CONNECTION_PRIORITY_LOW_POWER is roughly 100-125 ms. The hold
      * stays [LOW_POWER_SETTLE_MS] so the host gets the request over a link still in use.
      */
@@ -516,7 +538,7 @@ object BleHid {
             offNoted.clear()
             holds.values.forEach { h -> runCatching { h.gatt?.close() } }
             holds.clear(); serverJoined.clear(); devices.clear(); queues.clear()
-            inFlight.clear(); lastSent.clear(); strangers.clear(); traced.clear()
+            inFlight.clear(); lastSent.clear(); waiting.clear(); strangers.clear(); traced.clear()
         }
         hosts.dropLinks()
         active = null
@@ -586,14 +608,20 @@ object BleHid {
 
     /**
      * Keeps up to [WINDOW] notifications outstanding per target (a few fit in one connection
-     * event); the rest wait in the [ReportQueue], where mouse motion merges. Holds [lock].
+     * event); the rest wait in the [ReportQueue], where mouse motion merges. A wait of
+     * [SLOW_WAIT_MS] or more is logged with its cause, so a felt delay can be told apart from the
+     * radio's. Holds [lock].
      */
     private fun pump(address: String) {
         val device = devices[address] ?: return
         val q = queues[address] ?: return
         val now = SystemClock.uptimeMillis()
-        if ((inFlight[address] ?: 0) > 0 && now - (lastSent[address] ?: 0) > IN_FLIGHT_TIMEOUT_MS) {
-            inFlight[address] = 0 // a confirmation got lost; don't stall forever
+        val pending = inFlight[address] ?: 0
+        if (pending > 0 && now - (lastSent[address] ?: 0) > IN_FLIGHT_TIMEOUT_MS) {
+            // A confirmation got lost (or is late; a late one only lowers the count, floored at 0): don't stall.
+            // Logged only when input was held back by it (not when it went unnoticed while idle).
+            if (address in waiting) Hub.log("BLE HID: $pending sent to ${nameOf(address)} unconfirmed after ${now - (lastSent[address] ?: 0)} ms, sending on")
+            inFlight[address] = 0
         }
         while ((inFlight[address] ?: 0) < WINDOW) {
             val item = q.poll() ?: break
@@ -612,9 +640,16 @@ object BleHid {
         // Reports still waiting may get no confirmation to send them: none comes when the stack
         // was busy with nothing in flight, or when a confirmation got lost. Without a retry they
         // would wait for the next input (a key release held back keeps the key down on the host).
+        val full = (inFlight[address] ?: 0) >= WINDOW
+        if (q.size > 0) {
+            if (address !in waiting) waiting[address] = now to (if (full) "waiting for confirmations" else "Bluetooth stack busy")
+        } else {
+            waiting.remove(address)?.let { (since, why) ->
+                if (now - since >= SLOW_WAIT_MS) Hub.log("BLE HID: input to ${nameOf(address)} waited ${now - since} ms ($why)")
+            }
+        }
         if (q.size > 0 && retrying.add(address)) {
-            val full = (inFlight[address] ?: 0) >= WINDOW
-            timers.postDelayed({
+            sendTimers.postDelayed({
                 synchronized(lock) {
                     retrying.remove(address)
                     pump(address)
@@ -755,6 +790,7 @@ object BleHid {
                         queues.remove(address)
                         inFlight.remove(address)
                         lastSent.remove(address)
+                        waiting.remove(address)
                         serverJoined.remove(address)
                         strangers.remove(address)
                         traced.remove(address)
@@ -851,7 +887,7 @@ object BleHid {
         if (running) listeners.forEach { it.onGone(address) }
     }
 
-    /** Joins the link (short connection interval, and a way to end it), and advertise again (some controllers stop on connect). */
+    /** Joins the link (its connection interval, and a way to end it), and advertise again (some controllers stop on connect). */
     private fun tune(device: BluetoothDevice) {
         if (!running || !hosts.isLinked(device.address)) return
         join(device, end = false)
@@ -1031,7 +1067,13 @@ object BleHid {
     private const val ENC_READ = BluetoothGattCharacteristic.PERMISSION_READ_ENCRYPTED
     private const val ENC_WRITE = BluetoothGattCharacteristic.PERMISSION_WRITE_ENCRYPTED
     private const val WINDOW = 3
-    private const val IN_FLIGHT_TIMEOUT_MS = 250L
+    /**
+     * How long sent notifications may stay unconfirmed before sending goes on. Confirmations come
+     * within a connection event or two (11-50 ms); waiting longer only holds input back.
+     */
+    private const val IN_FLIGHT_TIMEOUT_MS = 60L
+    /** A wait for sending this long or longer is logged (see [pump]). */
+    private const val SLOW_WAIT_MS = 50L
     /** How soon a send the stack was too busy for is tried again. */
     private const val BUSY_RETRY_MS = 5L
 }
