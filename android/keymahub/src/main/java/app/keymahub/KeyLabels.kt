@@ -16,7 +16,7 @@ object KeyLabels {
     const val META = "Win/⌘"
 
     /** Between the keys of a combination, spaced so the combination reads easily. */
-    const val SEP = " + "
+    private const val SEP = " + "
 
     fun hotkey(h: Hotkey): String = listOf(mods(h.mods), key(h.code)).filter { it.isNotEmpty() }.joinToString(SEP)
 

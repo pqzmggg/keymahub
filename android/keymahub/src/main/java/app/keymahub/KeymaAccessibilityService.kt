@@ -34,7 +34,7 @@ class KeymaAccessibilityService : AccessibilityService() {
         Thread({ BleHid.openServer(applicationContext) }, "gatt-open").start()
     }
 
-    override fun onUnbind(intent: android.content.Intent?): Boolean {
+    override fun onUnbind(intent: Intent?): Boolean {
         detach()
         return super.onUnbind(intent)
     }
@@ -45,8 +45,7 @@ class KeymaAccessibilityService : AccessibilityService() {
     }
 
     private fun detach() {
-        softKeyboardDespiteHardKeyboard(false)
-        textEvents = null
+        leaveTarget()
         if (instance === this) instance = null
         if (capture != null) {
             Hub.log("accessibility service turned off while running")
@@ -68,13 +67,28 @@ class KeymaAccessibilityService : AccessibilityService() {
     var textEvents: ((AccessibilityEvent) -> Unit)? = null
         set(value) {
             field = value
-            val info = serviceInfo ?: return
-            info.eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or (
-                if (value == null) 0
-                else AccessibilityEvent.TYPE_VIEW_FOCUSED or AccessibilityEvent.TYPE_VIEW_CLICKED or AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED
-                )
-            serviceInfo = info
+            editServiceInfo {
+                it.eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or (
+                    if (value == null) 0
+                    else AccessibilityEvent.TYPE_VIEW_FOCUSED or AccessibilityEvent.TYPE_VIEW_CLICKED or AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED
+                    )
+            }
         }
+
+    /** Changes [serviceInfo]: one change at a time, so changes from different threads do not undo each other. */
+    @Synchronized
+    private fun editServiceInfo(change: (AccessibilityServiceInfo) -> Unit) {
+        val info = serviceInfo ?: return
+        change(info)
+        serviceInfo = info
+    }
+
+    /** Back to the phone (no target, or the service stops): undoes what a target turned on. */
+    fun leaveTarget() {
+        interceptMouse(false)
+        softKeyboardDespiteHardKeyboard(false)
+        textEvents = null
+    }
 
     override fun onInterrupt() {}
 
@@ -100,14 +114,15 @@ class KeymaAccessibilityService : AccessibilityService() {
         val nm = getSystemService(NotificationManager::class.java) ?: return
         runCatching {
             nm.createNotificationChannel(NotificationChannel(HOSTS_CHANNEL, getString(R.string.notif_channel_hosts), NotificationManager.IMPORTANCE_DEFAULT))
+            val text = getString(R.string.host_forgot_text, name)
             val open = PendingIntent.getActivity(this, 2, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
             nm.notify(
                 name.hashCode(),
                 Notification.Builder(this, HOSTS_CHANNEL)
                     .setSmallIcon(android.R.drawable.stat_sys_data_bluetooth)
                     .setContentTitle(getString(R.string.host_forgot_title, name))
-                    .setContentText(getString(R.string.host_forgot_text, name))
-                    .setStyle(Notification.BigTextStyle().bigText(getString(R.string.host_forgot_text, name)))
+                    .setContentText(text)
+                    .setStyle(Notification.BigTextStyle().bigText(text))
                     .setContentIntent(open)
                     .setAutoCancel(true)
                     .build(),
@@ -120,9 +135,7 @@ class KeymaAccessibilityService : AccessibilityService() {
     /** Android 14+ fallback when pointer capture is refused: take mouse events from the phone. */
     fun interceptMouse(on: Boolean) {
         if (Build.VERSION.SDK_INT < 34) return
-        val info = serviceInfo ?: return
-        info.motionEventSources = if (on) InputDevice.SOURCE_MOUSE else 0
-        serviceInfo = info
+        editServiceInfo { it.motionEventSources = if (on) InputDevice.SOURCE_MOUSE else 0 }
     }
 
     /**

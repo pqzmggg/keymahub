@@ -52,6 +52,8 @@ class A11yCapture(
         buttons = 0
         lastX = Float.NaN
         lastY = Float.NaN
+        subX = 0f
+        subY = 0f
         onSelect(it)
     }, onUnavailable = onUnavailable)
     private var buttons = 0
