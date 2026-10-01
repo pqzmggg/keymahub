@@ -24,6 +24,8 @@ import app.keymahub.capture.ScreenCover
 import app.keymahub.core.Hotkey
 import app.keymahub.core.Hub
 import app.keymahub.ui.MainActivity
+import app.keymahub.ui.displayName
+import app.keymahub.core.appVersion
 
 /**
  * Runs KeymaHub in the background ("hosting"): the phone advertises as a BLE keyboard + mouse,
@@ -87,8 +89,19 @@ class HubService : Service(), BleHid.Listener {
         Hub.loadUi(this)
         BleHid.isBlocked = { address -> Hub.settings(this).device(address)?.blocked == true }
         BleHid.start(this)?.let { return fail(it) }
-        if (destroyed) return BleHid.stop()
+        // The rest on the main thread, where onDestroy runs: a stop during the start either comes
+        // first (and nothing is set up) or finds everything set up to tear down.
+        main.post {
+            if (destroyed) {
+                Thread { BleHid.stop() }.start()
+                return@post
+            }
+            setUp(a11y)
+        }
+    }
 
+    /** On the main thread. */
+    private fun setUp(a11y: KeymaAccessibilityService) {
         val s = HidSender()
         val c = A11yCapture(s, ::hotkeyTarget, ::isAvailable, ::onSelect, ::onUnavailable) { pointerCapture?.reclaim() }
         sender = s
@@ -122,12 +135,9 @@ class HubService : Service(), BleHid.Listener {
         running = true
         ready = true
         Hub.update { it.copy(running = true, slot = 0, ready = BleHid.readyTargets(), problem = null) }
-        val version = runCatching { packageManager.getPackageInfo(packageName, 0).versionName }.getOrNull()
+        val version = appVersion()
         Hub.log("running, profile ${profile.id}, app $version (${Build.MODEL}, Android ${Build.VERSION.RELEASE})")
-        main.post {
-            if (destroyed) return@post
-            if (pendingPairing) setPairing(true)
-        }
+        if (pendingPairing) setPairing(true)
         updateNotification()
     }
 
@@ -142,8 +152,7 @@ class HubService : Service(), BleHid.Listener {
         BleHid.removeListener(this)
         val c = capture
         KeymaAccessibilityService.instance?.let {
-            it.softKeyboardDespiteHardKeyboard(false)
-            it.textEvents = null
+            it.leaveTarget()
             if (it.capture === c) it.capture = null
         }
         c?.stop()
@@ -181,11 +190,11 @@ class HubService : Service(), BleHid.Listener {
     }
 
     private fun receiverName(slot: Int): String? =
-        profile.addressOf(slot)?.let { Hub.settings(this).device(it)?.name }
+        Hub.settings(this).let { s -> s.active.addressOf(slot)?.let { s.device(it)?.name } }
 
     private fun hotkeyLabel(slot: Int) = KeyLabels.hotkey(Hub.settings(this).hotkey(slot))
 
-    private fun profileLabel() = profile.name.ifEmpty { getString(R.string.profile_default) }
+    private fun profileLabel() = profile.displayName(this)
 
     private fun showHud(text: String) {
         if (!Hub.ui.value.showHud) return
@@ -198,26 +207,25 @@ class HubService : Service(), BleHid.Listener {
         if (slot == 0) {
             sender?.select(null)
             pointerCapture?.stop()
-            a11y?.interceptMouse(false)
-            a11y?.softKeyboardDespiteHardKeyboard(false)
-            a11y?.textEvents = null
+            a11y?.leaveTarget()
             cover?.hide()
             showHud(getString(R.string.hud_phone))
         } else {
-            val address = profile.addressOf(slot)
-            sender?.select(address)
+            val ui = Hub.ui.value
+            sender?.select(profile.addressOf(slot))
             pointerCapture?.start()
-            a11y?.softKeyboardDespiteHardKeyboard(Hub.ui.value.touchKeyboard)
+            a11y?.softKeyboardDespiteHardKeyboard(ui.touchKeyboard)
             // The mouse stays captured, so a text field touched on the phone is typed into through the
             // capture window (TextRelay).
-            a11y?.textEvents = pointerCapture?.takeIf { Hub.ui.value.touchKeyboard }?.let { it::onAccessibilityEvent }
+            a11y?.textEvents = if (ui.touchKeyboard) pointerCapture?.let { it::onAccessibilityEvent } else null
             // Clicks and keys turn the screen on whatever an app does: it shows black instead.
-            if (Hub.ui.value.coverScreen) cover?.show()
+            if (ui.coverScreen) cover?.show()
             showHud(getString(R.string.hud_target, receiverName(slot).orEmpty()))
-            if (address != null) Hub.edit(this) { it.touch(address, System.currentTimeMillis()) }
         }
         Hub.update { it.copy(slot = slot) }
         updateNotification()
+        // Last: the edit may change the active profile, which selects the phone again (onProfileChanged).
+        if (slot != 0) profile.addressOf(slot)?.let { address -> Hub.edit(this) { it.touch(address, System.currentTimeMillis()) } }
     }
 
     private fun onUnavailable(slot: Int) {
@@ -250,6 +258,8 @@ class HubService : Service(), BleHid.Listener {
 
     // ---------------------------------------------------------------- notification
 
+    private val notifications get() = getSystemService(NotificationManager::class.java)!!
+
     private fun notification(): Notification {
         val status = Hub.status.value
         val title = if (status.slot == 0) {
@@ -278,12 +288,11 @@ class HubService : Service(), BleHid.Listener {
 
     private fun updateNotification() {
         if (destroyed) return
-        getSystemService(NotificationManager::class.java)!!.notify(NOTIFICATION_ID, notification())
+        notifications.notify(NOTIFICATION_ID, notification())
     }
 
     private fun startInForeground() {
-        getSystemService(NotificationManager::class.java)!!
-            .createNotificationChannel(NotificationChannel(CHANNEL, getString(R.string.notif_channel), NotificationManager.IMPORTANCE_LOW))
+        notifications.createNotificationChannel(NotificationChannel(CHANNEL, getString(R.string.notif_channel), NotificationManager.IMPORTANCE_LOW))
         if (Build.VERSION.SDK_INT >= 29) {
             startForeground(NOTIFICATION_ID, notification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE)
         } else {
@@ -299,7 +308,7 @@ class HubService : Service(), BleHid.Listener {
         private const val ACTION_SELECT = "app.keymahub.SELECT"
         private const val EXTRA_ON = "on"
         private const val EXTRA_SLOT = "slot"
-        const val PAIRING_MS = 3 * 60_000L
+        private const val PAIRING_MS = 3 * 60_000L
 
         @Volatile
         var running = false

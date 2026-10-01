@@ -49,8 +49,6 @@ class ReportQueue(private val motionCapacity: Int = 32) {
     /** Puts back an item that could not be sent yet. */
     fun unpoll(item: Item) = q.addFirst(item)
 
-    fun clear() = q.clear()
-
     private fun mergeInto(item: Item, add: ByteArray): Boolean {
         val d = item.data
         if (!item.mergeable || d[0] != add[0]) return false
@@ -64,7 +62,7 @@ class ReportQueue(private val motionCapacity: Int = 32) {
 
     companion object {
         /** Mouse report layout: buttons, x (s16 LE), y (s16 LE), wheel, pan. */
-        fun isMotionOnly(r: ByteArray) = r.size >= 7 && r[5].toInt() == 0 && r[6].toInt() == 0
+        private fun isMotionOnly(r: ByteArray) = r.size >= 7 && r[5].toInt() == 0 && r[6].toInt() == 0
 
         private fun s16(b: ByteArray, i: Int) = ((b[i].toInt() and 0xFF) or (b[i + 1].toInt() shl 8)).toShort().toInt()
 

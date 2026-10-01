@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
 import android.os.LocaleList
+import app.keymahub.core.keymaPrefs
 import java.util.Locale
 
 /**
@@ -23,14 +24,13 @@ object Locales {
         "fr" to "Français",
     )
 
-    private const val PREFS = "keymahub"
     private const val KEY = "language"
 
     fun current(context: Context): String = if (Build.VERSION.SDK_INT >= 33) {
         val tags = context.getSystemService(LocaleManager::class.java)?.applicationLocales ?: LocaleList.getEmptyLocaleList()
         if (tags.isEmpty) "" else tags[0].language
     } else {
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY, "").orEmpty()
+        context.keymaPrefs().getString(KEY, "").orEmpty()
     }
 
     fun set(activity: Activity, tag: String) {
@@ -39,7 +39,7 @@ object Locales {
             activity.getSystemService(LocaleManager::class.java)?.applicationLocales =
                 if (tag.isEmpty()) LocaleList.getEmptyLocaleList() else LocaleList.forLanguageTags(tag)
         } else {
-            activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY, tag).apply()
+            activity.keymaPrefs().edit().putString(KEY, tag).apply()
             activity.recreate()
         }
     }
@@ -47,7 +47,7 @@ object Locales {
     /** For attachBaseContext before Android 13. */
     fun wrap(base: Context): Context {
         if (Build.VERSION.SDK_INT >= 33) return base
-        val tag = base.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY, "").orEmpty()
+        val tag = base.keymaPrefs().getString(KEY, "").orEmpty()
         if (tag.isEmpty()) return base
         val config = Configuration(base.resources.configuration)
         config.setLocale(Locale.forLanguageTag(tag))

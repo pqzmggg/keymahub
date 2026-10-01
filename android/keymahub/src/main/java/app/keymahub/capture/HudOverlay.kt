@@ -24,38 +24,32 @@ class HudOverlay(private val service: AccessibilityService) {
         val v = TextView(service).apply {
             setTextColor(Color.WHITE)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f)
-            val pad = (16 * resources.displayMetrics.density).toInt()
+            val pad = service.dp(16)
             setPadding(pad, pad / 2, pad, pad / 2)
             background = GradientDrawable().apply {
                 cornerRadius = 24 * resources.displayMetrics.density
                 setColor(0xE0202124.toInt())
             }
-        }.also { tv ->
-            val params = WindowManager.LayoutParams(
-                WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
-                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-                PixelFormat.TRANSLUCENT,
-            ).apply {
-                gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
-                y = (48 * service.resources.displayMetrics.density).toInt()
-                title = "KeymaHub HUD"
-            }
-            if (runCatching { wm.addView(tv, params) }.isFailure) return@post
-            view = tv
+            this.text = text
         }
-        v.text = text
+        val params = overlayParams(
+            WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT,
+            WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+            PixelFormat.TRANSLUCENT, "KeymaHub HUD", Gravity.TOP or Gravity.CENTER_HORIZONTAL,
+        ).apply { y = service.dp(48) }
+        if (runCatching { wm.addView(v, params) }.isFailure) return@post
+        view = v
         main.removeCallbacks(hide)
         main.postDelayed(hide, SHOW_MS)
     }
 
-    companion object {
-        const val SHOW_MS = 1200L
-    }
-
     fun remove() {
         main.removeCallbacks(hide)
-        view?.let { runCatching { wm.removeView(it) } }
+        view?.let { wm.removeQuietly(it) }
         view = null
+    }
+
+    companion object {
+        const val SHOW_MS = 1200L
     }
 }

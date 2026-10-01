@@ -98,13 +98,13 @@ class ScreenCover(
                         setTextColor(0xFF3A3A3A.toInt())
                         setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
                         gravity = Gravity.CENTER_HORIZONTAL
-                        setPadding(0, (6 * service.resources.displayMetrics.density).toInt(), 0, 0)
+                        setPadding(0, service.dp(6), 0, 0)
                     })
                 },
                 FrameLayout.LayoutParams(
                     FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT,
                     Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL,
-                ).apply { bottomMargin = (64 * service.resources.displayMetrics.density).toInt() },
+                ).apply { bottomMargin = service.dp(64) },
             )
             setOnTouchListener { _, e ->
                 // A finger on the phone, not the mouse (which belongs to the other device).
@@ -116,16 +116,13 @@ class ScreenCover(
                 true
             }
         }
-        val params = WindowManager.LayoutParams(
+        val params = overlayParams(
             WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT,
-            WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-            PixelFormat.OPAQUE,
+            PixelFormat.OPAQUE, "KeymaHub screen cover",
         ).apply {
-            gravity = Gravity.TOP or Gravity.START
-            title = "KeymaHub screen cover"
             screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF
             if (Build.VERSION.SDK_INT >= 28) {
                 layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
@@ -150,7 +147,7 @@ class ScreenCover(
         main.removeCallbacks(dim)
         val v = view ?: return
         view = null
-        runCatching { wm.removeView(v) }
+        wm.removeQuietly(v)
     }
 
     /**
@@ -169,17 +166,13 @@ class ScreenCover(
                 false
             }
         }
-        val params = WindowManager.LayoutParams(
+        val params = overlayParams(
             1, 1,
-            WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
                 WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
-            PixelFormat.TRANSLUCENT,
-        ).apply {
-            gravity = Gravity.TOP or Gravity.START
-            title = "KeymaHub screen cover watch"
-        }
+            PixelFormat.TRANSLUCENT, "KeymaHub screen cover watch",
+        )
         // Without it, touches go unseen: better not to cover again than to cover in the middle of use.
         runCatching { wm.addView(w, params) }
             .onSuccess {
@@ -194,6 +187,6 @@ class ScreenCover(
         main.removeCallbacks(recover)
         val w = watcher ?: return
         watcher = null
-        runCatching { wm.removeView(w) }
+        wm.removeQuietly(w)
     }
 }

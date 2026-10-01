@@ -131,3 +131,23 @@ private fun Step(
         }
     }
 }
+
+/**
+ * The setup steps. KeymaHub would run without notifications (the notification is just hidden), but
+ * setup waits for them with the other two it needs. Leaving battery optimization ([battery]) is
+ * recommended, not required: it can be skipped.
+ */
+data class SetupState(
+    val notifications: Boolean,
+    val bluetooth: Boolean,
+    val accessibility: Boolean,
+    val battery: Boolean,
+    /** The optional battery step was skipped once (UiPrefs.batterySkipped). */
+    val batterySkipped: Boolean,
+) {
+    val runtimeDone get() = notifications && bluetooth
+    /** Steps 1 to 3: what hosting needs. The battery step can be skipped from here. */
+    val required get() = bluetooth && accessibility && notifications
+    /** All four steps done, or the battery one skipped: setup moves on by itself. */
+    val done get() = required && (battery || batterySkipped)
+}

@@ -37,6 +37,7 @@ import app.keymahub.core.Hotkeys
 import app.keymahub.core.Mods
 import app.keymahub.core.ThemeMode
 import app.keymahub.core.UiPrefs
+import app.keymahub.core.appVersion
 
 /** App-wide settings: hotkey modifiers, language, theme, switch popup. */
 @Composable
@@ -56,7 +57,7 @@ fun SettingsScreen(
 ) {
     var pickingLanguage by remember { mutableStateOf(false) }
     val context = LocalContext.current
-    val version = remember { runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull().orEmpty() }
+    val version = remember { context.appVersion().orEmpty() }
     val languageName = Locales.SUPPORTED.firstOrNull { it.first == language }?.second ?: stringResource(R.string.language_system)
 
     Page {
@@ -212,7 +213,7 @@ private fun HotkeyCard(mods: Int, onMods: (Int) -> Unit) {
                 style = MaterialTheme.typography.bodyMedium,
             )
             Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                for ((bit, label) in listOf(Mods.CTRL to KeyLabels.CTRL, Mods.ALT to KeyLabels.ALT, Mods.SHIFT to "Shift", Mods.META to KeyLabels.META)) {
+                for ((bit, label) in KeyLabels.MODS) {
                     FilterChip(
                         selected = pending and bit != 0,
                         onClick = {

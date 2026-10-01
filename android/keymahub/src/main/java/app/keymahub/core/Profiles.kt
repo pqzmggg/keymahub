@@ -201,10 +201,9 @@ data class Settings(
         require(from in 1 until Profile.SLOTS && to in 1 until Profile.SLOTS)
         val p = profile(id) ?: return this
         if (from == to) return this
-        val order = (1 until Profile.SLOTS).map { p.receivers[it] }.toMutableList()
+        val order = p.slotList()
         order.add(to - 1, order.removeAt(from - 1))
-        val r = order.withIndex().mapNotNull { (i, a) -> a?.let { i + 1 to it } }.toMap()
-        return withProfile(p.copy(receivers = r))
+        return withProfile(p.copy(receivers = order.toReceivers()))
     }
 
     /**
@@ -237,14 +236,20 @@ data class Settings(
      * leaves the conditions too: they only hold the profile's own receivers.
      */
     private fun Profile.closeGap(slot: Int): Profile {
-        val order = (1 until Profile.SLOTS).map { receivers[it] }.toMutableList()
+        val order = slotList()
         val gone = order.removeAt(slot - 1)
         order.add(null)
         return copy(
-            receivers = order.withIndex().mapNotNull { (i, a) -> a?.let { i + 1 to it } }.toMap(),
+            receivers = order.toReceivers(),
             whenConnected = whenConnected - setOfNotNull(gone),
         )
     }
+
+    /** Receivers 1..9 in order, empty ones as null. */
+    private fun Profile.slotList(): MutableList<String?> = (1 until Profile.SLOTS).map { receivers[it] }.toMutableList()
+
+    /** [slotList] back to receivers by number. */
+    private fun List<String?>.toReceivers(): Map<Int, String> = withIndex().mapNotNull { (i, a) -> a?.let { i + 1 to it } }.toMap()
 
     // ---------------------------------------------------------------- profiles
 

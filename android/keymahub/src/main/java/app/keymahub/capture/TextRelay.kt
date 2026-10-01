@@ -83,18 +83,27 @@ class TextRelay(context: Context, parent: ViewGroup) {
         if (target.isMultiLine && type and InputType.TYPE_MASK_CLASS == InputType.TYPE_CLASS_TEXT) {
             type = type or InputType.TYPE_TEXT_FLAG_MULTI_LINE
         }
-        muted = true
-        field.inputType = type
-        field.imeOptions = EditorInfo.IME_FLAG_NO_FULLSCREEN or
-            (if (type and InputType.TYPE_TEXT_FLAG_MULTI_LINE != 0) EditorInfo.IME_ACTION_NONE else EditorInfo.IME_ACTION_DONE)
-        field.setText(text)
-        field.setSelection(
-            target.textSelectionStart.coerceIn(0, text.length).takeIf { target.textSelectionStart >= 0 } ?: text.length,
-            target.textSelectionEnd.coerceIn(0, text.length).takeIf { target.textSelectionEnd >= 0 } ?: text.length,
-        )
-        muted = false
+        /** A selection end of the touched field within [text]; none (negative): the end of the text. */
+        fun at(i: Int) = if (i < 0) text.length else minOf(i, text.length)
+        quietly {
+            field.inputType = type
+            field.imeOptions = EditorInfo.IME_FLAG_NO_FULLSCREEN or
+                (if (type and InputType.TYPE_TEXT_FLAG_MULTI_LINE != 0) EditorInfo.IME_ACTION_NONE else EditorInfo.IME_ACTION_DONE)
+            field.setText(text)
+            field.setSelection(at(target.textSelectionStart), at(target.textSelectionEnd))
+        }
         Hub.log("typing into ${target.packageName}/${target.className?.toString()?.substringAfterLast('.')} with the on-screen keyboard")
         show()
+    }
+
+    /** Changes [field] without copying the change to the touched field. */
+    private inline fun quietly(change: () -> Unit) {
+        muted = true
+        try {
+            change()
+        } finally {
+            muted = false
+        }
     }
 
     private fun show() {
@@ -140,10 +149,10 @@ class TextRelay(context: Context, parent: ViewGroup) {
     private fun fromApp(source: AccessibilityNodeInfo) {
         val text = textOf(source)
         if (text == field.text.toString() || text in sent) return
-        muted = true
-        field.setText(text)
-        field.setSelection(text.length)
-        muted = false
+        quietly {
+            field.setText(text)
+            field.setSelection(text.length)
+        }
         sent.clear()
         imm?.restartInput(field) // drop the keyboard's composing state for the old text
     }

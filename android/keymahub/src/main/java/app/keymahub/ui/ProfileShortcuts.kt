@@ -22,9 +22,10 @@ object ProfileShortcuts {
             val max = ShortcutManagerCompat.getMaxShortcutCountPerActivity(context).coerceAtLeast(1)
             val shown = profiles.take(max)
             val shortcuts = shown.mapIndexed { rank, p ->
+                val name = p.displayName(context)
                 ShortcutInfoCompat.Builder(context, PREFIX + p.id)
-                    .setShortLabel(context.getString(R.string.shortcut_activate_short, p.name))
-                    .setLongLabel(context.getString(R.string.shortcut_activate_profile, p.name))
+                    .setShortLabel(context.getString(R.string.shortcut_activate_short, name))
+                    .setLongLabel(context.getString(R.string.shortcut_activate_profile, name))
                     .setIcon(IconCompat.createWithResource(context, R.mipmap.ic_launcher))
                     .setRank(rank)
                     .setIntent(

@@ -22,7 +22,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.Modifier
@@ -33,9 +32,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Box
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -54,8 +50,9 @@ import app.keymahub.R
 import app.keymahub.ble.BleHid
 import app.keymahub.core.Hub
 import app.keymahub.core.HubStatus
-import app.keymahub.core.ThemeMode
 import app.keymahub.core.UiPrefs
+import app.keymahub.core.appVersion
+import app.keymahub.core.keymaPrefs
 
 class MainActivity : ComponentActivity() {
     private var tick by mutableIntStateOf(0)
@@ -152,6 +149,7 @@ class MainActivity : ComponentActivity() {
         // Two panes: back leaves the app from a profile (the list is already on screen).
         BackHandler(enabled = fullScreen || (!twoPane && route != "home")) { back() }
         val onEdit: ((app.keymahub.core.Settings) -> app.keymahub.core.Settings) -> Unit = { change -> Hub.edit(this, change) }
+        val exempt = remember(tick) { batteryExempt() }
         // App shortcuts (and so Galaxy routines) follow the profile list: names and order.
         val shortcutKey = status.settings.profiles.map { it.id to it.name }
         LaunchedEffect(shortcutKey) { ProfileShortcuts.sync(this@MainActivity, status.settings.profiles) }
@@ -173,7 +171,7 @@ class MainActivity : ComponentActivity() {
                 onTutorial = onTutorial,
                 onCopyLog = ::copyLog,
                 selectedId = selectedId,
-                batteryExempt = remember(tick) { batteryExempt() },
+                batteryExempt = exempt,
                 onBattery = ::askBatteryExempt,
             )
         }
@@ -226,7 +224,7 @@ class MainActivity : ComponentActivity() {
                     onBack = back,
                     onUi = { change -> Hub.editUi(this, change) },
                     onLanguage = { tag -> Locales.set(this, tag) },
-                    batteryExempt = remember(tick) { batteryExempt() },
+                    batteryExempt = exempt,
                     onBattery = ::askBatteryExempt,
                 )
             }
@@ -252,7 +250,7 @@ class MainActivity : ComponentActivity() {
     /** Host mode setup. On opening, ask for the runtime permissions right away, then show the accessibility disclosure. */
     @Composable
     private fun Setup(setup: SetupState) {
-        var autoStep by rememberSaveable { mutableStateOf(0) }
+        var autoStep by rememberSaveable { mutableIntStateOf(0) }
         var disclosure by rememberSaveable { mutableStateOf(false) }
         LaunchedEffect(setup) {
             if (!setup.runtimeDone && autoStep == 0) {
@@ -278,7 +276,7 @@ class MainActivity : ComponentActivity() {
 
     /** Copies the log, with the app and phone it came from, to the clipboard. */
     private fun copyLog(log: String) {
-        val version = runCatching { packageManager.getPackageInfo(packageName, 0).versionName }.getOrNull().orEmpty()
+        val version = appVersion().orEmpty()
         val text = buildString {
             append("KeymaHub $version\n")
             append("${Build.MANUFACTURER} ${Build.MODEL}, Android ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})\n\n")
@@ -302,7 +300,7 @@ class MainActivity : ComponentActivity() {
      * automatic request on opening just skips it.
      */
     private fun requestRuntime(automatic: Boolean, vararg only: String) {
-        val prefs = getSharedPreferences("keymahub", Context.MODE_PRIVATE)
+        val prefs = keymaPrefs()
         val wanted = (if (only.isEmpty()) listOf(Manifest.permission.POST_NOTIFICATIONS, *BLUETOOTH) else only.toList())
             .filter(::needed)
         if (wanted.isEmpty()) return
@@ -369,37 +367,6 @@ class MainActivity : ComponentActivity() {
         const val FRAGMENT_ARGS_KEY = ":settings:fragment_args_key"
         const val SHOW_FRAGMENT_ARGS = ":settings:show_fragment_args"
     }
-}
-
-/**
- * The setup steps. KeymaHub would run without notifications (the notification is just hidden), but
- * setup waits for them with the other two it needs. Leaving battery optimization ([battery]) is
- * recommended, not required: it can be skipped.
- */
-data class SetupState(
-    val notifications: Boolean,
-    val bluetooth: Boolean,
-    val accessibility: Boolean,
-    val battery: Boolean,
-    /** The optional battery step was skipped once (UiPrefs.batterySkipped). */
-    val batterySkipped: Boolean,
-) {
-    val runtimeDone get() = notifications && bluetooth
-    /** Steps 1 to 3: what hosting needs. The battery step can be skipped from here. */
-    val required get() = bluetooth && accessibility && notifications
-    /** All four steps done, or the battery one skipped: setup moves on by itself. */
-    val done get() = required && (battery || batterySkipped)
-}
-
-@Composable
-private fun KeymaTheme(ui: UiPrefs, content: @Composable () -> Unit) {
-    val dark = when (ui.theme) {
-        ThemeMode.SYSTEM -> isSystemInDarkTheme()
-        ThemeMode.LIGHT -> false
-        ThemeMode.DARK -> true
-    }
-    // The app's own colors, not the wallpaper's (dynamic color): the same look on every phone.
-    MaterialTheme(colorScheme = if (dark) darkColorScheme() else lightColorScheme(), content = content)
 }
 
 /** Window width (dp) from which the profile list and the details sit side by side: unfolded Folds, tablets. */

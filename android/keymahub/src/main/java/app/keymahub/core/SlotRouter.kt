@@ -39,11 +39,7 @@ class SlotRouter(
     fun onKey(code: Int, hid: Int?, down: Boolean) {
         if (!down) {
             val (dest, usage) = keys.remove(code) ?: ((if (isRemote) Dest.SWALLOWED else Dest.LOCAL) to hid)
-            if (usage != null) when (dest) {
-                Dest.LOCAL -> local.key(usage, false)
-                Dest.REMOTE -> remote.key(usage, false)
-                Dest.SWALLOWED -> {}
-            }
+            if (usage != null) sink(dest)?.key(usage, false)
             return
         }
         if (code in keys) return // duplicate down
@@ -63,11 +59,8 @@ class SlotRouter(
             return
         }
 
-        val dest = when {
-            hid == null -> Dest.SWALLOWED
-            isRemote -> Dest.REMOTE.also { remote.key(hid, true) }
-            else -> Dest.LOCAL.also { local.key(hid, true) }
-        }
+        val dest = if (hid == null) Dest.SWALLOWED else here
+        if (hid != null) sink(dest)?.key(hid, true)
         keys[code] = dest to hid
     }
 
@@ -76,31 +69,22 @@ class SlotRouter(
 
     fun onButton(button: Int, down: Boolean) {
         if (!down) {
-            when (buttons.remove(button) ?: if (isRemote) Dest.SWALLOWED else Dest.LOCAL) {
-                Dest.LOCAL -> local.button(button, false)
-                Dest.REMOTE -> remote.button(button, false)
-                Dest.SWALLOWED -> {}
-            }
+            sink(buttons.remove(button) ?: if (isRemote) Dest.SWALLOWED else Dest.LOCAL)?.button(button, false)
             return
         }
         if (button in buttons) return
-        buttons[button] = if (isRemote) {
-            remote.button(button, true)
-            Dest.REMOTE
-        } else {
-            local.button(button, true)
-            Dest.LOCAL
-        }
+        sink(here)?.button(button, true)
+        buttons[button] = here
     }
 
     fun onMove(dx: Int, dy: Int) {
         if (dx == 0 && dy == 0) return
-        if (isRemote) remote.move(dx, dy) else local.move(dx, dy)
+        sink(here)?.move(dx, dy)
     }
 
     fun onWheel(v: Int, h: Int) {
         if (v == 0 && h == 0) return
-        if (isRemote) remote.wheel(v, h) else local.wheel(v, h)
+        sink(here)?.wheel(v, h)
     }
 
     /** Switches focus as if the hotkey of [target] was pressed. */
@@ -131,6 +115,16 @@ class SlotRouter(
         select(0)
         keys.clear()
         buttons.clear()
+    }
+
+    /** Where new input goes now. */
+    private val here get() = if (isRemote) Dest.REMOTE else Dest.LOCAL
+
+    /** The side input for [dest] goes to (null: nowhere). */
+    private fun sink(dest: Dest): InputSink? = when (dest) {
+        Dest.LOCAL -> local
+        Dest.REMOTE -> remote
+        Dest.SWALLOWED -> null
     }
 
     private fun heldMods() = keys.keys.fold(0) { m, code -> m or Mods.of(code) }

@@ -42,7 +42,7 @@ class HostTable(
     @Synchronized
     fun linkUp(address: String, bonded: Boolean): Change {
         linked.add(address)
-        if (bonded && Report.KEYBOARD in subs[address].orEmpty()) targets.add(address)
+        if (bonded && knows(address)) targets.add(address)
         return update(address)
     }
 
@@ -122,7 +122,7 @@ class HostTable(
     private fun saved(): Map<String, Set<Report>> = subs.mapValues { it.value.toSet() }
 
     private fun update(address: String): Change {
-        val now = address in linked && address in targets && Report.KEYBOARD in subs[address].orEmpty()
+        val now = address in linked && address in targets && knows(address)
         return when {
             now && ready.add(address) -> Change.READY
             !now && ready.remove(address) -> Change.GONE

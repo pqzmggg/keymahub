@@ -5,20 +5,6 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.view.InputDevice
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -26,11 +12,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import app.keymahub.R
 
 /** Whether a physical keyboard and a mouse are connected to this device. */
@@ -82,28 +65,16 @@ private fun physicalInput(im: InputManager?): PhysicalInput {
 fun InputBanner(onBluetoothSettings: () -> Unit) {
     val input = rememberPhysicalInput()
     var closed by rememberSaveable { mutableStateOf(false) }
+    val both = !input.keyboard && !input.mouse
+    if (closed && !both) return
     val text = when {
-        !input.keyboard && !input.mouse -> R.string.input_missing_both
-        closed -> return
+        both -> R.string.input_missing_both
         !input.keyboard -> R.string.input_missing_keyboard
         !input.mouse -> R.string.input_missing_mouse
         else -> return
     }
-    val both = !input.keyboard && !input.mouse
-    Card(
-        Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
-    ) {
-        Row(Modifier.padding(start = 16.dp, top = 12.dp, bottom = 12.dp, end = 4.dp)) {
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(stringResource(text), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onTertiaryContainer)
-                FilledTonalButton(onClick = onBluetoothSettings) { Text(stringResource(R.string.action_bluetooth_settings)) }
-            }
-            if (!both) {
-                IconButton(onClick = { closed = true }, modifier = Modifier.align(Alignment.Top)) {
-                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.action_close))
-                }
-            }
-        }
-    }
+    NoticeCard(
+        stringResource(text), stringResource(R.string.action_bluetooth_settings), onBluetoothSettings,
+        onClose = { closed = true }.takeIf { !both },
+    )
 }

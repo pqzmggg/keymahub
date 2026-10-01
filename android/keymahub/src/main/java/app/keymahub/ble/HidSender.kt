@@ -34,7 +34,7 @@ class HidSender : InputSink {
     private var lastMotion = 0L
 
     /** Subsequent input goes to [address] (null: nowhere). */
-    fun select(address: String?) = run {
+    fun select(address: String?) = post {
         flushMotion()
         BleHid.select(address)
     }
@@ -44,7 +44,7 @@ class HidSender : InputSink {
         exec.shutdown()
     }
 
-    override fun key(usage: Int, down: Boolean) = run {
+    override fun key(usage: Int, down: Boolean) = post {
         flushMotion()
         if (usage and ConsumerKeys.FLAG != 0) {
             media.update(usage and 0xFFFF, down)?.let { BleHid.send(HidDescriptors.REPORT_ID_CONSUMER, it) }
@@ -53,7 +53,7 @@ class HidSender : InputSink {
         }
     }
 
-    override fun move(dx: Int, dy: Int) = run {
+    override fun move(dx: Int, dy: Int) = post {
         accX += dx
         accY += dy
         if (!motionScheduled) {
@@ -67,17 +67,17 @@ class HidSender : InputSink {
         }
     }
 
-    override fun button(button: Int, down: Boolean) = run {
+    override fun button(button: Int, down: Boolean) = post {
         flushMotion()
         mouse.setButton(button, down)?.let { BleHid.send(HidDescriptors.REPORT_ID_MOUSE, it) }
     }
 
-    override fun wheel(v: Int, h: Int) = run {
+    override fun wheel(v: Int, h: Int) = post {
         flushMotion()
         mouse.wheel(v, h)?.let { BleHid.send(HidDescriptors.REPORT_ID_MOUSE, it) }
     }
 
-    override fun releaseAll() = run {
+    override fun releaseAll() = post {
         accX = 0
         accY = 0
         BleHid.send(HidDescriptors.REPORT_ID_KEYBOARD, keyboard.clear())
@@ -85,7 +85,7 @@ class HidSender : InputSink {
         BleHid.send(HidDescriptors.REPORT_ID_CONSUMER, media.clear())
     }
 
-    private fun run(block: () -> Unit) {
+    private fun post(block: () -> Unit) {
         if (!exec.isShutdown) exec.execute(block)
     }
 
