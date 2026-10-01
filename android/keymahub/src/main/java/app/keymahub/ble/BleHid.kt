@@ -190,6 +190,11 @@ object BleHid {
 
     private fun log(msg: String) = Hub.log("BLE HID: $msg")
 
+    /** Logs off the caller's thread: for callers holding [lock] ([nameOf] asks the Bluetooth service). */
+    private fun logLater(msg: () -> String) {
+        timers.post { log(msg()) }
+    }
+
     private fun manager(): BluetoothManager? = appContext?.getSystemService(BluetoothManager::class.java)
 
     fun hasPermission(context: Context) = Build.VERSION.SDK_INT < 31 || listOf(
@@ -435,7 +440,7 @@ object BleHid {
         val fast = address == active
         val priority = if (fast) BluetoothGatt.CONNECTION_PRIORITY_HIGH else BluetoothGatt.CONNECTION_PRIORITY_BALANCED
         val ok = runCatching { gatt.requestConnectionPriority(priority) }.getOrDefault(false)
-        log("${if (fast) "short" else "medium"} connection interval requested from ${nameOf(address)}: $ok")
+        logLater { "${if (fast) "short" else "medium"} connection interval requested from ${nameOf(address)}: $ok" }
     }
 
     /**
@@ -449,7 +454,7 @@ object BleHid {
     private fun letGo(address: String, hold: Hold) {
         val gatt = hold.gatt ?: return
         val ok = runCatching { gatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_LOW_POWER) }.getOrDefault(false)
-        log("long connection interval requested from ${nameOf(address)}: $ok")
+        logLater { "long connection interval requested from ${nameOf(address)}: $ok" }
         timers.postDelayed({
             synchronized(lock) {
                 if (!hold.ending) return@postDelayed // hosting came back on
@@ -943,6 +948,11 @@ object BleHid {
             creatingSet = false
             if (status != ADVERTISE_SUCCESS || set == null) {
                 log("advertising failed ($status)")
+                return
+            }
+            if (server == null) {
+                // Bluetooth went off while the set was being made (closeAll): it went with it.
+                runCatching { advertiser?.stopAdvertisingSet(this) }
                 return
             }
             advertisingSet = set
