@@ -24,6 +24,7 @@ import app.keymahub.capture.ScreenCover
 import app.keymahub.core.Hotkey
 import app.keymahub.core.Hub
 import app.keymahub.ui.MainActivity
+import app.keymahub.ui.displayName
 
 /**
  * Runs KeymaHub in the background ("hosting"): the phone advertises as a BLE keyboard + mouse,
@@ -185,7 +186,7 @@ class HubService : Service(), BleHid.Listener {
 
     private fun hotkeyLabel(slot: Int) = KeyLabels.hotkey(Hub.settings(this).hotkey(slot))
 
-    private fun profileLabel() = profile.name.ifEmpty { getString(R.string.profile_default) }
+    private fun profileLabel() = profile.displayName(this)
 
     private fun showHud(text: String) {
         if (!Hub.ui.value.showHud) return

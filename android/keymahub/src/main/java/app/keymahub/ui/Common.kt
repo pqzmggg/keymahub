@@ -1,5 +1,6 @@
 package app.keymahub.ui
 
+import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -93,6 +94,9 @@ fun fallbackLabel(mode: ActivationMode) =
 
 @Composable
 fun profileName(p: Profile) = p.name.ifEmpty { stringResource(R.string.profile_default) }
+
+/** [profileName] outside composition: the name users see (the unnamed default profile has one too). */
+fun Profile.displayName(context: Context) = name.ifEmpty { context.getString(R.string.profile_default) }
 
 /** Title row of a sub-screen, with a back arrow unless [onBack] is null (the right pane of two). */
 @Composable
