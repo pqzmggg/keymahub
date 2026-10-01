@@ -61,7 +61,7 @@ import java.util.concurrent.TimeUnit
  * Ending a link: apps have no call for it. The stack ends an LE link about a second after the
  * last app using it lets go, but only if an app used it at all: a link the host opened and no
  * app joined stays up for good. So the phone joins every host's link with a client connection
- * of its own ([holds], also used to ask for a short connection interval) and ends the link by
+ * of its own ([holds], also used to ask for the connection interval, see [pace]) and ends the link by
  * letting go of it. When another app or the system also uses the link, it stays up (Windows
  * with this phone): no input goes over it, and hosting on takes it back at once. Before letting
  * go the phone asks for a long connection interval, so a link that stays up idles cheaply.
@@ -177,9 +177,15 @@ object BleHid {
     /** Addresses of targets ready for input (none while not hosting). */
     fun readyTargets(): Set<String> = if (running) hosts.ready() else emptySet()
 
-    /** Sends subsequent reports to [address] (null: nowhere). */
+    /** Sends subsequent reports to [address] (null: nowhere), and gives it the short connection interval (see [pace]). */
     fun select(address: String?) {
+        val old = active
         active = address
+        if (old == address) return
+        synchronized(lock) {
+            old?.let { a -> holds[a]?.let { pace(a, it) } }
+            address?.let { a -> holds[a]?.let { pace(a, it) } }
+        }
     }
 
     fun nameOf(address: String): String {
@@ -374,9 +380,9 @@ object BleHid {
                     h.ending = true
                     if (h.up) letGo(address, h)
                 } else if (!end && h.ending) {
-                    // Hosting came back on before the hold let go: keep it, with a short interval again.
+                    // Hosting came back on before the hold let go: keep it, with its interval again.
                     h.ending = false
-                    if (h.up) h.gatt?.let { speedUp(address, it) }
+                    pace(address, h)
                 }
                 return
             }
@@ -406,7 +412,7 @@ object BleHid {
                     hold.gatt = gatt
                     hold.up = true
                     synchronized(lock) {
-                        if (hold.ending) letGo(address, hold) else speedUp(address, gatt)
+                        if (hold.ending) letGo(address, hold) else pace(address, hold)
                     }
                 }
                 BluetoothProfile.STATE_DISCONNECTED -> {
@@ -419,20 +425,30 @@ object BleHid {
     }
 
     /**
-     * Asks for a short connection interval. As a peripheral, Android never asks for one, so the host
-     * may pick 30-50 ms — far too slow for a mouse. The client role can: CONNECTION_PRIORITY_HIGH is
-     * roughly 11-15 ms.
+     * Asks for the connection interval the link should have while it is kept: short for the
+     * selected target, medium for the others. As a peripheral, Android never asks for one, so the
+     * host may pick 30-50 ms — far too slow for a mouse. The client role can: CONNECTION_PRIORITY_HIGH
+     * is roughly 11-15 ms. Only the selected target gets it: every link has its connection events
+     * even with nothing to send, and the phone's one radio serves them all (and the phone's own
+     * Bluetooth keyboard and mouse), so several short-interval links collide and delay the one in
+     * use. CONNECTION_PRIORITY_BALANCED (roughly 30-50 ms) keeps a switch quick: the new interval
+     * takes effect a few connection events after the request, and input goes over the link meanwhile.
+     * Holds [lock].
      */
-    private fun speedUp(address: String, gatt: BluetoothGatt) {
-        val ok = runCatching { gatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH) }.getOrDefault(false)
-        Hub.log("BLE HID: short connection interval requested from ${nameOf(address)}: $ok")
+    private fun pace(address: String, hold: Hold) {
+        if (!hold.up || hold.ending) return
+        val gatt = hold.gatt ?: return
+        val fast = address == active
+        val priority = if (fast) BluetoothGatt.CONNECTION_PRIORITY_HIGH else BluetoothGatt.CONNECTION_PRIORITY_BALANCED
+        val ok = runCatching { gatt.requestConnectionPriority(priority) }.getOrDefault(false)
+        Hub.log("BLE HID: ${if (fast) "short" else "medium"} connection interval requested from ${nameOf(address)}: $ok")
     }
 
     /**
      * Lets go of [hold] (ending the link unless something else uses it), after asking for a long
      * connection interval: the stack keeps a link's last parameters after its apps let go, and a
      * link the phone cannot end (the host's system or another app uses it, see the class note)
-     * would otherwise stay at the short one, taking radio time from the links in use and battery
+     * would otherwise stay at a short or medium one, taking radio time from the links in use and battery
      * while nothing goes over it. CONNECTION_PRIORITY_LOW_POWER is roughly 100-125 ms. The hold
      * stays [LOW_POWER_SETTLE_MS] so the host gets the request over a link still in use.
      */
@@ -851,7 +867,7 @@ object BleHid {
         if (running) listeners.forEach { it.onGone(address) }
     }
 
-    /** Joins the link (short connection interval, and a way to end it), and advertise again (some controllers stop on connect). */
+    /** Joins the link (its connection interval, and a way to end it), and advertise again (some controllers stop on connect). */
     private fun tune(device: BluetoothDevice) {
         if (!running || !hosts.isLinked(device.address)) return
         join(device, end = false)
