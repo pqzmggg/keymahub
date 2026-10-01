@@ -57,6 +57,11 @@ import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.foundation.focusable
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Menu
 
 @Composable
 fun Page(content: @Composable ColumnScope.() -> Unit) {
@@ -91,6 +96,9 @@ fun Badge(text: String, highlighted: Boolean) {
 /** What the top profile is for in the automatic [mode]s: used when nothing matches. */
 fun fallbackLabel(mode: ActivationMode) =
     if (mode == ActivationMode.AUTO) R.string.profile_fallback_auto else R.string.profile_fallback
+
+/** Whether [p] is the profile used when nothing matches (only while profiles switch by themselves: the top one). */
+fun Settings.isFallback(p: Profile) = mode != ActivationMode.MANUAL && profiles.first().id == p.id
 
 @Composable
 fun profileName(p: Profile) = p.name.ifEmpty { stringResource(R.string.profile_default) }
@@ -221,4 +229,33 @@ fun ConfirmDialog(message: String, confirm: String, onDismiss: () -> Unit, onCon
         confirmButton = { TextButton(onClick = onConfirm) { Text(confirm) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
+}
+
+/** A notice on a tinted card: [text], a button ([action]) and, unless [onClose] is null, a close button. */
+@Composable
+fun NoticeCard(text: String, action: String, onAction: () -> Unit, onClose: (() -> Unit)?) {
+    Card(
+        Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+    ) {
+        Row(Modifier.padding(start = 16.dp, top = 12.dp, bottom = 12.dp, end = 4.dp)) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onTertiaryContainer)
+                FilledTonalButton(onClick = onAction) { Text(action) }
+            }
+            if (onClose != null) {
+                IconButton(onClick = onClose) {
+                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.action_close))
+                }
+            }
+        }
+    }
+}
+
+/** The handle a reorderable row is dragged by ([handle]: its drag modifier). */
+@Composable
+fun DragHandle(handle: Modifier, description: String) {
+    Box(handle.padding(horizontal = 8.dp, vertical = 12.dp)) {
+        Icon(Icons.Default.Menu, contentDescription = description, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
 }

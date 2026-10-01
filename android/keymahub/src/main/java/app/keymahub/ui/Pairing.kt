@@ -33,14 +33,15 @@ import app.keymahub.R
 import app.keymahub.core.HubStatus
 import kotlinx.coroutines.delay
 
-/** Pairing mode on/off, its time left, and how to add this device on each kind of host (devices screen and tutorial). */
+/** Pairing mode on/off, its time left, and how to add this device on each kind of host (devices screen). */
 @Composable
 fun PairingCard(status: HubStatus, onPairing: (Boolean) -> Unit) {
     val on = status.pairingUntil != 0L
-    var left by remember { mutableLongStateOf(0L) }
+    fun secondsLeft() = ((status.pairingUntil - SystemClock.elapsedRealtime()) / 1000).coerceAtLeast(0)
+    var left by remember(status.pairingUntil) { mutableLongStateOf(secondsLeft()) }
     LaunchedEffect(status.pairingUntil) {
         while (status.pairingUntil != 0L) {
-            left = ((status.pairingUntil - SystemClock.elapsedRealtime()) / 1000).coerceAtLeast(0)
+            left = secondsLeft()
             delay(1000)
         }
     }

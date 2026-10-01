@@ -25,6 +25,7 @@ import app.keymahub.core.Hotkey
 import app.keymahub.core.Hub
 import app.keymahub.ui.MainActivity
 import app.keymahub.ui.displayName
+import app.keymahub.core.appVersion
 
 /**
  * Runs KeymaHub in the background ("hosting"): the phone advertises as a BLE keyboard + mouse,
@@ -134,7 +135,7 @@ class HubService : Service(), BleHid.Listener {
         running = true
         ready = true
         Hub.update { it.copy(running = true, slot = 0, ready = BleHid.readyTargets(), problem = null) }
-        val version = runCatching { packageManager.getPackageInfo(packageName, 0).versionName }.getOrNull()
+        val version = appVersion()
         Hub.log("running, profile ${profile.id}, app $version (${Build.MODEL}, Android ${Build.VERSION.RELEASE})")
         if (pendingPairing) setPairing(true)
         updateNotification()

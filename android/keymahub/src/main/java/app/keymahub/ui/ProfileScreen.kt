@@ -4,7 +4,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -22,7 +21,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.materialIcon
 import androidx.compose.material.icons.materialPath
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
@@ -54,7 +52,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import app.keymahub.KeyLabels
 import app.keymahub.R
-import app.keymahub.core.ActivationMode
 import app.keymahub.core.HubStatus
 import app.keymahub.core.Profile
 import app.keymahub.core.Settings
@@ -108,7 +105,7 @@ fun ProfileScreen(
             stringResource(
                 when {
                     active -> R.string.profile_in_use
-                    settings.mode != ActivationMode.MANUAL && settings.profiles.first().id == profile.id -> fallbackLabel(settings.mode)
+                    settings.isFallback(profile) -> fallbackLabel(settings.mode)
                     else -> R.string.profile_not_in_use
                 },
             ),
@@ -120,7 +117,6 @@ fun ProfileScreen(
         ConnectedCard(
             settings = settings,
             profile = profile,
-            chosen = profile.whenConnected,
             onChange = { set -> onEdit { it.setWhenConnected(profileId, set) } },
         )
 
@@ -186,7 +182,8 @@ fun ProfileScreen(
 
 /** "While one of these devices is connected": a checklist of the profile's devices, in hotkey order. */
 @Composable
-private fun ConnectedCard(settings: Settings, profile: Profile, chosen: Set<String>, onChange: (Set<String>) -> Unit) {
+private fun ConnectedCard(settings: Settings, profile: Profile, onChange: (Set<String>) -> Unit) {
+    val chosen = profile.whenConnected
     val devices = profile.receivers.entries.sortedBy { it.key }.mapNotNull { settings.device(it.value) }
     var open by remember { mutableStateOf(chosen.isNotEmpty()) }
     Card(Modifier.fillMaxWidth()) {
@@ -327,13 +324,7 @@ private fun SlotRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (handle != null) {
-            Box(handle.padding(horizontal = 8.dp, vertical = 12.dp)) {
-                Icon(
-                    Icons.Default.Menu,
-                    contentDescription = stringResource(R.string.drag_to_renumber),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+            DragHandle(handle, stringResource(R.string.drag_to_renumber))
         } else {
             Spacer(Modifier.width(40.dp)) // lines up with the handles below
         }

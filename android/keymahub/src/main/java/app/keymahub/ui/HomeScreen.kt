@@ -23,8 +23,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -277,20 +275,7 @@ private fun HostingCard(status: HubStatus, onHosting: (Boolean) -> Unit) {
 private fun BatteryCard(onBattery: () -> Unit) {
     var closed by rememberSaveable { mutableStateOf(false) }
     if (closed) return
-    Card(
-        Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
-    ) {
-        Row(Modifier.padding(start = 16.dp, top = 12.dp, bottom = 12.dp, end = 4.dp)) {
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(stringResource(R.string.battery_banner), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onTertiaryContainer)
-                FilledTonalButton(onClick = onBattery) { Text(stringResource(R.string.action_battery)) }
-            }
-            IconButton(onClick = { closed = true }) {
-                Icon(Icons.Default.Close, contentDescription = stringResource(R.string.action_close))
-            }
-        }
-    }
+    NoticeCard(stringResource(R.string.battery_banner), stringResource(R.string.action_battery), onBattery, onClose = { closed = true })
 }
 
 /**
@@ -372,13 +357,7 @@ private fun ProfileRow(
         border = if (selected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
     ) {
         Row(Modifier.padding(end = 12.dp, top = 8.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(handle.padding(horizontal = 8.dp, vertical = 12.dp)) {
-                Icon(
-                    Icons.Default.Menu,
-                    contentDescription = stringResource(R.string.drag_handle),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+            DragHandle(handle, stringResource(R.string.drag_handle))
             Column(Modifier.weight(1f)) {
                 Text(profileName(p), style = MaterialTheme.typography.titleMedium)
                 Text(
@@ -396,7 +375,7 @@ private fun ProfileRow(
                 val state = when {
                     active -> stringResource(R.string.profile_in_use)
                     // The fallback only means something while profiles switch by themselves: the top one.
-                    p.id == settings.profiles.first().id && settings.mode != ActivationMode.MANUAL -> stringResource(fallbackLabel(settings.mode))
+                    settings.isFallback(p) -> stringResource(fallbackLabel(settings.mode))
                     else -> null
                 }
                 if (state != null) {

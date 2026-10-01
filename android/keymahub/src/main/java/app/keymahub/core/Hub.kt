@@ -44,6 +44,9 @@ data class UiPrefs(
     val tutorialSeen: Int = 0,
 )
 
+/** This app's version name (null if unknown). */
+internal fun Context.appVersion(): String? = runCatching { packageManager.getPackageInfo(packageName, 0).versionName }.getOrNull()
+
 /** The app's one preferences file (settings, personalization and the language). */
 internal fun Context.keymaPrefs(): SharedPreferences = getSharedPreferences("keymahub", Context.MODE_PRIVATE)
 

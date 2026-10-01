@@ -121,19 +121,14 @@ fun TutorialScreen(status: HubStatus, onDone: () -> Unit) {
     }
 }
 
-@Composable
-private fun PageTitle(step: Int, title: String) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Badge("$step", highlighted = true)
-        Spacer(Modifier.width(12.dp))
-        Text(title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-    }
-}
-
 /** A page's number and title, and what it is about in one line. */
 @Composable
 private fun Head(step: Int, title: Int, lead: Int) {
-    PageTitle(step, stringResource(title))
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Badge("$step", highlighted = true)
+        Spacer(Modifier.width(12.dp))
+        Text(stringResource(title), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+    }
     Text(stringResource(lead), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
