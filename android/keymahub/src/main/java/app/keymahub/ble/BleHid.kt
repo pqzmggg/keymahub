@@ -23,6 +23,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
 import android.os.Handler
+import android.os.HandlerThread
 import android.os.Looper
 import android.os.ParcelUuid
 import android.os.SystemClock
@@ -96,8 +97,10 @@ object BleHid {
     /** Hosting: advertising, accepting targets and sending input. */
     @Volatile private var running = false
     private val main = Handler(Looper.getMainLooper())
-    /** Timeouts of the phone's joins ([join]) and retries of stalled sends ([pump]); kept apart from [main], which stop() clears. */
+    /** Timeouts of the phone's joins ([join]) and service refreshes; kept apart from [main], which stop() clears. */
     private val timers = Handler(Looper.getMainLooper())
+    /** Retries of stalled sends ([pump]): on their own thread, so a busy main thread (the app's UI) does not hold input back. */
+    private val sendTimers = Handler(HandlerThread("ble-send").apply { start() }.looper)
 
     private lateinit var keyboardIn: BluetoothGattCharacteristic
     private lateinit var mouseIn: BluetoothGattCharacteristic
@@ -117,6 +120,8 @@ object BleHid {
     private val lastSent = HashMap<String, Long>()
     /** Targets with a [pump] retry scheduled. */
     private val retrying = HashSet<String>()
+    /** Since when reports have been waiting for each target, and why (logged when the wait was long, see [pump]). */
+    private val waiting = HashMap<String, Pair<Long, String>>()
     /** The phone's own client connection over each host's link (see the class note and [join]). */
     private val holds = HashMap<String, Hold>()
     /** Links the GATT server joined itself (links up before it was opened, see [rejoinLinks]). */
@@ -263,6 +268,7 @@ object BleHid {
             queues.clear()
             inFlight.clear()
             lastSent.clear()
+            waiting.clear()
             strangers.clear()
             devices.filterKeys { hosts.isTarget(it) || hosts.knows(it) }.values.toList()
         }
@@ -532,7 +538,7 @@ object BleHid {
             offNoted.clear()
             holds.values.forEach { h -> runCatching { h.gatt?.close() } }
             holds.clear(); serverJoined.clear(); devices.clear(); queues.clear()
-            inFlight.clear(); lastSent.clear(); strangers.clear(); traced.clear()
+            inFlight.clear(); lastSent.clear(); waiting.clear(); strangers.clear(); traced.clear()
         }
         hosts.dropLinks()
         active = null
@@ -602,14 +608,20 @@ object BleHid {
 
     /**
      * Keeps up to [WINDOW] notifications outstanding per target (a few fit in one connection
-     * event); the rest wait in the [ReportQueue], where mouse motion merges. Holds [lock].
+     * event); the rest wait in the [ReportQueue], where mouse motion merges. A wait of
+     * [SLOW_WAIT_MS] or more is logged with its cause, so a felt delay can be told apart from the
+     * radio's. Holds [lock].
      */
     private fun pump(address: String) {
         val device = devices[address] ?: return
         val q = queues[address] ?: return
         val now = SystemClock.uptimeMillis()
-        if ((inFlight[address] ?: 0) > 0 && now - (lastSent[address] ?: 0) > IN_FLIGHT_TIMEOUT_MS) {
-            inFlight[address] = 0 // a confirmation got lost; don't stall forever
+        val pending = inFlight[address] ?: 0
+        if (pending > 0 && now - (lastSent[address] ?: 0) > IN_FLIGHT_TIMEOUT_MS) {
+            // A confirmation got lost (or is late; a late one only lowers the count, floored at 0): don't stall.
+            // Logged only when input was held back by it (not when it went unnoticed while idle).
+            if (address in waiting) Hub.log("BLE HID: $pending sent to ${nameOf(address)} unconfirmed after ${now - (lastSent[address] ?: 0)} ms, sending on")
+            inFlight[address] = 0
         }
         while ((inFlight[address] ?: 0) < WINDOW) {
             val item = q.poll() ?: break
@@ -628,9 +640,16 @@ object BleHid {
         // Reports still waiting may get no confirmation to send them: none comes when the stack
         // was busy with nothing in flight, or when a confirmation got lost. Without a retry they
         // would wait for the next input (a key release held back keeps the key down on the host).
+        val full = (inFlight[address] ?: 0) >= WINDOW
+        if (q.size > 0) {
+            if (address !in waiting) waiting[address] = now to (if (full) "waiting for confirmations" else "Bluetooth stack busy")
+        } else {
+            waiting.remove(address)?.let { (since, why) ->
+                if (now - since >= SLOW_WAIT_MS) Hub.log("BLE HID: input to ${nameOf(address)} waited ${now - since} ms ($why)")
+            }
+        }
         if (q.size > 0 && retrying.add(address)) {
-            val full = (inFlight[address] ?: 0) >= WINDOW
-            timers.postDelayed({
+            sendTimers.postDelayed({
                 synchronized(lock) {
                     retrying.remove(address)
                     pump(address)
@@ -771,6 +790,7 @@ object BleHid {
                         queues.remove(address)
                         inFlight.remove(address)
                         lastSent.remove(address)
+                        waiting.remove(address)
                         serverJoined.remove(address)
                         strangers.remove(address)
                         traced.remove(address)
@@ -1047,7 +1067,13 @@ object BleHid {
     private const val ENC_READ = BluetoothGattCharacteristic.PERMISSION_READ_ENCRYPTED
     private const val ENC_WRITE = BluetoothGattCharacteristic.PERMISSION_WRITE_ENCRYPTED
     private const val WINDOW = 3
-    private const val IN_FLIGHT_TIMEOUT_MS = 250L
+    /**
+     * How long sent notifications may stay unconfirmed before sending goes on. Confirmations come
+     * within a connection event or two (11-50 ms); waiting longer only holds input back.
+     */
+    private const val IN_FLIGHT_TIMEOUT_MS = 60L
+    /** A wait for sending this long or longer is logged (see [pump]). */
+    private const val SLOW_WAIT_MS = 50L
     /** How soon a send the stack was too busy for is tried again. */
     private const val BUSY_RETRY_MS = 5L
 }
