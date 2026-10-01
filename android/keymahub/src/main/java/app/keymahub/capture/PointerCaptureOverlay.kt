@@ -3,10 +3,12 @@ package app.keymahub.capture
 import android.accessibilityservice.AccessibilityService
 import android.content.Context
 import android.graphics.PixelFormat
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.view.Gravity
+import android.view.InputDevice
 import android.view.MotionEvent
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
@@ -126,6 +128,9 @@ class PointerCaptureOverlay(
             Hub.log(if (hasCapture) "pointer captured (phone pointer hidden)" else "pointer capture released")
             if (view !== this) return // an old window being replaced by reclaim()
             onCaptureState(hasCapture)
+            // Captured mouse motion is otherwise batched and handed over once per display frame
+            // (8-16 ms); the sender coalesces it itself, so take each event as it comes.
+            if (hasCapture && Build.VERSION.SDK_INT >= 30) requestUnbufferedDispatch(InputDevice.SOURCE_MOUSE_RELATIVE)
             // Lost it while still on the target (e.g. notification shade took focus): try again.
             if (!hasCapture && wanted && hasWindowFocus()) main.postDelayed({ if (wanted) requestPointerCapture() }, 200)
         }

@@ -1,5 +1,7 @@
 package app.keymahub.ble
 
+import android.os.Process
+import android.os.SystemClock
 import app.keymahub.core.InputSink
 import app.keymahub.hid.ConsumerKeys
 import app.keymahub.hid.ConsumerReport
@@ -12,16 +14,24 @@ import java.util.concurrent.TimeUnit
 /**
  * Turns routed input into HID reports for the selected BLE target. Everything, including
  * target switches, runs on one thread, so the releases queued for the old target are sent
- * before the switch. Motion is coalesced to one report per [MOTION_MS].
+ * before the switch. Motion is coalesced to at most one report per [MOTION_MS]; the first
+ * motion after a pause goes out at once.
  */
 class HidSender : InputSink {
     private val keyboard = KeyboardReport()
     private val mouse = MouseReport()
     private val media = ConsumerReport()
-    private val exec = Executors.newSingleThreadScheduledExecutor { Thread(it, "hid-sender") }
+    private val exec = Executors.newSingleThreadScheduledExecutor { r ->
+        Thread({
+            Process.setThreadPriority(Process.THREAD_PRIORITY_DISPLAY) // input path: ahead of background work
+            r.run()
+        }, "hid-sender")
+    }
     private var accX = 0
     private var accY = 0
     private var motionScheduled = false
+    /** When motion last went out, uptime millis. */
+    private var lastMotion = 0L
 
     /** Subsequent input goes to [address] (null: nowhere). */
     fun select(address: String?) = run {
@@ -47,8 +57,13 @@ class HidSender : InputSink {
         accX += dx
         accY += dy
         if (!motionScheduled) {
-            motionScheduled = true
-            exec.schedule(::flushMotion, MOTION_MS, TimeUnit.MILLISECONDS)
+            val wait = lastMotion + MOTION_MS - SystemClock.uptimeMillis()
+            if (wait <= 0) {
+                flushMotion()
+            } else {
+                motionScheduled = true
+                exec.schedule(::flushMotion, wait, TimeUnit.MILLISECONDS)
+            }
         }
     }
 
@@ -78,6 +93,7 @@ class HidSender : InputSink {
     private fun flushMotion() {
         motionScheduled = false
         if (accX == 0 && accY == 0) return
+        lastMotion = SystemClock.uptimeMillis()
         val reports = mouse.move(accX, accY)
         accX = 0
         accY = 0
