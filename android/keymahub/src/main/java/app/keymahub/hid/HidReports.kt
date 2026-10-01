@@ -1,5 +1,7 @@
 package app.keymahub.hid
 
+import android.view.KeyEvent
+
 /**
  * HID report descriptors and report builders for the Bluetooth LE keyboard + mouse
  * (see [COMBO]); targets treat them exactly like a real keyboard and mouse.
@@ -72,8 +74,7 @@ object HidDescriptors {
 
 /** Tracks pressed keys and produces 8-byte boot keyboard reports. */
 class KeyboardReport {
-    var modifiers = 0
-        private set
+    private var modifiers = 0
     private val keys = ArrayList<Int>(6)
 
     /** Returns the new report, or null if nothing changed (e.g. repeat, 7th key). */
@@ -101,7 +102,7 @@ class KeyboardReport {
         return report()
     }
 
-    fun report(): ByteArray {
+    private fun report(): ByteArray {
         val r = ByteArray(8)
         r[0] = modifiers.toByte()
         keys.forEachIndexed { i, k -> r[2 + i] = k.toByte() }
@@ -111,8 +112,7 @@ class KeyboardReport {
 
 /** Mouse state → 7-byte reports matching [HidDescriptors.MOUSE]. */
 class MouseReport {
-    var buttons = 0
-        private set
+    private var buttons = 0
     private var wheelAcc = 0
     private var panAcc = 0
 
@@ -176,25 +176,25 @@ object ConsumerKeys {
     const val FLAG = 0x10000
 
     private val byKeycode = mapOf(
-        android.view.KeyEvent.KEYCODE_VOLUME_UP to 0xE9,
-        android.view.KeyEvent.KEYCODE_VOLUME_DOWN to 0xEA,
-        android.view.KeyEvent.KEYCODE_VOLUME_MUTE to 0xE2,
-        android.view.KeyEvent.KEYCODE_MUTE to 0xE2,
-        android.view.KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE to 0xCD,
-        android.view.KeyEvent.KEYCODE_MEDIA_PLAY to 0xB0,
-        android.view.KeyEvent.KEYCODE_MEDIA_PAUSE to 0xB1,
-        android.view.KeyEvent.KEYCODE_MEDIA_NEXT to 0xB5,
-        android.view.KeyEvent.KEYCODE_MEDIA_PREVIOUS to 0xB6,
-        android.view.KeyEvent.KEYCODE_MEDIA_STOP to 0xB7,
-        android.view.KeyEvent.KEYCODE_MEDIA_FAST_FORWARD to 0xB3,
-        android.view.KeyEvent.KEYCODE_MEDIA_REWIND to 0xB4,
-        android.view.KeyEvent.KEYCODE_BRIGHTNESS_UP to 0x6F,
-        android.view.KeyEvent.KEYCODE_BRIGHTNESS_DOWN to 0x70,
-        android.view.KeyEvent.KEYCODE_EXPLORER to 0x196,
-        android.view.KeyEvent.KEYCODE_ENVELOPE to 0x18A,
-        android.view.KeyEvent.KEYCODE_CALCULATOR to 0x192,
-        android.view.KeyEvent.KEYCODE_SEARCH to 0x221,
-        android.view.KeyEvent.KEYCODE_BOOKMARK to 0x22A,
+        KeyEvent.KEYCODE_VOLUME_UP to 0xE9,
+        KeyEvent.KEYCODE_VOLUME_DOWN to 0xEA,
+        KeyEvent.KEYCODE_VOLUME_MUTE to 0xE2,
+        KeyEvent.KEYCODE_MUTE to 0xE2,
+        KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE to 0xCD,
+        KeyEvent.KEYCODE_MEDIA_PLAY to 0xB0,
+        KeyEvent.KEYCODE_MEDIA_PAUSE to 0xB1,
+        KeyEvent.KEYCODE_MEDIA_NEXT to 0xB5,
+        KeyEvent.KEYCODE_MEDIA_PREVIOUS to 0xB6,
+        KeyEvent.KEYCODE_MEDIA_STOP to 0xB7,
+        KeyEvent.KEYCODE_MEDIA_FAST_FORWARD to 0xB3,
+        KeyEvent.KEYCODE_MEDIA_REWIND to 0xB4,
+        KeyEvent.KEYCODE_BRIGHTNESS_UP to 0x6F,
+        KeyEvent.KEYCODE_BRIGHTNESS_DOWN to 0x70,
+        KeyEvent.KEYCODE_EXPLORER to 0x196,
+        KeyEvent.KEYCODE_ENVELOPE to 0x18A,
+        KeyEvent.KEYCODE_CALCULATOR to 0x192,
+        KeyEvent.KEYCODE_SEARCH to 0x221,
+        KeyEvent.KEYCODE_BOOKMARK to 0x22A,
     )
 
     /** The flagged Consumer usage for Android [keycode], or null. */
