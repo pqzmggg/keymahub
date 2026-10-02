@@ -217,7 +217,6 @@
 
     <!-- Advanced settings (sending over Bluetooth) -->
     <string name="settings_advanced">詳細設定</string>
-    <string name="advanced_show">詳細設定を表示</string>
     <string name="settings_advanced_hint">入力を Bluetooth で送る方法を調整します。変更はすぐに反映されます。よくわからない場合は推奨値のままにしてください。</string>
     <string name="tuning_range">推奨 %1$d・範囲 %2$d〜%3$d（%4$s）</string>
     <string name="tuning_out_of_range">範囲外の値は反映されません</string>

@@ -221,7 +221,6 @@
 
     <!-- Advanced settings (sending over Bluetooth) -->
     <string name="settings_advanced">Avanzado</string>
-    <string name="advanced_show">Mostrar ajustes avanzados</string>
     <string name="settings_advanced_hint">Cómo se envía la entrada por Bluetooth. Los cambios se aplican al momento. Si no estás seguro, deja los valores recomendados.</string>
     <string name="tuning_range">Recomendado %1$d · rango %2$d–%3$d (%4$s)</string>
     <string name="tuning_out_of_range">Fuera de rango: no se aplica</string>

@@ -6,13 +6,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
@@ -27,32 +25,38 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import app.keymahub.R
 import app.keymahub.core.Tuning
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.Icon
 
 /**
  * Advanced settings: the numbers and switches of sending over Bluetooth ([Tuning]), each with
- * its recommended value, its range and a "?" that says what it does. Hidden until opened. A
+ * its recommended value, its range and a "?" that says what it does. Folded until opened. A
  * value within range applies as soon as it is typed.
  */
 @Composable
 fun AdvancedCard(tuning: Tuning, onTuning: ((Tuning) -> Tuning) -> Unit) {
     var open by rememberSaveable { mutableStateOf(false) }
     Card(Modifier.fillMaxWidth()) {
+        // Opens and closes like a list group (a chevron, not a switch: nothing is turned on here).
         Row(
             Modifier.fillMaxWidth().clickable { open = !open }.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(Modifier.weight(1f).padding(end = 12.dp)) {
-                Text(stringResource(R.string.advanced_show), style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.settings_advanced), style = MaterialTheme.typography.titleMedium)
                 Text(stringResource(R.string.settings_advanced_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            Switch(checked = open, onCheckedChange = { open = it })
+            Icon(
+                if (open) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
         if (!open) return@Card
 
@@ -140,12 +144,9 @@ private fun SwitchItem(title: Int, help: Int, on: Boolean, onChange: (Boolean) -
 @Composable
 private fun TitleWithHelp(title: String, help: String) {
     var showing by remember { mutableStateOf(false) }
-    val helpLabel = stringResource(R.string.action_help)
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f, fill = false))
-        IconButton(onClick = { showing = true }, modifier = Modifier.size(32.dp).semantics { contentDescription = helpLabel }) {
-            Text("?", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-        }
+        HelpButton(onClick = { showing = true })
     }
     if (showing) {
         val close = { showing = false }

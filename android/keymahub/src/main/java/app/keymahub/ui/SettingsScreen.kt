@@ -126,7 +126,6 @@ fun SettingsScreen(
             BatteryItem(batteryExempt, onBattery)
         }
 
-        SectionTitle(stringResource(R.string.settings_advanced))
         AdvancedCard(ui.tuning) { change -> onUi { it.copy(tuning = change(it.tuning)) } }
 
         Text(

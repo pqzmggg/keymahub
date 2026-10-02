@@ -62,6 +62,12 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 
 @Composable
 fun Page(content: @Composable ColumnScope.() -> Unit) {
@@ -257,5 +263,23 @@ fun NoticeCard(text: String, action: String, onAction: () -> Unit, onClose: (() 
 fun DragHandle(handle: Modifier, description: String) {
     Box(handle.padding(horizontal = 8.dp, vertical = 12.dp)) {
         Icon(Icons.Default.Menu, contentDescription = description, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+/** A "?" in a circle that opens an explanation; the same on every screen. */
+@Composable
+fun HelpButton(onClick: () -> Unit) {
+    val description = stringResource(R.string.action_help)
+    IconButton(onClick = onClick, modifier = Modifier.semantics { contentDescription = description }) {
+        Surface(
+            shape = CircleShape,
+            border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.onSurfaceVariant),
+            color = Color.Transparent,
+            modifier = Modifier.size(24.dp),
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Text("?", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
     }
 }
