@@ -180,4 +180,25 @@ class SlotRouterTest {
         assertEquals(0, router.slot)
         assertTrue("local key ${0x1F} down" in out)
     }
+
+    @Test
+    fun aButtonReportedTwiceIsPressedAndReleasedOnce() {
+        // A mouse's back button comes both in the button state and as a BACK key (A11yCapture).
+        router.select(1)
+        out.clear()
+        router.onButton(4, true)
+        router.onButton(4, true)
+        router.onButton(4, false)
+        router.onButton(4, false)
+        assertEquals(listOf("remote button 4 down", "remote button 4 up"), out)
+    }
+
+    @Test
+    fun aButtonPressedOnThePhoneIsReleasedThereAfterSwitching() {
+        router.onButton(4, true)
+        router.select(1)
+        out.clear()
+        router.onButton(4, false)
+        assertEquals(listOf("local button 4 up"), out)
+    }
 }
