@@ -243,4 +243,11 @@
     <string name="tuning_le2m_help">Asks devices for Bluetooth LE 2M. Each packet takes half the air time, leaving more room for other devices and Wi-Fi. The device decides whether to use it. Far away or with heavy interference, off may be steadier. A change is requested from connected devices at once.</string>
     <string name="tuning_unbuffered">Unbuffered mouse</string>
     <string name="tuning_unbuffered_help">Takes this phone\'s mouse movement as it comes, instead of once per screen frame (8–16 ms). On reacts faster; off handles fewer events. Android 11 and later.</string>
+    <string name="tuning_group_common">Common (keyboard and mouse)</string>
+    <string name="tuning_group_mouse">Mouse</string>
+    <string name="tuning_group_keyboard">Keyboard</string>
+    <string name="tuning_keys_first">Keys first</string>
+    <string name="tuning_keys_first_help">Keyboard and mouse share one queue to the device. On, keys go ahead of mouse movement still waiting to be sent, so typing does not wait behind the mouse. Clicks keep their order: a key never goes ahead of a click made before it.</string>
+    <string name="tuning_key_extra">Extra reports for keys</string>
+    <string name="tuning_key_extra_help">How many keyboard reports may be sent beyond “Reports in flight” while the mouse fills it, so a key goes out at once. 0 makes keys wait like mouse reports. More lets keys through sooner during heavy mouse use, but more can wait in the Bluetooth stack.</string>
 </resources>

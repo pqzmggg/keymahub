@@ -240,4 +240,11 @@
     <string name="tuning_le2m_help">向设备请求使用蓝牙 LE 2M。每个数据包占用的空中时间减半，减少与其他设备和 Wi-Fi 的竞争。是否使用由设备决定。距离较远或干扰严重时，关闭可能更稳定。更改后会立即向已连接的设备重新请求。</string>
     <string name="tuning_unbuffered">即时接收鼠标</string>
     <string name="tuning_unbuffered_help">按到达顺序接收连接到本手机的鼠标移动，而不是按屏幕帧（8–16 毫秒）合并。开启时响应更快，关闭时处理的事件更少。需要 Android 11 及以上。</string>
+    <string name="tuning_group_common">通用（键盘和鼠标）</string>
+    <string name="tuning_group_mouse">鼠标</string>
+    <string name="tuning_group_keyboard">键盘</string>
+    <string name="tuning_keys_first">按键优先发送</string>
+    <string name="tuning_keys_first_help">键盘和鼠标共用一个发往设备的队列。开启后，按键会排在尚未发送的鼠标移动之前，打字不必等鼠标。点击顺序保持不变：按键不会排到它之前发生的点击前面。</string>
+    <string name="tuning_key_extra">按键额外发送数量</string>
+    <string name="tuning_key_extra_help">鼠标占满“同时发送数量”时，键盘还能额外发送的数量，让按键立即发出。为 0 时按键也像鼠标一样等待。越多，大量使用鼠标时按键越快发出，但可能积压在蓝牙协议栈中的量也越多。</string>
 </resources>

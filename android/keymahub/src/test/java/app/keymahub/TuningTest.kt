@@ -10,7 +10,7 @@ class TuningTest {
     fun recommendedValuesAreTheDefaultsAndInRange() {
         val t = Tuning()
         assertEquals(t, t.clamped())
-        for (spec in listOf(Tuning.MOTION, Tuning.WINDOW, Tuning.CONFIRM, Tuning.BUSY_RETRY, Tuning.SLOW_LOG)) {
+        for (spec in listOf(Tuning.MOTION, Tuning.WINDOW, Tuning.CONFIRM, Tuning.BUSY_RETRY, Tuning.SLOW_LOG, Tuning.KEY_EXTRA)) {
             assertTrue(spec.recommended in spec)
         }
     }
@@ -31,5 +31,7 @@ class TuningTest {
         assertEquals(listOf(10, 2, 150, 10, 70), listOf(t.motionMs, t.window, t.confirmMs, t.busyRetryMs, t.slowLogMs))
         assertEquals(true, t.le2m)
         assertEquals(false, t.unbufferedMouse)
+        assertEquals(true, t.keysFirst)
+        assertEquals(1, t.keyExtra)
     }
 }

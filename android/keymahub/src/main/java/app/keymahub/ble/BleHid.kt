@@ -590,7 +590,7 @@ object BleHid {
             val target = active ?: return false
             // A link that just went down: nothing is kept to be sent when it is back.
             if (target !in devices) return false
-            outboxes.getOrPut(target) { Outbox() }.queue.push(reportId, data)
+            outboxes.getOrPut(target) { Outbox() }.queue.push(reportId, data, keysFirst = Hub.ui.value.tuning.keysFirst)
             pump(target)
         }
         return true
@@ -609,7 +609,7 @@ object BleHid {
     }
 
     /**
-     * Keeps up to [Tuning.window] notifications outstanding per target (a few fit in one connection
+     * Keeps up to [Tuning.window] notifications outstanding per target (keys [Tuning.keyExtra] more; a few fit in one connection
      * event); the rest wait in the [ReportQueue], where mouse motion merges. What is handed to the
      * Bluetooth stack can no longer be merged: it goes out at the link's pace, so a backlog there
      * is lag, not a jump. Hence the small window, and no more than it while confirmations are due
@@ -629,7 +629,11 @@ object BleHid {
             if (box.waiting != null) log("${box.inFlight} sent to ${nameOf(address)} unconfirmed after ${now - box.lastSent} ms, sending on")
             box.inFlight = 0
         }
-        while (box.inFlight < t.window) {
+        // Keys may go past a window full of mouse reports by [Tuning.keyExtra]: typing does not wait for them.
+        fun limit(next: ReportQueue.Item) = t.window + if (next.reportId == HidDescriptors.REPORT_ID_MOUSE) 0 else t.keyExtra
+        while (true) {
+            val next = q.peek() ?: break
+            if (box.inFlight >= limit(next)) break
             val item = q.poll() ?: break
             val ch = when (item.reportId) {
                 HidDescriptors.REPORT_ID_MOUSE -> db.mouseIn
@@ -650,7 +654,7 @@ object BleHid {
             box.waiting = null
             return
         }
-        val full = box.inFlight >= t.window
+        val full = box.inFlight >= limit(q.peek() ?: return)
         if (box.waiting == null) box.waiting = now to (if (full) "waiting for confirmations" else "Bluetooth stack busy")
         // Reports still waiting may get no confirmation to send them: none comes when the stack
         // was busy with nothing in flight, or when a confirmation got lost. Without a retry they

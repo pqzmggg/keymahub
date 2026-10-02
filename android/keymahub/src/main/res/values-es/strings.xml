@@ -244,4 +244,11 @@
     <string name="tuning_le2m_help">Pide a los dispositivos Bluetooth LE 2M. Cada paquete ocupa la mitad de tiempo en el aire y deja más sitio a otros dispositivos y al Wi-Fi. El dispositivo decide si lo usa. Lejos o con mucha interferencia, desactivado puede ser más estable. El cambio se pide al momento a los dispositivos conectados.</string>
     <string name="tuning_unbuffered">Ratón sin búfer</string>
     <string name="tuning_unbuffered_help">Recibe el movimiento del ratón de este teléfono según llega, en lugar de una vez por fotograma de pantalla (8–16 ms). Activado responde antes; desactivado procesa menos eventos. Android 11 o posterior.</string>
+    <string name="tuning_group_common">Común (teclado y ratón)</string>
+    <string name="tuning_group_mouse">Ratón</string>
+    <string name="tuning_group_keyboard">Teclado</string>
+    <string name="tuning_keys_first">Teclas primero</string>
+    <string name="tuning_keys_first_help">El teclado y el ratón comparten una cola hacia el dispositivo. Activado, las teclas pasan por delante del movimiento del ratón que aún espera, así escribir no espera al ratón. Los clics mantienen su orden: una tecla nunca adelanta a un clic hecho antes.</string>
+    <string name="tuning_key_extra">Informes extra para teclas</string>
+    <string name="tuning_key_extra_help">Cuántos informes de teclado pueden enviarse por encima de «Informes en vuelo» mientras el ratón lo llena, para que una tecla salga al momento. Con 0 las teclas esperan como el ratón. Más deja pasar antes las teclas con mucho uso del ratón, pero puede esperar más en la pila Bluetooth.</string>
 </resources>

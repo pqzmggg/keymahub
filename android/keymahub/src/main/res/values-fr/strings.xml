@@ -244,4 +244,11 @@
     <string name="tuning_le2m_help">Demande le Bluetooth LE 2M aux appareils. Chaque paquet occupe deux fois moins de temps d\'antenne, ce qui laisse plus de place aux autres appareils et au Wi-Fi. L\'appareil décide de l\'utiliser ou non. De loin ou avec beaucoup d\'interférences, désactivé peut être plus stable. Le changement est demandé tout de suite aux appareils connectés.</string>
     <string name="tuning_unbuffered">Souris sans tampon</string>
     <string name="tuning_unbuffered_help">Reçoit les mouvements de la souris de ce téléphone au fur et à mesure, au lieu d\'une fois par image d\'écran (8–16 ms). Activé réagit plus vite ; désactivé traite moins d\'événements. Android 11 et versions ultérieures.</string>
+    <string name="tuning_group_common">Commun (clavier et souris)</string>
+    <string name="tuning_group_mouse">Souris</string>
+    <string name="tuning_group_keyboard">Clavier</string>
+    <string name="tuning_keys_first">Touches en priorité</string>
+    <string name="tuning_keys_first_help">Le clavier et la souris partagent une file vers l’appareil. Activé, les touches passent devant les mouvements de souris encore en attente : la saisie n’attend pas la souris. Les clics gardent leur ordre : une touche ne passe jamais devant un clic fait avant elle.</string>
+    <string name="tuning_key_extra">Rapports en plus pour les touches</string>
+    <string name="tuning_key_extra_help">Combien de rapports clavier peuvent être envoyés au-delà de « Rapports en vol » quand la souris l’occupe, pour qu’une touche parte tout de suite. À 0, les touches attendent comme la souris. Plus, les touches passent plus vite pendant un usage intensif de la souris, mais davantage peut attendre dans la pile Bluetooth.</string>
 </resources>

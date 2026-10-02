@@ -93,4 +93,21 @@ class ReportQueueTest {
         assertArrayEquals(move(1, 0), q.poll()!!.data)
         assertNull(q.poll())
     }
+
+    @Test
+    fun keysFirstGoAheadOfWaitingMotionButNotOfClicks() {
+        val q = ReportQueue()
+        q.push(REPORT_ID_MOUSE, move(5, 0))
+        q.push(REPORT_ID_KEYBOARD, key(4), keysFirst = true)
+        assertEquals(listOf(REPORT_ID_KEYBOARD to key(4).toList(), REPORT_ID_MOUSE to move(5, 0).toList()), drain(q))
+
+        val click = mouse.setButton(Buttons.LEFT, true)!!
+        q.push(REPORT_ID_MOUSE, click)
+        q.push(REPORT_ID_MOUSE, move(1, 1))
+        q.push(REPORT_ID_KEYBOARD, key(5), keysFirst = true)
+        assertEquals(
+            listOf(REPORT_ID_MOUSE to click.toList(), REPORT_ID_KEYBOARD to key(5).toList(), REPORT_ID_MOUSE to move(1, 1).toList()),
+            drain(q),
+        )
+    }
 }
