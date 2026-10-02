@@ -214,4 +214,30 @@
     <string name="tutorial_switch_phone">本设备</string>
     <string name="tutorial_switch_target">配置中放在该数字上的设备</string>
     <string name="tutorial_switch_body">快捷键的修饰键可以在设置中更改。</string>
+
+    <!-- Advanced settings (sending over Bluetooth) -->
+    <string name="settings_advanced">高级设置</string>
+    <string name="advanced_show">显示高级设置</string>
+    <string name="settings_advanced_hint">调整通过蓝牙发送输入的方式。更改立即生效。不确定时请保持推荐值。</string>
+    <string name="tuning_range">推荐 %1$d · 范围 %2$d–%3$d（%4$s）</string>
+    <string name="tuning_out_of_range">超出范围的值不会生效</string>
+    <string name="tuning_recommended_on">推荐：开启</string>
+    <string name="tuning_reset">恢复推荐值</string>
+    <string name="action_help">帮助</string>
+    <string name="unit_ms">毫秒</string>
+    <string name="unit_reports">个</string>
+    <string name="tuning_motion">鼠标移动发送间隔</string>
+    <string name="tuning_motion_help">向设备发送鼠标移动的最短间隔。期间的移动会累加后一次发送。越小越流畅，但发送量越大；蓝牙连接跟不上时会积压，鼠标随之延迟。越大越不容易延迟，但不够流畅。延迟时调大（如 12–16），卡顿时调小。</string>
+    <string name="tuning_window">同时发送数量</string>
+    <string name="tuning_window_help">在收到确认之前可交给蓝牙协议栈的数量。交给协议栈的内容无法再合并，因此越多，在连接较慢时延迟越大。越少延迟越小，但每次发送的量减少，移动可能显得卡顿。</string>
+    <string name="tuning_confirm">发送确认等待</string>
+    <string name="tuning_confirm_help">等待发送确认的最长时间。超过后视为确认丢失并继续发送。太短会把慢速连接的正常确认也当作丢失，向协议栈塞入更多内容（延迟的原因）；太长则在确认真正丢失时停顿同样长的时间。日志中经常出现 \'unconfirmed after\' 时请调大。</string>
+    <string name="tuning_busy_retry">重试间隔</string>
+    <string name="tuning_busy_retry_help">蓝牙协议栈繁忙未能发送时，再次尝试前的等待时间。越短重试越快，但会多占用一点 CPU。</string>
+    <string name="tuning_slow_log">延迟日志阈值</string>
+    <string name="tuning_slow_log_help">输入等待达到或超过此时间时写入应用日志（\'waited … ms\'）。仅用于诊断，不改变发送方式。</string>
+    <string name="tuning_le2m">LE 2M PHY</string>
+    <string name="tuning_le2m_help">向设备请求使用蓝牙 LE 2M。每个数据包占用的空中时间减半，减少与其他设备和 Wi-Fi 的竞争。是否使用由设备决定。距离较远或干扰严重时，关闭可能更稳定。更改后会立即向已连接的设备重新请求。</string>
+    <string name="tuning_unbuffered">即时接收鼠标</string>
+    <string name="tuning_unbuffered_help">按到达顺序接收连接到本手机的鼠标移动，而不是按屏幕帧（8–16 毫秒）合并。开启时响应更快，关闭时处理的事件更少。需要 Android 11 及以上。</string>
 </resources>

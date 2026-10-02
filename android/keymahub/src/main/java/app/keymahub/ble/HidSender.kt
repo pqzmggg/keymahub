@@ -2,7 +2,9 @@ package app.keymahub.ble
 
 import android.os.Process
 import android.os.SystemClock
+import app.keymahub.core.Hub
 import app.keymahub.core.InputSink
+import app.keymahub.core.Tuning
 import app.keymahub.hid.ConsumerKeys
 import app.keymahub.hid.ConsumerReport
 import app.keymahub.hid.HidDescriptors
@@ -14,8 +16,8 @@ import java.util.concurrent.TimeUnit
 /**
  * Turns routed input into HID reports for the selected BLE target. Everything, including
  * target switches, runs on one thread, so the releases queued for the old target are sent
- * before the switch. Motion is coalesced to at most one report per [MOTION_MS]; the first
- * motion after a pause goes out at once.
+ * before the switch. Motion is coalesced to at most one report per [Tuning.motionMs] (read each
+ * time, so a change applies at once); the first motion after a pause goes out at once.
  */
 class HidSender : InputSink {
     private val keyboard = KeyboardReport()
@@ -57,7 +59,7 @@ class HidSender : InputSink {
         accX += dx
         accY += dy
         if (!motionScheduled) {
-            val wait = lastMotion + MOTION_MS - SystemClock.uptimeMillis()
+            val wait = lastMotion + Hub.ui.value.tuning.motionMs - SystemClock.uptimeMillis()
             if (wait <= 0) {
                 flushMotion()
             } else {
@@ -98,9 +100,5 @@ class HidSender : InputSink {
         accX = 0
         accY = 0
         for (r in reports) BleHid.send(HidDescriptors.REPORT_ID_MOUSE, r)
-    }
-
-    private companion object {
-        const val MOTION_MS = 8L
     }
 }

@@ -95,6 +95,11 @@ class PointerCaptureOverlay(
             }
     }
 
+    /** The unbuffered mouse setting changed: applies it to the capture going on now. */
+    fun refreshDispatch() = main.post {
+        view?.takeIf { it.hasPointerCapture() }?.applyDispatch()
+    }
+
     fun stop() = main.post {
         wanted = false
         val v = view ?: return@post
@@ -124,11 +129,19 @@ class PointerCaptureOverlay(
             Hub.log(if (hasCapture) "pointer captured (phone pointer hidden)" else "pointer capture released")
             if (view !== this) return // an old window being replaced by reclaim()
             onCaptureState(hasCapture)
-            // Captured mouse motion is otherwise batched and handed over once per display frame
-            // (8-16 ms); the sender coalesces it itself, so take each event as it comes.
-            if (hasCapture && Build.VERSION.SDK_INT >= 30) requestUnbufferedDispatch(InputDevice.SOURCE_MOUSE_RELATIVE)
+            if (hasCapture) applyDispatch()
             // Lost it while still on the target (e.g. notification shade took focus): try again.
             if (!hasCapture && wanted && hasWindowFocus()) main.postDelayed({ if (wanted) requestPointerCapture() }, 200)
+        }
+
+        /**
+         * Captured mouse motion is otherwise batched and handed over once per display frame
+         * (8-16 ms); the sender coalesces it itself, so it is taken event by event unless the
+         * advanced setting says otherwise (source 0: batched again).
+         */
+        fun applyDispatch() {
+            if (Build.VERSION.SDK_INT < 30) return
+            requestUnbufferedDispatch(if (Hub.ui.value.tuning.unbufferedMouse) InputDevice.SOURCE_MOUSE_RELATIVE else 0)
         }
 
         // Captured events go to the focused view, which is the relay's field while typing: take them here.

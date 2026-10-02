@@ -39,7 +39,7 @@ import app.keymahub.core.ThemeMode
 import app.keymahub.core.UiPrefs
 import app.keymahub.core.appVersion
 
-/** App-wide settings: hotkey modifiers, language, theme, switch popup. */
+/** App-wide settings: hotkey modifiers, language, theme, switch popup, advanced (sending over Bluetooth). */
 @Composable
 fun SettingsScreen(
     ui: UiPrefs,
@@ -125,6 +125,9 @@ fun SettingsScreen(
             HorizontalDivider()
             BatteryItem(batteryExempt, onBattery)
         }
+
+        SectionTitle(stringResource(R.string.settings_advanced))
+        AdvancedCard(ui.tuning) { change -> onUi { it.copy(tuning = change(it.tuning)) } }
 
         Text(
             stringResource(R.string.version, version),

@@ -218,4 +218,30 @@
     <string name="tutorial_switch_phone">este dispositivo</string>
     <string name="tutorial_switch_target">el dispositivo de ese número en el perfil</string>
     <string name="tutorial_switch_body">Las teclas de los atajos se pueden cambiar en Ajustes.</string>
+
+    <!-- Advanced settings (sending over Bluetooth) -->
+    <string name="settings_advanced">Avanzado</string>
+    <string name="advanced_show">Mostrar ajustes avanzados</string>
+    <string name="settings_advanced_hint">Cómo se envía la entrada por Bluetooth. Los cambios se aplican al momento. Si no estás seguro, deja los valores recomendados.</string>
+    <string name="tuning_range">Recomendado %1$d · rango %2$d–%3$d (%4$s)</string>
+    <string name="tuning_out_of_range">Fuera de rango: no se aplica</string>
+    <string name="tuning_recommended_on">Recomendado: activado</string>
+    <string name="tuning_reset">Volver a los recomendados</string>
+    <string name="action_help">Ayuda</string>
+    <string name="unit_ms">ms</string>
+    <string name="unit_reports">informes</string>
+    <string name="tuning_motion">Intervalo de movimiento del ratón</string>
+    <string name="tuning_motion_help">El tiempo mínimo entre dos informes de movimiento del ratón enviados al dispositivo. El movimiento intermedio se suma y se envía de una vez. Más bajo es más fluido pero envía más; si el enlace Bluetooth no da abasto, los informes se acumulan y el ratón se retrasa. Más alto se retrasa menos pero es menos fluido. Si el ratón se retrasa, súbelo (p. ej. 12–16); si va a saltos, bájalo.</string>
+    <string name="tuning_window">Informes en vuelo</string>
+    <string name="tuning_window_help">Cuántos informes pueden pasarse a la pila Bluetooth antes de que los confirme. Los informes en la pila ya no se pueden combinar, así que cuantos más, más retraso cuando el enlace es lento. Menos retrasa menos, pero se envía menos a la vez y el movimiento puede ir a saltos.</string>
+    <string name="tuning_confirm">Espera de confirmación</string>
+    <string name="tuning_confirm_help">Cuánto esperar a que la pila confirme los informes enviados antes de darlos por perdidos y seguir enviando. Demasiado corto, y las confirmaciones normales de un enlace lento cuentan como perdidas, así que se mete más en la pila (una causa de retraso). Demasiado largo, y el envío se detiene ese tiempo cuando una confirmación se pierde de verdad. Si el registro muestra a menudo \'unconfirmed after\', súbelo.</string>
+    <string name="tuning_busy_retry">Reintento si está ocupada</string>
+    <string name="tuning_busy_retry_help">Cuánto tarda en reintentarse un informe para el que la pila Bluetooth estaba ocupada. Más corto reintenta antes pero usa un poco más de CPU.</string>
+    <string name="tuning_slow_log">Registro de entrada lenta</string>
+    <string name="tuning_slow_log_help">La entrada que espera este tiempo o más se anota en el registro de la app (\'waited … ms\'). Solo para diagnóstico: no cambia el envío.</string>
+    <string name="tuning_le2m">PHY LE 2M</string>
+    <string name="tuning_le2m_help">Pide a los dispositivos Bluetooth LE 2M. Cada paquete ocupa la mitad de tiempo en el aire y deja más sitio a otros dispositivos y al Wi-Fi. El dispositivo decide si lo usa. Lejos o con mucha interferencia, desactivado puede ser más estable. El cambio se pide al momento a los dispositivos conectados.</string>
+    <string name="tuning_unbuffered">Ratón sin búfer</string>
+    <string name="tuning_unbuffered_help">Recibe el movimiento del ratón de este teléfono según llega, en lugar de una vez por fotograma de pantalla (8–16 ms). Activado responde antes; desactivado procesa menos eventos. Android 11 o posterior.</string>
 </resources>

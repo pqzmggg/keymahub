@@ -42,6 +42,8 @@ data class UiPrefs(
     val batterySkipped: Boolean = false,
     /** The tutorial version last seen or skipped (0: never; see ui.TUTORIAL_VERSION). */
     val tutorialSeen: Int = 0,
+    /** Advanced settings (sending over Bluetooth). */
+    val tuning: Tuning = Tuning(),
 )
 
 /** This app's version name (null if unknown). */
@@ -110,14 +112,37 @@ object Hub {
                 recoverSeconds = p.getInt(K_RECOVER_SECONDS, d.recoverSeconds),
                 batterySkipped = p.getBoolean(K_BATTERY_SKIPPED, d.batterySkipped),
                 tutorialSeen = p.getInt(K_TUTORIAL_SEEN, d.tutorialSeen),
+                tuning = Tuning(
+                    motionMs = p.getInt(K_MOTION_MS, d.tuning.motionMs),
+                    window = p.getInt(K_WINDOW, d.tuning.window),
+                    confirmMs = p.getInt(K_CONFIRM_MS, d.tuning.confirmMs),
+                    busyRetryMs = p.getInt(K_BUSY_RETRY_MS, d.tuning.busyRetryMs),
+                    slowLogMs = p.getInt(K_SLOW_LOG_MS, d.tuning.slowLogMs),
+                    le2m = p.getBoolean(K_LE_2M, d.tuning.le2m),
+                    unbufferedMouse = p.getBoolean(K_UNBUFFERED_MOUSE, d.tuning.unbufferedMouse),
+                ).clamped(),
             )
             uiLoaded = true
         }
         _ui.value
     }
 
-    fun editUi(context: Context, change: (UiPrefs) -> UiPrefs) = synchronized(this) {
-        val u = change(loadUi(context))
+    /** Called (on the editing thread) after the UI preferences changed, with the old and new ones. */
+    @Volatile
+    var onUiChanged: ((before: UiPrefs, after: UiPrefs) -> Unit)? = null
+
+    fun editUi(context: Context, change: (UiPrefs) -> UiPrefs) {
+        val before: UiPrefs
+        val after: UiPrefs
+        synchronized(this) {
+            before = loadUi(context)
+            after = saveUi(context, change(before).let { it.copy(tuning = it.tuning.clamped()) })
+        }
+        if (after != before) onUiChanged?.invoke(before, after)
+    }
+
+    /** Holds the lock. */
+    private fun saveUi(context: Context, u: UiPrefs): UiPrefs {
         context.keymaPrefs().edit()
             .putString(K_THEME, u.theme.name)
             .putBoolean(K_SHOW_HUD, u.showHud)
@@ -127,8 +152,16 @@ object Hub {
             .putInt(K_RECOVER_SECONDS, u.recoverSeconds)
             .putBoolean(K_BATTERY_SKIPPED, u.batterySkipped)
             .putInt(K_TUTORIAL_SEEN, u.tutorialSeen)
+            .putInt(K_MOTION_MS, u.tuning.motionMs)
+            .putInt(K_WINDOW, u.tuning.window)
+            .putInt(K_CONFIRM_MS, u.tuning.confirmMs)
+            .putInt(K_BUSY_RETRY_MS, u.tuning.busyRetryMs)
+            .putInt(K_SLOW_LOG_MS, u.tuning.slowLogMs)
+            .putBoolean(K_LE_2M, u.tuning.le2m)
+            .putBoolean(K_UNBUFFERED_MOUSE, u.tuning.unbufferedMouse)
             .apply()
         _ui.value = u
+        return u
     }
 
     private const val K_THEME = "theme"
@@ -139,6 +172,13 @@ object Hub {
     private const val K_RECOVER_SECONDS = "recover_seconds"
     private const val K_BATTERY_SKIPPED = "battery_skipped"
     private const val K_TUTORIAL_SEEN = "tutorial_seen"
+    private const val K_MOTION_MS = "tuning_motion_ms"
+    private const val K_WINDOW = "tuning_window"
+    private const val K_CONFIRM_MS = "tuning_confirm_ms"
+    private const val K_BUSY_RETRY_MS = "tuning_busy_retry_ms"
+    private const val K_SLOW_LOG_MS = "tuning_slow_log_ms"
+    private const val K_LE_2M = "tuning_le_2m"
+    private const val K_UNBUFFERED_MOUSE = "tuning_unbuffered_mouse"
 
     // ---------------------------------------------------------------- log (diagnostics screen)
 

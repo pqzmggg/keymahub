@@ -218,4 +218,30 @@
     <string name="tutorial_switch_phone">cet appareil</string>
     <string name="tutorial_switch_target">l\'appareil placé sur ce chiffre dans le profil</string>
     <string name="tutorial_switch_body">Les touches des raccourcis se modifient dans les paramètres.</string>
+
+    <!-- Advanced settings (sending over Bluetooth) -->
+    <string name="settings_advanced">Avancé</string>
+    <string name="advanced_show">Afficher les paramètres avancés</string>
+    <string name="settings_advanced_hint">La façon dont la saisie est envoyée en Bluetooth. Les changements s\'appliquent tout de suite. Dans le doute, gardez les valeurs recommandées.</string>
+    <string name="tuning_range">Recommandé %1$d · plage %2$d–%3$d (%4$s)</string>
+    <string name="tuning_out_of_range">Hors plage : non appliqué</string>
+    <string name="tuning_recommended_on">Recommandé : activé</string>
+    <string name="tuning_reset">Revenir aux valeurs recommandées</string>
+    <string name="action_help">Aide</string>
+    <string name="unit_ms">ms</string>
+    <string name="unit_reports">rapports</string>
+    <string name="tuning_motion">Intervalle des mouvements de souris</string>
+    <string name="tuning_motion_help">Le temps minimal entre deux rapports de mouvement de souris envoyés à l\'appareil. Les mouvements intermédiaires sont additionnés et envoyés en une fois. Plus bas, c\'est plus fluide mais on envoie davantage ; si la liaison Bluetooth ne suit pas, les rapports s\'accumulent et la souris prend du retard. Plus haut, moins de retard mais moins de fluidité. Si la souris traîne, augmentez (p. ex. 12–16) ; si elle saccade, diminuez.</string>
+    <string name="tuning_window">Rapports en vol</string>
+    <string name="tuning_window_help">Combien de rapports peuvent être confiés à la pile Bluetooth avant qu\'elle les confirme. Ceux qui sont dans la pile ne peuvent plus être fusionnés : plus il y en a, plus le retard est grand quand la liaison est lente. Moins, c\'est moins de retard, mais on envoie moins à la fois et le mouvement peut saccader.</string>
+    <string name="tuning_confirm">Attente de confirmation</string>
+    <string name="tuning_confirm_help">Combien de temps attendre que la pile confirme les rapports envoyés avant de les considérer comme perdus et de continuer. Trop court, et les confirmations normales d\'une liaison lente comptent comme perdues : on remplit davantage la pile (une cause de retard). Trop long, et l\'envoi s\'arrête aussi longtemps quand une confirmation est vraiment perdue. Si le journal affiche souvent \'unconfirmed after\', augmentez.</string>
+    <string name="tuning_busy_retry">Nouvel essai si occupée</string>
+    <string name="tuning_busy_retry_help">Délai avant de renvoyer un rapport pour lequel la pile Bluetooth était occupée. Plus court, on réessaie plus tôt mais on utilise un peu plus le processeur.</string>
+    <string name="tuning_slow_log">Journal des saisies lentes</string>
+    <string name="tuning_slow_log_help">Une saisie qui attend au moins ce temps est notée dans le journal de l\'app (\'waited … ms\'). Pour le diagnostic uniquement : l\'envoi ne change pas.</string>
+    <string name="tuning_le2m">PHY LE 2M</string>
+    <string name="tuning_le2m_help">Demande le Bluetooth LE 2M aux appareils. Chaque paquet occupe deux fois moins de temps d\'antenne, ce qui laisse plus de place aux autres appareils et au Wi-Fi. L\'appareil décide de l\'utiliser ou non. De loin ou avec beaucoup d\'interférences, désactivé peut être plus stable. Le changement est demandé tout de suite aux appareils connectés.</string>
+    <string name="tuning_unbuffered">Souris sans tampon</string>
+    <string name="tuning_unbuffered_help">Reçoit les mouvements de la souris de ce téléphone au fur et à mesure, au lieu d\'une fois par image d\'écran (8–16 ms). Activé réagit plus vite ; désactivé traite moins d\'événements. Android 11 et versions ultérieures.</string>
 </resources>
