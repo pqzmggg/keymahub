@@ -225,6 +225,7 @@
     <string name="tuning_range">Recomendado %1$d · rango %2$d–%3$d (%4$s)</string>
     <string name="tuning_out_of_range">Fuera de rango: no se aplica</string>
     <string name="tuning_recommended_on">Recomendado: activado</string>
+    <string name="tuning_recommended_off">Recomendado: desactivado</string>
     <string name="tuning_reset">Volver a los recomendados</string>
     <string name="action_help">Ayuda</string>
     <string name="unit_ms">ms</string>

@@ -221,6 +221,7 @@
     <string name="tuning_range">推荐 %1$d · 范围 %2$d–%3$d（%4$s）</string>
     <string name="tuning_out_of_range">超出范围的值不会生效</string>
     <string name="tuning_recommended_on">推荐：开启</string>
+    <string name="tuning_recommended_off">推荐：关闭</string>
     <string name="tuning_reset">恢复推荐值</string>
     <string name="action_help">帮助</string>
     <string name="unit_ms">毫秒</string>

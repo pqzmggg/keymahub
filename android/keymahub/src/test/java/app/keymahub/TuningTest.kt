@@ -24,4 +24,12 @@ class TuningTest {
         assertEquals(Tuning.BUSY_RETRY.max, t.busyRetryMs)
         assertEquals(Tuning.SLOW_LOG.min, t.slowLogMs)
     }
+
+    @Test
+    fun defaultsAreTheValuesTunedInUse() {
+        val t = Tuning()
+        assertEquals(listOf(10, 2, 150, 10, 70), listOf(t.motionMs, t.window, t.confirmMs, t.busyRetryMs, t.slowLogMs))
+        assertEquals(true, t.le2m)
+        assertEquals(false, t.unbufferedMouse)
+    }
 }

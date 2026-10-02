@@ -221,6 +221,7 @@
     <string name="tuning_range">권장 %1$d · 범위 %2$d~%3$d (%4$s)</string>
     <string name="tuning_out_of_range">범위를 벗어난 값은 적용되지 않습니다</string>
     <string name="tuning_recommended_on">권장: 켬</string>
+    <string name="tuning_recommended_off">권장: 끔</string>
     <string name="tuning_reset">권장값으로 되돌리기</string>
     <string name="action_help">도움말</string>
     <string name="unit_ms">ms</string>
