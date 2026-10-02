@@ -221,6 +221,7 @@
     <string name="tuning_range">推奨 %1$d・範囲 %2$d〜%3$d（%4$s）</string>
     <string name="tuning_out_of_range">範囲外の値は反映されません</string>
     <string name="tuning_recommended_on">推奨: オン</string>
+    <string name="tuning_recommended_off">推奨: オフ</string>
     <string name="tuning_reset">推奨値に戻す</string>
     <string name="action_help">ヘルプ</string>
     <string name="unit_ms">ms</string>

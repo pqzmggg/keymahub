@@ -16,9 +16,9 @@ data class Tuning(
     /** Input waiting this long or longer is logged (ms). */
     val slowLogMs: Int = SLOW_LOG.recommended,
     /** Ask hosts for the LE 2M PHY. */
-    val le2m: Boolean = true,
+    val le2m: Boolean = LE_2M,
     /** Take captured mouse events one by one rather than once per display frame. */
-    val unbufferedMouse: Boolean = true,
+    val unbufferedMouse: Boolean = UNBUFFERED_MOUSE,
 ) {
     /** The same, with every number within its range. */
     fun clamped() = copy(
@@ -35,6 +35,10 @@ data class Tuning(
         operator fun contains(v: Int) = v in min..max
     }
 
+    /**
+     * The recommended values are the defaults. They are the ones found to work best on a real
+     * setup (a tablet with its own Bluetooth mouse, sending to a Windows PC), tuned by hand.
+     */
     companion object {
         /**
          * 10 ms (100 reports a second): about what a short connection interval (11-15 ms) carries,
@@ -43,9 +47,12 @@ data class Tuning(
         val MOTION = Spec(recommended = 10, min = 4, max = 50)
         /** 2: one report on the air and the next ready, the least that can wait outside the app's queue. */
         val WINDOW = Spec(recommended = 2, min = 1, max = 8)
-        /** 250 ms: well past a slow link's confirmations; giving up sooner overfills the stack. */
-        val CONFIRM = Spec(recommended = 250, min = 30, max = 1000)
-        val BUSY_RETRY = Spec(recommended = 5, min = 1, max = 50)
-        val SLOW_LOG = Spec(recommended = 50, min = 10, max = 1000)
+        /** 150 ms: past a slow link's confirmations (giving up sooner overfills the stack), without a long stall when one is lost. */
+        val CONFIRM = Spec(recommended = 150, min = 30, max = 1000)
+        val BUSY_RETRY = Spec(recommended = 10, min = 1, max = 50)
+        val SLOW_LOG = Spec(recommended = 70, min = 10, max = 1000)
+        const val LE_2M = true
+        /** Off: frame-batched mouse events were steadier in use than one by one. */
+        const val UNBUFFERED_MOUSE = false
     }
 }

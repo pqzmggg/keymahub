@@ -152,16 +152,31 @@ object Hub {
             .putInt(K_RECOVER_SECONDS, u.recoverSeconds)
             .putBoolean(K_BATTERY_SKIPPED, u.batterySkipped)
             .putInt(K_TUTORIAL_SEEN, u.tutorialSeen)
-            .putInt(K_MOTION_MS, u.tuning.motionMs)
-            .putInt(K_WINDOW, u.tuning.window)
-            .putInt(K_CONFIRM_MS, u.tuning.confirmMs)
-            .putInt(K_BUSY_RETRY_MS, u.tuning.busyRetryMs)
-            .putInt(K_SLOW_LOG_MS, u.tuning.slowLogMs)
-            .putBoolean(K_LE_2M, u.tuning.le2m)
-            .putBoolean(K_UNBUFFERED_MOUSE, u.tuning.unbufferedMouse)
+            .putTuning(u.tuning)
             .apply()
         _ui.value = u
         return u
+    }
+
+    /** Only what differs from the default: values never changed follow new defaults. */
+    private fun SharedPreferences.Editor.putTuning(t: Tuning): SharedPreferences.Editor {
+        val d = Tuning()
+        putOrDefault(K_MOTION_MS, t.motionMs, d.motionMs)
+        putOrDefault(K_WINDOW, t.window, d.window)
+        putOrDefault(K_CONFIRM_MS, t.confirmMs, d.confirmMs)
+        putOrDefault(K_BUSY_RETRY_MS, t.busyRetryMs, d.busyRetryMs)
+        putOrDefault(K_SLOW_LOG_MS, t.slowLogMs, d.slowLogMs)
+        putOrDefault(K_LE_2M, t.le2m, d.le2m)
+        putOrDefault(K_UNBUFFERED_MOUSE, t.unbufferedMouse, d.unbufferedMouse)
+        return this
+    }
+
+    private fun SharedPreferences.Editor.putOrDefault(key: String, v: Int, default: Int) {
+        if (v == default) remove(key) else putInt(key, v)
+    }
+
+    private fun SharedPreferences.Editor.putOrDefault(key: String, v: Boolean, default: Boolean) {
+        if (v == default) remove(key) else putBoolean(key, v)
     }
 
     private const val K_THEME = "theme"

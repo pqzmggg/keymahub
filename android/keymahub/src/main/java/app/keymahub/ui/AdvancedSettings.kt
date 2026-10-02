@@ -82,10 +82,10 @@ fun AdvancedCard(tuning: Tuning, onTuning: ((Tuning) -> Tuning) -> Unit) {
             onTuning { it.copy(slowLogMs = v) }
         }
         HorizontalDivider()
-        SwitchItem(R.string.tuning_le2m, R.string.tuning_le2m_help, tuning.le2m) { on -> onTuning { it.copy(le2m = on) } }
+        SwitchItem(R.string.tuning_le2m, R.string.tuning_le2m_help, Tuning.LE_2M, tuning.le2m) { on -> onTuning { it.copy(le2m = on) } }
         if (Build.VERSION.SDK_INT >= 30) {
             HorizontalDivider()
-            SwitchItem(R.string.tuning_unbuffered, R.string.tuning_unbuffered_help, tuning.unbufferedMouse) { on ->
+            SwitchItem(R.string.tuning_unbuffered, R.string.tuning_unbuffered_help, Tuning.UNBUFFERED_MOUSE, tuning.unbufferedMouse) { on ->
                 onTuning { it.copy(unbufferedMouse = on) }
             }
         }
@@ -128,13 +128,13 @@ private fun NumberItem(title: Int, help: Int, unit: String, spec: Tuning.Spec, v
     }
 }
 
-/** An on/off setting (recommended: on). */
+/** An on/off setting, and whether it is [recommended] on. */
 @Composable
-private fun SwitchItem(title: Int, help: Int, on: Boolean, onChange: (Boolean) -> Unit) {
+private fun SwitchItem(title: Int, help: Int, recommended: Boolean, on: Boolean, onChange: (Boolean) -> Unit) {
     Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f).padding(end = 12.dp)) {
             TitleWithHelp(stringResource(title), stringResource(help))
-            Text(stringResource(R.string.tuning_recommended_on), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(stringResource(if (recommended) R.string.tuning_recommended_on else R.string.tuning_recommended_off), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Switch(checked = on, onCheckedChange = onChange)
     }
