@@ -217,7 +217,6 @@
 
     <!-- Advanced settings (sending over Bluetooth) -->
     <string name="settings_advanced">高级设置</string>
-    <string name="advanced_show">显示高级设置</string>
     <string name="settings_advanced_hint">调整通过蓝牙发送输入的方式。更改立即生效。不确定时请保持推荐值。</string>
     <string name="tuning_range">推荐 %1$d · 范围 %2$d–%3$d（%4$s）</string>
     <string name="tuning_out_of_range">超出范围的值不会生效</string>

@@ -217,7 +217,6 @@
 
     <!-- Advanced settings (sending over Bluetooth) -->
     <string name="settings_advanced">고급 설정</string>
-    <string name="advanced_show">고급 설정 표시</string>
     <string name="settings_advanced_hint">입력을 블루투스로 보내는 방식을 조정합니다. 바꾸면 바로 적용됩니다. 잘 모르겠으면 권장값을 쓰세요.</string>
     <string name="tuning_range">권장 %1$d · 범위 %2$d~%3$d (%4$s)</string>
     <string name="tuning_out_of_range">범위를 벗어난 값은 적용되지 않습니다</string>
