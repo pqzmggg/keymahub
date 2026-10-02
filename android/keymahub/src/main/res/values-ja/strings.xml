@@ -240,4 +240,11 @@
     <string name="tuning_le2m_help">デバイスに Bluetooth LE 2M を要求します。パケットあたりの電波の占有時間が半分になり、ほかの機器や Wi-Fi との競合が減ります。使うかどうかはデバイスが決めます。距離が遠い場合や干渉が多い場合はオフのほうが安定することがあります。変更すると接続中のデバイスにすぐ要求し直します。</string>
     <string name="tuning_unbuffered">マウスを即時に受け取る</string>
     <string name="tuning_unbuffered_help">このスマートフォンに接続したマウスの動きを、画面のフレーム（8〜16ms）ごとにまとめず届いたとおりに受け取ります。オンで反応が速く、オフで処理するイベントが減ります。Android 11 以降。</string>
+    <string name="tuning_group_common">共通（キーボード・マウス）</string>
+    <string name="tuning_group_mouse">マウス</string>
+    <string name="tuning_group_keyboard">キーボード</string>
+    <string name="tuning_keys_first">キーを優先して送信</string>
+    <string name="tuning_keys_first_help">キーボードとマウスはデバイスへ送る待ち行列を共有しています。オンにすると、まだ送っていないマウスの動きよりキーを先に送るので、マウスのせいで入力が待たされません。クリックの順序は守ります。先に行ったクリックよりキーが先に行くことはありません。</string>
+    <string name="tuning_key_extra">キー専用の追加送信数</string>
+    <string name="tuning_key_extra_help">マウスが「同時送信数」を埋めているときに、キーボードの送信をその上にいくつ追加できるかです。キーがすぐに送られます。0 ではキーもマウスと同じように待ちます。多いほどマウスを多用中でもキーが早く送られますが、Bluetooth スタックに溜まりうる量も増えます。</string>
 </resources>

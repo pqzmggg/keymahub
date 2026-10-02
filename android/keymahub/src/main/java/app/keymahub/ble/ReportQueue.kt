@@ -9,6 +9,9 @@ import app.keymahub.hid.HidDescriptors
  *   transition, and losing one means a missed or stuck key.
  * - Motion-only mouse reports are merged into the queued mouse report before them, so a
  *   backlog turns into one bigger movement instead of latency (or dropped input).
+ * - With keys first, keyboard and media key reports go ahead of the motion waiting at the end of
+ *   the queue (never ahead of a button change: a click then typing must stay in that order), so
+ *   typing does not wait behind the mouse.
  */
 class ReportQueue(private val motionCapacity: Int = 32) {
     /** [mergeable]: pure motion with unchanged buttons; a button press/release is never merged into. */
@@ -19,9 +22,11 @@ class ReportQueue(private val motionCapacity: Int = 32) {
 
     val size get() = q.size
 
-    fun push(reportId: Int, data: ByteArray) {
+    fun push(reportId: Int, data: ByteArray, keysFirst: Boolean = false) {
         if (reportId != HidDescriptors.REPORT_ID_MOUSE) {
-            q.addLast(Item(reportId, data.copyOf()))
+            var at = q.size
+            if (keysFirst) while (at > 0 && q[at - 1].mergeable) at--
+            q.add(at, Item(reportId, data.copyOf()))
             return
         }
         val buttons = data[0].toInt()
@@ -43,6 +48,8 @@ class ReportQueue(private val motionCapacity: Int = 32) {
         }
         q.addLast(Item(reportId, data.copyOf(), mergeable = motion))
     }
+
+    fun peek(): Item? = q.firstOrNull()
 
     fun poll(): Item? = q.removeFirstOrNull()
 

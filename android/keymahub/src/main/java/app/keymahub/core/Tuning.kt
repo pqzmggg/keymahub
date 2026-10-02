@@ -19,6 +19,10 @@ data class Tuning(
     val le2m: Boolean = LE_2M,
     /** Take captured mouse events one by one rather than once per display frame. */
     val unbufferedMouse: Boolean = UNBUFFERED_MOUSE,
+    /** Keyboard reports go ahead of mouse motion waiting to be sent (not ahead of clicks). */
+    val keysFirst: Boolean = KEYS_FIRST,
+    /** In-flight reports allowed beyond [window] for keyboard reports. */
+    val keyExtra: Int = KEY_EXTRA.recommended,
 ) {
     /** The same, with every number within its range. */
     fun clamped() = copy(
@@ -27,6 +31,7 @@ data class Tuning(
         confirmMs = CONFIRM.clamp(confirmMs),
         busyRetryMs = BUSY_RETRY.clamp(busyRetryMs),
         slowLogMs = SLOW_LOG.clamp(slowLogMs),
+        keyExtra = KEY_EXTRA.clamp(keyExtra),
     )
 
     /** A number's recommended value and the range it may take. */
@@ -54,5 +59,12 @@ data class Tuning(
         const val LE_2M = true
         /** Off: frame-batched mouse events were steadier in use than one by one. */
         const val UNBUFFERED_MOUSE = false
+        /** On: a key waits for at most the reports already in flight, not for the mouse's queue too. */
+        const val KEYS_FIRST = true
+        /**
+         * 1: a key goes out at once even while the mouse fills the window, at the cost of one more
+         * report that may wait in the Bluetooth stack (a key, so never merged anyway).
+         */
+        val KEY_EXTRA = Spec(recommended = 1, min = 0, max = 4)
     }
 }

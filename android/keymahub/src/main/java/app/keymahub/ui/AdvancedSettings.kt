@@ -35,7 +35,8 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Icon
 
 /**
- * Advanced settings: the numbers and switches of sending over Bluetooth ([Tuning]), each with
+ * Advanced settings: the numbers and switches of sending over Bluetooth ([Tuning]), in groups
+ * (shared by keyboard and mouse, mouse only, keyboard only), each with
  * its recommended value, its range and a "?" that says what it does. Folded until opened. A
  * value within range applies as soon as it is typed.
  */
@@ -61,12 +62,11 @@ fun AdvancedCard(tuning: Tuning, onTuning: ((Tuning) -> Tuning) -> Unit) {
         if (!open) return@Card
 
         val ms = stringResource(R.string.unit_ms)
-        HorizontalDivider()
-        NumberItem(R.string.tuning_motion, R.string.tuning_motion_help, ms, Tuning.MOTION, tuning.motionMs) { v ->
-            onTuning { it.copy(motionMs = v) }
-        }
-        HorizontalDivider()
-        NumberItem(R.string.tuning_window, R.string.tuning_window_help, stringResource(R.string.unit_reports), Tuning.WINDOW, tuning.window) { v ->
+        val reports = stringResource(R.string.unit_reports)
+
+        // Shared by keyboard and mouse: how reports go over the link.
+        GroupTitle(R.string.tuning_group_common)
+        NumberItem(R.string.tuning_window, R.string.tuning_window_help, reports, Tuning.WINDOW, tuning.window) { v ->
             onTuning { it.copy(window = v) }
         }
         HorizontalDivider()
@@ -83,17 +83,43 @@ fun AdvancedCard(tuning: Tuning, onTuning: ((Tuning) -> Tuning) -> Unit) {
         }
         HorizontalDivider()
         SwitchItem(R.string.tuning_le2m, R.string.tuning_le2m_help, Tuning.LE_2M, tuning.le2m) { on -> onTuning { it.copy(le2m = on) } }
+
+        GroupTitle(R.string.tuning_group_mouse)
+        NumberItem(R.string.tuning_motion, R.string.tuning_motion_help, ms, Tuning.MOTION, tuning.motionMs) { v ->
+            onTuning { it.copy(motionMs = v) }
+        }
         if (Build.VERSION.SDK_INT >= 30) {
             HorizontalDivider()
             SwitchItem(R.string.tuning_unbuffered, R.string.tuning_unbuffered_help, Tuning.UNBUFFERED_MOUSE, tuning.unbufferedMouse) { on ->
                 onTuning { it.copy(unbufferedMouse = on) }
             }
         }
+
+        GroupTitle(R.string.tuning_group_keyboard)
+        SwitchItem(R.string.tuning_keys_first, R.string.tuning_keys_first_help, Tuning.KEYS_FIRST, tuning.keysFirst) { on ->
+            onTuning { it.copy(keysFirst = on) }
+        }
+        HorizontalDivider()
+        NumberItem(R.string.tuning_key_extra, R.string.tuning_key_extra_help, reports, Tuning.KEY_EXTRA, tuning.keyExtra) { v ->
+            onTuning { it.copy(keyExtra = v) }
+        }
         HorizontalDivider()
         TextButton(onClick = { onTuning { Tuning() } }, modifier = Modifier.padding(8.dp)) {
             Text(stringResource(R.string.tuning_reset))
         }
     }
+}
+
+/** The heading of a group of settings (common, mouse, keyboard). */
+@Composable
+private fun GroupTitle(text: Int) {
+    HorizontalDivider()
+    Text(
+        stringResource(text),
+        style = MaterialTheme.typography.labelLarge,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 4.dp),
+    )
 }
 
 /** A number of [spec]'s range, in [unit]: applied (via [onValue]) as soon as what is typed is within it. */
