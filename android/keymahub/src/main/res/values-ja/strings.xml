@@ -214,4 +214,30 @@
     <string name="tutorial_switch_phone">このデバイス</string>
     <string name="tutorial_switch_target">プロファイルでその番号に置いたデバイス</string>
     <string name="tutorial_switch_body">ホットキーの修飾キーは設定で変更できます。</string>
+
+    <!-- Advanced settings (sending over Bluetooth) -->
+    <string name="settings_advanced">詳細設定</string>
+    <string name="advanced_show">詳細設定を表示</string>
+    <string name="settings_advanced_hint">入力を Bluetooth で送る方法を調整します。変更はすぐに反映されます。よくわからない場合は推奨値のままにしてください。</string>
+    <string name="tuning_range">推奨 %1$d・範囲 %2$d〜%3$d（%4$s）</string>
+    <string name="tuning_out_of_range">範囲外の値は反映されません</string>
+    <string name="tuning_recommended_on">推奨: オン</string>
+    <string name="tuning_reset">推奨値に戻す</string>
+    <string name="action_help">ヘルプ</string>
+    <string name="unit_ms">ms</string>
+    <string name="unit_reports">件</string>
+    <string name="tuning_motion">マウス移動の送信間隔</string>
+    <string name="tuning_motion_help">マウスの動きをデバイスへ送る最小間隔です。その間の動きはまとめて一度に送ります。小さいほど滑らかですが送信量が増え、Bluetooth リンクが追いつかないと溜まってマウスが遅れます。大きいほど遅れにくくなりますが滑らかさは下がります。遅れる場合は上げ（例: 12〜16）、カクつく場合は下げてください。</string>
+    <string name="tuning_window">同時送信数</string>
+    <string name="tuning_window_help">確認を受け取る前に Bluetooth スタックへ渡しておける送信数です。スタックに渡した分はもうまとめられないため、多いほどリンクが遅いときの遅れが大きくなります。少ないほど遅れにくい反面、一度に送れる量が減り動きがカクつくことがあります。</string>
+    <string name="tuning_confirm">送信確認の待ち時間</string>
+    <string name="tuning_confirm_help">送信の確認を待つ最大時間です。過ぎると確認が失われたとみなして送信を続けます。短すぎると遅いリンクの正常な確認まで失われたと判断してスタックに詰め込み（遅れの原因）、長すぎると確認が本当に失われたときにその分止まります。ログに \'unconfirmed after\' がよく出る場合は上げてください。</string>
+    <string name="tuning_busy_retry">再試行の間隔</string>
+    <string name="tuning_busy_retry_help">Bluetooth スタックが混んでいて送れなかった分を再試行するまでの時間です。短いほど早く再送しますが CPU を少し多く使います。</string>
+    <string name="tuning_slow_log">遅延ログの基準</string>
+    <string name="tuning_slow_log_help">入力がこの時間以上待った場合にアプリのログへ記録します（\'waited … ms\'）。診断用で、送信方法は変わりません。</string>
+    <string name="tuning_le2m">LE 2M PHY</string>
+    <string name="tuning_le2m_help">デバイスに Bluetooth LE 2M を要求します。パケットあたりの電波の占有時間が半分になり、ほかの機器や Wi-Fi との競合が減ります。使うかどうかはデバイスが決めます。距離が遠い場合や干渉が多い場合はオフのほうが安定することがあります。変更すると接続中のデバイスにすぐ要求し直します。</string>
+    <string name="tuning_unbuffered">マウスを即時に受け取る</string>
+    <string name="tuning_unbuffered_help">このスマートフォンに接続したマウスの動きを、画面のフレーム（8〜16ms）ごとにまとめず届いたとおりに受け取ります。オンで反応が速く、オフで処理するイベントが減ります。Android 11 以降。</string>
 </resources>

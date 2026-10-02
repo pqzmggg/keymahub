@@ -214,4 +214,30 @@
     <string name="tutorial_switch_phone">이 기기</string>
     <string name="tutorial_switch_target">프로필에서 그 번호에 둔 기기</string>
     <string name="tutorial_switch_body">단축키의 보조키는 설정에서 바꿀 수 있습니다.</string>
+
+    <!-- Advanced settings (sending over Bluetooth) -->
+    <string name="settings_advanced">고급 설정</string>
+    <string name="advanced_show">고급 설정 표시</string>
+    <string name="settings_advanced_hint">입력을 블루투스로 보내는 방식을 조정합니다. 바꾸면 바로 적용됩니다. 잘 모르겠으면 권장값을 쓰세요.</string>
+    <string name="tuning_range">권장 %1$d · 범위 %2$d~%3$d (%4$s)</string>
+    <string name="tuning_out_of_range">범위를 벗어난 값은 적용되지 않습니다</string>
+    <string name="tuning_recommended_on">권장: 켬</string>
+    <string name="tuning_reset">권장값으로 되돌리기</string>
+    <string name="action_help">도움말</string>
+    <string name="unit_ms">ms</string>
+    <string name="unit_reports">개</string>
+    <string name="tuning_motion">마우스 이동 보고 간격</string>
+    <string name="tuning_motion_help">마우스 움직임을 기기로 보내는 최소 간격입니다. 그 사이의 움직임은 합쳐서 한 번에 보냅니다. 작을수록 부드럽지만 보내는 양이 늘어, 블루투스 링크가 따라가지 못하면 보고가 쌓여 마우스가 밀립니다. 클수록 덜 밀리지만 덜 부드럽습니다. 밀리면 늘리고(예: 12~16), 뚝뚝 끊기면 줄여 보세요.</string>
+    <string name="tuning_window">동시 전송 개수</string>
+    <string name="tuning_window_help">확인을 받기 전까지 블루투스 스택에 넘겨 둘 수 있는 보고 개수입니다. 스택에 넘어간 보고는 더 이상 합칠 수 없어서, 많을수록 링크가 느릴 때 밀림이 커집니다. 적을수록 덜 밀리지만 한 번에 보내는 양이 줄어 움직임이 끊겨 보일 수 있습니다.</string>
+    <string name="tuning_confirm">전송 확인 대기</string>
+    <string name="tuning_confirm_help">보낸 보고의 전송 확인을 기다리는 최대 시간입니다. 지나면 확인을 잃은 것으로 보고 계속 보냅니다. 너무 짧으면 느린 링크의 정상 확인도 잃은 것으로 판단해 스택에 더 밀어 넣고(밀림의 원인), 너무 길면 확인이 정말 사라졌을 때 그만큼 멈춥니다. 로그에 \'unconfirmed after\'가 자주 보이면 늘리세요.</string>
+    <string name="tuning_busy_retry">재시도 간격</string>
+    <string name="tuning_busy_retry_help">블루투스 스택이 바빠서 보내지 못한 보고를 다시 시도하기까지의 시간입니다. 짧을수록 빨리 다시 보내지만 CPU를 조금 더 씁니다.</string>
+    <string name="tuning_slow_log">지연 로그 기준</string>
+    <string name="tuning_slow_log_help">입력이 이 시간 이상 기다리면 앱 로그에 남깁니다(\'waited … ms\'). 진단용이며 전송 방식은 바뀌지 않습니다.</string>
+    <string name="tuning_le2m">LE 2M PHY</string>
+    <string name="tuning_le2m_help">기기에 블루투스 LE 2M 방식을 요청합니다. 패킷당 무선 점유 시간이 절반이라 다른 기기·Wi-Fi와의 경합이 줄어듭니다. 사용 여부는 기기가 정합니다. 거리가 멀거나 간섭이 심하면 끄는 편이 안정적일 수 있습니다. 바꾸면 연결된 기기에 바로 다시 요청합니다.</string>
+    <string name="tuning_unbuffered">마우스 즉시 받기</string>
+    <string name="tuning_unbuffered_help">이 폰에 연결된 마우스의 움직임을 화면 프레임(8~16ms)마다 묶지 않고 오는 대로 받습니다. 켜면 반응이 빠르고, 끄면 처리하는 이벤트가 줄어듭니다. Android 11 이상.</string>
 </resources>

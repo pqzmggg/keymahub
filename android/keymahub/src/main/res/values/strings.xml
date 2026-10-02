@@ -217,4 +217,30 @@
     <string name="tutorial_switch_phone">this device</string>
     <string name="tutorial_switch_target">the device on that number in the profile</string>
     <string name="tutorial_switch_body">The hotkey keys can be changed in Settings.</string>
+
+    <!-- Advanced settings (sending over Bluetooth) -->
+    <string name="settings_advanced">Advanced</string>
+    <string name="advanced_show">Show advanced settings</string>
+    <string name="settings_advanced_hint">How input is sent over Bluetooth. Changes apply at once. If unsure, keep the recommended values.</string>
+    <string name="tuning_range">Recommended %1$d · range %2$d–%3$d (%4$s)</string>
+    <string name="tuning_out_of_range">Out of range: not applied</string>
+    <string name="tuning_recommended_on">Recommended: on</string>
+    <string name="tuning_reset">Reset to recommended</string>
+    <string name="action_help">Help</string>
+    <string name="unit_ms">ms</string>
+    <string name="unit_reports">reports</string>
+    <string name="tuning_motion">Mouse report interval</string>
+    <string name="tuning_motion_help">The shortest time between two mouse movement reports sent to the device. Movement in between is added up and sent as one. Lower is smoother but sends more; if the Bluetooth link cannot keep up, reports pile up and the mouse lags. Higher lags less but moves less smoothly. If the mouse lags, raise it (e.g. 12–16); if it feels choppy, lower it.</string>
+    <string name="tuning_window">Reports in flight</string>
+    <string name="tuning_window_help">How many reports may be handed to the Bluetooth stack before it confirms them. Reports in the stack can no longer be merged, so more of them means more lag when the link is slow. Fewer means less lag, but less is sent at a time and motion may look choppy.</string>
+    <string name="tuning_confirm">Confirmation wait</string>
+    <string name="tuning_confirm_help">How long to wait for the stack to confirm sent reports before counting them as lost and sending on. Too short, and a slow link\'s normal confirmations count as lost, so more is pushed into the stack (a cause of lag). Too long, and sending pauses that long when a confirmation really is lost. If the log often shows \'unconfirmed after\', raise it.</string>
+    <string name="tuning_busy_retry">Busy retry</string>
+    <string name="tuning_busy_retry_help">How soon a report the Bluetooth stack was too busy for is tried again. Shorter retries sooner but uses a little more CPU.</string>
+    <string name="tuning_slow_log">Slow input log</string>
+    <string name="tuning_slow_log_help">Input that waits this long or longer is written to the app log (\'waited … ms\'). For diagnosis only: it does not change sending.</string>
+    <string name="tuning_le2m">LE 2M PHY</string>
+    <string name="tuning_le2m_help">Asks devices for Bluetooth LE 2M. Each packet takes half the air time, leaving more room for other devices and Wi-Fi. The device decides whether to use it. Far away or with heavy interference, off may be steadier. A change is requested from connected devices at once.</string>
+    <string name="tuning_unbuffered">Unbuffered mouse</string>
+    <string name="tuning_unbuffered_help">Takes this phone\'s mouse movement as it comes, instead of once per screen frame (8–16 ms). On reacts faster; off handles fewer events. Android 11 and later.</string>
 </resources>

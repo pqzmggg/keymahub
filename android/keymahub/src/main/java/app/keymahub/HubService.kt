@@ -129,6 +129,12 @@ class HubService : Service(), BleHid.Listener {
             showHud(getString(R.string.hud_profile, profileLabel()))
             updateNotification()
         }
+        // Advanced settings read on each report apply by themselves; these two need a nudge.
+        Hub.onUiChanged = { before, after ->
+            if (after.tuning.le2m != before.tuning.le2m) BleHid.setLe2m(after.tuning.le2m)
+            if (after.tuning.unbufferedMouse != before.tuning.unbufferedMouse) pointerCapture?.refreshDispatch()
+            if (after.tuning != before.tuning) Hub.log("advanced settings: ${after.tuning}")
+        }
         BleHid.addListener(this)
         for (address in BleHid.readyTargets()) onReady(address, BleHid.nameOf(address))
 
@@ -149,6 +155,7 @@ class HubService : Service(), BleHid.Listener {
         ready = false
         main.removeCallbacksAndMessages(null)
         Hub.onProfileChanged = null
+        Hub.onUiChanged = null
         BleHid.removeListener(this)
         val c = capture
         KeymaAccessibilityService.instance?.let {

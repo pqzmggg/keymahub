@@ -31,6 +31,7 @@ import android.os.SystemClock
 import app.keymahub.R
 import app.keymahub.ble.HostTable.Change
 import app.keymahub.core.Hub
+import app.keymahub.core.Tuning
 import app.keymahub.hid.ConsumerReport
 import app.keymahub.hid.HidDescriptors
 import app.keymahub.hid.KeyboardReport
@@ -608,26 +609,27 @@ object BleHid {
     }
 
     /**
-     * Keeps up to [WINDOW] notifications outstanding per target (a few fit in one connection
+     * Keeps up to [Tuning.window] notifications outstanding per target (a few fit in one connection
      * event); the rest wait in the [ReportQueue], where mouse motion merges. What is handed to the
      * Bluetooth stack can no longer be merged: it goes out at the link's pace, so a backlog there
      * is lag, not a jump. Hence the small window, and no more than it while confirmations are due
-     * ([IN_FLIGHT_TIMEOUT_MS]). A wait of
-     * [SLOW_WAIT_MS] or more is logged with its cause, so a felt delay can be told apart from the
-     * radio's. Holds [lock].
+     * ([Tuning.confirmMs]): a slow link confirms late, and giving up too soon overfills the stack.
+     * A wait of [Tuning.slowLogMs] or more is logged with its cause, so a felt delay can be told
+     * apart from the radio's. The numbers are read each time (advanced settings). Holds [lock].
      */
     private fun pump(address: String) {
         val device = devices[address] ?: return
         val box = outboxes[address] ?: return
         val q = box.queue
         val now = SystemClock.uptimeMillis()
-        if (box.inFlight > 0 && now - box.lastSent > IN_FLIGHT_TIMEOUT_MS) {
+        val t = Hub.ui.value.tuning
+        if (box.inFlight > 0 && now - box.lastSent > t.confirmMs) {
             // A confirmation got lost (or is late; a late one only lowers the count, floored at 0): don't stall.
             // Logged only when input was held back by it (not when it went unnoticed while idle).
             if (box.waiting != null) log("${box.inFlight} sent to ${nameOf(address)} unconfirmed after ${now - box.lastSent} ms, sending on")
             box.inFlight = 0
         }
-        while (box.inFlight < WINDOW) {
+        while (box.inFlight < t.window) {
             val item = q.poll() ?: break
             val ch = when (item.reportId) {
                 HidDescriptors.REPORT_ID_MOUSE -> db.mouseIn
@@ -643,12 +645,12 @@ object BleHid {
         }
         if (q.size == 0) {
             box.waiting?.let { (since, why) ->
-                if (now - since >= SLOW_WAIT_MS) log("input to ${nameOf(address)} waited ${now - since} ms ($why)")
+                if (now - since >= t.slowLogMs) log("input to ${nameOf(address)} waited ${now - since} ms ($why)")
             }
             box.waiting = null
             return
         }
-        val full = box.inFlight >= WINDOW
+        val full = box.inFlight >= t.window
         if (box.waiting == null) box.waiting = now to (if (full) "waiting for confirmations" else "Bluetooth stack busy")
         // Reports still waiting may get no confirmation to send them: none comes when the stack
         // was busy with nothing in flight, or when a confirmation got lost. Without a retry they
@@ -660,7 +662,7 @@ object BleHid {
                     outboxes[address]?.retrying = false
                     pump(address)
                 }
-            }, if (full) IN_FLIGHT_TIMEOUT_MS + BUSY_RETRY_MS else BUSY_RETRY_MS)
+            }, if (full) t.confirmMs + t.busyRetryMs.toLong() else t.busyRetryMs.toLong())
         }
     }
 
@@ -816,19 +818,33 @@ object BleHid {
     }
 
     /**
-     * Joins the link (its connection interval, and a way to end it), asks for the LE 2M PHY, and
-     * advertise again (some controllers stop on connect). 2M sends each packet in half the air time,
-     * leaving more room for the other links (and Wi-Fi) on the phone's radio; the host decides, and
-     * one that does not support it stays on 1M.
+     * Joins the link (its connection interval, and a way to end it), asks for the PHY (see
+     * [requestPhy]), and advertise again (some controllers stop on connect).
      */
     private fun tune(device: BluetoothDevice) {
         if (!running || !hosts.isLinked(device.address)) return
         join(device, end = false)
-        val le2m = runCatching { manager()?.adapter?.isLe2MPhySupported }.getOrNull() == true
-        if (le2m) {
-            runCatching { server?.setPreferredPhy(device, BluetoothDevice.PHY_LE_2M_MASK, BluetoothDevice.PHY_LE_2M_MASK, BluetoothDevice.PHY_OPTION_NO_PREFERRED) }
-        }
+        if (Hub.ui.value.tuning.le2m) requestPhy(device, le2m = true)
         advertise()
+    }
+
+    /**
+     * Asks [device] for the LE 2M PHY, or with [le2m] false for 1M. 2M sends each packet in half
+     * the air time, leaving more room for the other links (and Wi-Fi) on the phone's radio; the
+     * host decides, and one that does not support it stays on 1M.
+     */
+    private fun requestPhy(device: BluetoothDevice, le2m: Boolean) {
+        if (le2m && runCatching { manager()?.adapter?.isLe2MPhySupported }.getOrNull() != true) return
+        val phy = if (le2m) BluetoothDevice.PHY_LE_2M_MASK else BluetoothDevice.PHY_LE_1M_MASK
+        runCatching { server?.setPreferredPhy(device, phy, phy, BluetoothDevice.PHY_OPTION_NO_PREFERRED) }
+    }
+
+    /** The LE 2M PHY setting changed (advanced settings): asks the hosts linked now. */
+    fun setLe2m(on: Boolean) {
+        if (!running) return
+        val linked = synchronized(lock) { devices.values.filter { hosts.isLinked(it.address) } }
+        for (d in linked) requestPhy(d, on)
+        log("LE ${if (on) "2M" else "1M"} PHY requested from ${linked.size} host(s)")
     }
 
     private fun isHid(ch: BluetoothGattCharacteristic) = ch.service?.uuid == HID_SERVICE
@@ -1006,15 +1022,4 @@ object BleHid {
     private const val FORGET_WINDOW_MS = 15_000L
     /** How long a new link is left alone before tuning it or restarting advertising. */
     private const val SETTLE_MS = 3_000L
-    private const val WINDOW = 3
-    /**
-     * How long sent notifications may stay unconfirmed before they count as lost and sending goes on.
-     * Long on purpose: a slow link confirms late, and giving up too soon sends more into the
-     * Bluetooth stack, where it waits unmerged (see [pump]); a lost confirmation is rare.
-     */
-    private const val IN_FLIGHT_TIMEOUT_MS = 250L
-    /** A wait for sending this long or longer is logged (see [pump]). */
-    private const val SLOW_WAIT_MS = 50L
-    /** How soon a send the stack was too busy for is tried again. */
-    private const val BUSY_RETRY_MS = 5L
 }
