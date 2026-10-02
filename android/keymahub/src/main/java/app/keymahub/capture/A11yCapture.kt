@@ -75,6 +75,20 @@ class A11yCapture(
     /** Returns true to consume the key (it went to a target or was a hotkey). */
     fun onKeyEvent(e: KeyEvent): Boolean {
         val dev = e.device
+        val mouse = dev != null && !dev.isVirtual && dev.supportsSource(InputDevice.SOURCE_MOUSE)
+        // A mouse's back and forward buttons also come as BACK / FORWARD keys, which would act on
+        // this device: on a target they are its buttons 4 and 5. Routed as buttons, so a release goes
+        // where its press went (a press on this device is let through, and so is its release). The
+        // button state may carry them as well (onCapturedPointer): the router ignores a second
+        // press, and a release with no press while on a target.
+        val mouseButton = if (mouse) MOUSE_KEYS[e.keyCode] else null
+        if (mouseButton != null) synchronized(router) {
+            if (e.action != KeyEvent.ACTION_DOWN && e.action != KeyEvent.ACTION_UP) return false
+            if (e.repeatCount > 0) return router.isRemote
+            local.pass = false
+            router.onButton(mouseButton, e.action == KeyEvent.ACTION_DOWN)
+            return !local.pass
+        }
         val keyboard = dev != null && !dev.isVirtual && dev.keyboardType == InputDevice.KEYBOARD_TYPE_ALPHABETIC
         // The language switch key handed over without a scan code or from a virtual device (the 한/영
         // key on some tablets), which would otherwise stay on this device: to the target as 한/영
@@ -82,8 +96,10 @@ class A11yCapture(
         val language = e.keyCode == KeyEvent.KEYCODE_LANGUAGE_SWITCH && (!keyboard || e.scanCode == 0)
         // Otherwise only physical full keyboards; leave volume/power buttons and virtual keys alone.
         if (!language && !keyboard) {
-            // Not the phone's own buttons (volume, power): those are not worth a line.
+            // Not the phone's own buttons (volume, power): those are not worth a line. A mouse's other
+            // keys are (its special buttons, to tell which ones Android passes on at all).
             if (dev == null || dev.isVirtual) unrouted(e, "virtual device")
+            else if (mouse) unrouted(e, "mouse ${dev.name}")
             return false
         }
         val code = if (language) LANGUAGE_SWITCH_CODE else e.scanCode.takeIf { it != 0 } ?: run {
@@ -200,6 +216,12 @@ class A11yCapture(
 
         /** A language change this soon after sending 한/영 is that key's own doing. */
         const val LANG1_ECHO_MS = 1000L
+
+        /** Keys a mouse sends for its side buttons, and those buttons. */
+        val MOUSE_KEYS = mapOf(
+            KeyEvent.KEYCODE_BACK to Buttons.BACK,
+            KeyEvent.KEYCODE_FORWARD to Buttons.FORWARD,
+        )
 
         val BUTTON_BITS = listOf(
             MotionEvent.BUTTON_PRIMARY to Buttons.LEFT,
