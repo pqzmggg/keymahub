@@ -22,7 +22,9 @@ import app.keymahub.capture.HudOverlay
 import app.keymahub.capture.PointerCaptureOverlay
 import app.keymahub.capture.ScreenCover
 import app.keymahub.core.Hotkey
+import app.keymahub.core.Hotkeys
 import app.keymahub.core.Hub
+import app.keymahub.core.Mods
 import app.keymahub.ui.MainActivity
 import app.keymahub.ui.displayName
 import app.keymahub.core.appVersion
@@ -125,6 +127,7 @@ class HubService : Service(), BleHid.Listener {
         }.onFailure { Hub.log("input language not watched: $it") }
         // Another profile may put other receivers on the hotkeys: start again from the phone.
         Hub.onProfileChanged = {
+            Hub.log("profile ${profileLabel()} (${profile.id}) active, connected: ${connectedNames()}")
             c.select(0)
             showHud(getString(R.string.hud_profile, profileLabel()))
             updateNotification()
@@ -189,7 +192,16 @@ class HubService : Service(), BleHid.Listener {
 
     // ---------------------------------------------------------------- routing callbacks
 
-    private fun hotkeyTarget(h: Hotkey): Int? = Hub.settings(this).slotFor(h)
+    private fun hotkeyTarget(h: Hotkey): Int? {
+        val settings = Hub.settings(this)
+        val slot = settings.slotFor(h)
+        // A number key with other modifiers than the hotkeys' (one still counted as held, say): logged,
+        // as a switch that does not happen leaves no other trace. Shift alone is typing ("@", "#").
+        if (slot == null && Hotkeys.slotOf(h.code) != null && h.mods and Mods.SHIFT.inv() != 0) {
+            Hub.log("not a hotkey: ${KeyLabels.hotkey(h)} (hotkeys: ${KeyLabels.mods(settings.mods)} + number)")
+        }
+        return slot
+    }
 
     private fun isAvailable(slot: Int): Boolean {
         val address = profile.addressOf(slot) ?: return false
@@ -210,6 +222,7 @@ class HubService : Service(), BleHid.Listener {
     }
 
     private fun onSelect(slot: Int) {
+        Hub.log(if (slot == 0) "control: this device" else "control: ${receiverName(slot) ?: "?"} (slot $slot, profile ${profile.id})")
         val a11y = KeymaAccessibilityService.instance
         if (slot == 0) {
             sender?.select(null)
@@ -237,6 +250,7 @@ class HubService : Service(), BleHid.Listener {
 
     private fun onUnavailable(slot: Int) {
         val name = receiverName(slot)
+        Hub.log("hotkey of slot $slot: ${name?.let { "$it not connected" } ?: "no device on it"} (profile ${profile.id}, connected: ${connectedNames()})")
         showHud(
             if (name != null) getString(R.string.hud_unavailable, name)
             else getString(R.string.hud_empty, hotkeyLabel(slot)),
@@ -256,11 +270,20 @@ class HubService : Service(), BleHid.Listener {
     }
 
     override fun onGone(address: String) {
-        profile.slotOf(address)?.let { capture?.targetLost(it) }
+        profile.slotOf(address)?.let { slot ->
+            if (capture?.slot == slot) Hub.log("${BleHid.nameOf(address)} went away while in control: back to this device")
+            capture?.targetLost(slot)
+        }
         Hub.update { it.copy(ready = BleHid.readyTargets()) }
         // Also re-picks the active profile for the devices still connected.
         Hub.edit(this) { it.touch(address, System.currentTimeMillis()) }
         updateNotification()
+    }
+
+    /** Names of the receivers connected now, for the log. */
+    private fun connectedNames(): String {
+        val s = Hub.settings(this)
+        return BleHid.readyTargets().joinToString { s.device(it)?.name ?: BleHid.nameOf(it) }.ifEmpty { "none" }
     }
 
     // ---------------------------------------------------------------- notification
