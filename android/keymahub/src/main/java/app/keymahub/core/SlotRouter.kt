@@ -11,6 +11,10 @@ package app.keymahub.core
  * a key held on either side. When leaving a target, whatever is still held there is
  * released on that target, and the physical releases are swallowed.
  *
+ * A release that never arrives would leave its key counted as held for good: a modifier makes
+ * every chord miss its hotkey, a number key ignores its hotkey's press. So a key pressed again,
+ * and a modifier the system no longer reports held, count as released ([onStale]).
+ *
  * Not thread-safe: callers serialize access.
  */
 class SlotRouter(
@@ -24,6 +28,8 @@ class SlotRouter(
     private val onSelect: (slot: Int) -> Unit,
     /** The hotkey of [slot] was pressed but nothing is connected there. */
     private val onUnavailable: (slot: Int) -> Unit,
+    /** Key [code] was still counted as held although it was up (its release never came); now released. */
+    private val onStale: (code: Int) -> Unit = {},
 ) {
     private enum class Dest { LOCAL, REMOTE, SWALLOWED }
 
@@ -35,14 +41,24 @@ class SlotRouter(
     private val keys = HashMap<Int, Pair<Dest, Int?>>() // evdev code -> (dest, HID usage)
     private val buttons = HashMap<Int, Dest>()
 
-    /** [code] is the evdev key code, [hid] its HID usage if mapped. Auto-repeat is not passed in. */
-    fun onKey(code: Int, hid: Int?, down: Boolean) {
+    /**
+     * [code] is the evdev key code, [hid] its HID usage if mapped. Auto-repeat is not passed in.
+     * [held]: the modifiers ([Mods] bits) the system reports held with this key, if known.
+     */
+    fun onKey(code: Int, hid: Int?, down: Boolean, held: Int? = null) {
         if (!down) {
             val (dest, usage) = keys.remove(code) ?: ((if (isRemote) Dest.SWALLOWED else Dest.LOCAL) to hid)
             if (usage != null) sink(dest)?.key(usage, false)
             return
         }
-        if (code in keys) return // duplicate down
+        // Pressed again without a release in between: the release was lost.
+        if (code in keys) drop(code)
+        if (held != null && Mods.of(code) == 0) {
+            for (c in keys.keys.toList()) {
+                val bit = Mods.of(c)
+                if (bit != 0 && held and bit == 0) drop(c)
+            }
+        }
 
         val mods = heldMods()
         val target = if (mods != 0 && Mods.of(code) == 0) hotkey(Hotkey(mods, code)) else null
@@ -128,6 +144,17 @@ class SlotRouter(
     }
 
     private fun heldMods() = keys.keys.fold(0) { m, code -> m or Mods.of(code) }
+
+    /**
+     * Forgets held key [code] whose release was lost, releasing it on the target it went to. One
+     * left to this phone needs nothing: the system has it up already (and a release passed on now
+     * would let the key being pressed through to the phone).
+     */
+    private fun drop(code: Int) {
+        val (dest, usage) = keys.remove(code) ?: return
+        if (dest == Dest.REMOTE && usage != null) remote.key(usage, false)
+        onStale(code)
+    }
 
     /** Releases on the current target whatever is held there; their physical releases get swallowed. */
     private fun releaseRemote() {
