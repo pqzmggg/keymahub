@@ -29,6 +29,7 @@ class SlotRouterTest {
         isAvailable = { it in available },
         onSelect = { out += "select $it" },
         onUnavailable = { out += "unavailable $it" },
+        onStale = { out += "stale $it" },
     )
 
     // evdev codes and HID usages used below
@@ -200,5 +201,43 @@ class SlotRouterTest {
         out.clear()
         router.onButton(4, false)
         assertEquals(listOf("local button 4 up"), out)
+    }
+
+    @Test
+    fun aModifierWhoseReleaseWasLostNoLongerSpoilsTheHotkey() {
+        down(ctrl) // its release never comes
+        out.clear()
+        down(shift); down(alt)
+        val d = digit(keyFor(1))
+        router.onKey(d.first, d.second, true, held = Mods.SHIFT or Mods.ALT)
+        assertEquals(1, router.slot)
+        assertTrue("stale ${ctrl.first}" in out)
+    }
+
+    @Test
+    fun aModifierHeldAsTheSystemSaysStaysHeld() {
+        down(ctrl); down(shift); down(alt)
+        val d = digit(keyFor(1))
+        router.onKey(d.first, d.second, true, held = Mods.CTRL or Mods.SHIFT or Mods.ALT)
+        assertEquals(0, router.slot) // Ctrl+Shift+Alt is not the hotkey
+        assertFalse(out.any { it.startsWith("stale") })
+    }
+
+    @Test
+    fun aKeyPressedAgainWithoutItsReleaseIsPressedAfresh() {
+        val d = digit(keyFor(1))
+        down(d) // its release never comes
+        down(shift); down(alt); down(d)
+        assertEquals(1, router.slot)
+        assertTrue("stale ${d.first}" in out)
+    }
+
+    @Test
+    fun aLostReleaseOnTheTargetIsSentThere() {
+        hotkey(1)
+        down(ctrl) // its release never comes
+        out.clear()
+        router.onKey(a.first, a.second, true, held = 0)
+        assertEquals(listOf("remote key ${0xE0} up", "stale ${ctrl.first}", "remote key ${0x04} down"), out)
     }
 }

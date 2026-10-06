@@ -4,8 +4,10 @@ import android.os.SystemClock
 import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
+import app.keymahub.KeyLabels
 import app.keymahub.core.Buttons
 import app.keymahub.core.Hotkey
+import app.keymahub.core.Mods
 import app.keymahub.core.InputSink
 import app.keymahub.core.SlotRouter
 import app.keymahub.core.Hub
@@ -55,7 +57,9 @@ class A11yCapture(
         subX = 0f
         subY = 0f
         onSelect(it)
-    }, onUnavailable = onUnavailable)
+    }, onUnavailable = onUnavailable, onStale = { code ->
+        Hub.log("key ${KeyLabels.key(code)} was still counted as held (its release never came): released")
+    })
     private var buttons = 0
     /** When 한/영 (Lang1) last went to a target from the key itself ([onKeyEvent]), uptime millis. */
     private var lastLang1 = 0L
@@ -124,7 +128,7 @@ class A11yCapture(
                 return router.isRemote
             }
             local.pass = false
-            router.onKey(code, hid, e.action == KeyEvent.ACTION_DOWN)
+            router.onKey(code, hid, e.action == KeyEvent.ACTION_DOWN, heldMods(e.metaState))
             if (hid == HidKeycodes.LANG1_HANGUL && router.isRemote) lastLang1 = SystemClock.uptimeMillis()
             return !local.pass
         }
@@ -211,6 +215,13 @@ class A11yCapture(
     }
 
     private companion object {
+        /** The modifiers ([Mods] bits) in a key event's meta state: what the system has held. */
+        fun heldMods(meta: Int) =
+            (if (meta and KeyEvent.META_CTRL_ON != 0) Mods.CTRL else 0) or
+                (if (meta and KeyEvent.META_ALT_ON != 0) Mods.ALT else 0) or
+                (if (meta and KeyEvent.META_SHIFT_ON != 0) Mods.SHIFT else 0) or
+                (if (meta and KeyEvent.META_META_ON != 0) Mods.META else 0)
+
         /** Stands for the language switch key where a scan code would (above the evdev range). */
         const val LANGUAGE_SWITCH_CODE = 0x10000 + KeyEvent.KEYCODE_LANGUAGE_SWITCH
 
