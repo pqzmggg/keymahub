@@ -131,6 +131,8 @@ object BleHid {
     private val traced = HashMap<String, Int>()
     @Volatile private var appContext: Context? = null
     @Volatile private var active: String? = null
+    /** Input to [active] was dropped (its link is down) and that was logged: once per selection. */
+    private var dropNoted = false
 
     private val listeners = CopyOnWriteArrayList<Listener>()
 
@@ -172,7 +174,12 @@ object BleHid {
 
     /** Sends subsequent reports to [address] (null: nowhere). */
     fun select(address: String?) {
-        synchronized(lock) { active = address }
+        val linked = synchronized(lock) {
+            active = address
+            dropNoted = false
+            address != null && address in devices
+        }
+        if (address != null) log("input to ${nameOf(address)}${if (linked) "" else " (not linked: input is dropped)"}")
     }
 
     fun nameOf(address: String): String {
@@ -303,6 +310,11 @@ object BleHid {
             if (hosts.isLinked(address)) continue
             log("${nameOf(address)} is still linked, taking it back")
             adopt(d)
+            // The link may have come up while hosting was off, without the host opening the keyboard
+            // on it (it then ignores the input, until its Bluetooth is turned off and on): ask it to
+            // look again, as a host linked across an update is (refresh), unless it already does.
+            synchronized(lock) { refreshed.remove(address) }
+            refresh(d)
             if (hosts.linkUp(address, bonded = true) == Change.READY) onReady(d, restored = true)
         }
     }
@@ -589,7 +601,13 @@ object BleHid {
         synchronized(lock) {
             val target = active ?: return false
             // A link that just went down: nothing is kept to be sent when it is back.
-            if (target !in devices) return false
+            if (target !in devices) {
+                if (!dropNoted) {
+                    dropNoted = true
+                    logLater { "input to ${nameOf(target)} dropped: its link is down" }
+                }
+                return false
+            }
             outboxes.getOrPut(target) { Outbox() }.queue.push(reportId, data, keysFirst = Hub.ui.value.tuning.keysFirst)
             pump(target)
         }
@@ -606,6 +624,10 @@ object BleHid {
         var retrying = false
         /** Since when reports have been waiting, and why (logged when the wait was long). */
         var waiting: Pair<Long, String>? = null
+        /** The Bluetooth stack's last refusal of a notification (see [notify]). */
+        var refusal = 0
+        /** A wait of [STUCK_MS] or more was logged while it lasted. */
+        var stuckNoted = false
     }
 
     /**
@@ -640,7 +662,9 @@ object BleHid {
                 HidDescriptors.REPORT_ID_CONSUMER -> db.consumerIn
                 else -> db.keyboardIn
             }
-            if (!notify(device, ch, item.data)) {
+            val code = notify(device, ch, item.data)
+            if (code != 0) {
+                box.refusal = code
                 q.unpoll(item) // stack busy: retry on the next confirmation or report
                 break
             }
@@ -652,10 +676,19 @@ object BleHid {
                 if (now - since >= t.slowLogMs) log("input to ${nameOf(address)} waited ${now - since} ms ($why)")
             }
             box.waiting = null
+            box.stuckNoted = false
             return
         }
         val full = box.inFlight >= limit(q.peek() ?: return)
         if (box.waiting == null) box.waiting = now to (if (full) "waiting for confirmations" else "Bluetooth stack busy")
+        // A wait that does not end is logged while it lasts: the line above only comes once it ends.
+        box.waiting?.let { (since, why) ->
+            if (!box.stuckNoted && now - since >= STUCK_MS) {
+                box.stuckNoted = true
+                val detail = if (full) why else "$why, refused with ${box.refusal}"
+                logLater { "input to ${nameOf(address)} stuck for ${now - since} ms ($detail)" }
+            }
+        }
         // Reports still waiting may get no confirmation to send them: none comes when the stack
         // was busy with nothing in flight, or when a confirmation got lost. Without a retry they
         // would wait for the next input (a key release held back keeps the key down on the host).
@@ -670,15 +703,16 @@ object BleHid {
         }
     }
 
-    private fun notify(device: BluetoothDevice, ch: BluetoothGattCharacteristic, data: ByteArray): Boolean {
-        val s = server ?: return false
+    /** Hands one notification to the Bluetooth stack: 0 when taken, else why not (BluetoothStatusCodes; -1 before API 33). */
+    private fun notify(device: BluetoothDevice, ch: BluetoothGattCharacteristic, data: ByteArray): Int {
+        val s = server ?: return -1
         return if (Build.VERSION.SDK_INT >= 33) {
-            s.notifyCharacteristicChanged(device, ch, false, data) == 0 // BluetoothStatusCodes.SUCCESS
+            s.notifyCharacteristicChanged(device, ch, false, data) // 0: BluetoothStatusCodes.SUCCESS
         } else {
             @Suppress("DEPRECATION")
             ch.value = data
             @Suppress("DEPRECATION")
-            s.notifyCharacteristicChanged(device, ch, false)
+            if (s.notifyCharacteristicChanged(device, ch, false)) 0 else -1
         }
     }
 
@@ -1002,6 +1036,9 @@ object BleHid {
     }
 
     private const val TRACE_MAX = 40
+
+    /** Input waiting this long is logged while it still waits (see pump). */
+    private const val STUCK_MS = 1_000L
 
     private fun short(uuid: UUID) = "%04X".format((uuid.mostSignificantBits ushr 32).toInt() and 0xFFFF)
 
