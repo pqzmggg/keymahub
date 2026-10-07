@@ -66,8 +66,9 @@ fun TutorialScreen(status: HubStatus, onDone: () -> Unit) {
 
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Box(Modifier.fillMaxSize().safeDrawingPadding(), contentAlignment = Alignment.TopCenter) {
-            Column(Modifier.widthIn(max = 640.dp).fillMaxSize()) {
-                Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            // The pager spans the whole width so its margins swipe and scroll too; what is on it stays narrow.
+            Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+                Row(Modifier.widthIn(max = 640.dp).fillMaxWidth().padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         stringResource(R.string.tutorial_title),
                         Modifier.padding(start = 12.dp).weight(1f),
@@ -76,31 +77,33 @@ fun TutorialScreen(status: HubStatus, onDone: () -> Unit) {
                     TextButton(onClick = onDone) { Text(stringResource(R.string.tutorial_skip)) }
                 }
                 HorizontalPager(pager, Modifier.weight(1f).fillMaxWidth()) { p ->
-                    Column(
-                        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 12.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                    ) {
-                        when (p) {
-                            0 -> {
-                                Head(1, R.string.tutorial_input_title, R.string.tutorial_input_lead)
-                                Steps(R.string.tutorial_input_step1, R.string.tutorial_input_step2)
-                                Tip(stringResource(R.string.tutorial_input_tip))
+                    Box(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), contentAlignment = Alignment.TopCenter) {
+                        Column(
+                            Modifier.widthIn(max = 640.dp).fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                        ) {
+                            when (p) {
+                                0 -> {
+                                    Head(1, R.string.tutorial_input_title, R.string.tutorial_input_lead)
+                                    Steps(R.string.tutorial_input_step1, R.string.tutorial_input_step2)
+                                    Tip(stringResource(R.string.tutorial_input_tip))
+                                }
+                                1 -> {
+                                    Head(2, R.string.tutorial_pair_title, R.string.tutorial_pair_lead)
+                                    Steps(R.string.tutorial_pair_step1, R.string.tutorial_pair_step2, R.string.tutorial_pair_step3)
+                                    Tip(stringResource(R.string.tutorial_pair_tip)) { WindowsAddDevice() }
+                                }
+                                2 -> {
+                                    Head(3, R.string.tutorial_profile_title, R.string.tutorial_profile_lead)
+                                    Steps(R.string.tutorial_profile_step1, R.string.tutorial_profile_step2, R.string.tutorial_profile_step3)
+                                }
+                                3 -> AutoPage()
+                                else -> SwitchPage(status)
                             }
-                            1 -> {
-                                Head(2, R.string.tutorial_pair_title, R.string.tutorial_pair_lead)
-                                Steps(R.string.tutorial_pair_step1, R.string.tutorial_pair_step2, R.string.tutorial_pair_step3)
-                                Tip(stringResource(R.string.tutorial_pair_tip)) { WindowsAddDevice() }
-                            }
-                            2 -> {
-                                Head(3, R.string.tutorial_profile_title, R.string.tutorial_profile_lead)
-                                Steps(R.string.tutorial_profile_step1, R.string.tutorial_profile_step2, R.string.tutorial_profile_step3)
-                            }
-                            3 -> AutoPage()
-                            else -> SwitchPage(status)
                         }
                     }
                 }
-                Row(Modifier.fillMaxWidth().padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(Modifier.widthIn(max = 640.dp).fillMaxWidth().padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         repeat(PAGES) { i ->
                             Box(
