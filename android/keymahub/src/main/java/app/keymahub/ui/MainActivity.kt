@@ -19,6 +19,13 @@ import android.os.PowerManager
 import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
+import androidx.activity.enableEdgeToEdge
+import android.graphics.drawable.ColorDrawable
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.toArgb
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -67,6 +74,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val ui by Hub.ui.collectAsStateWithLifecycle()
             KeymaTheme(ui) {
+                WindowColors()
                 LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
                     tick++
                     Hub.resolve(this@MainActivity)
@@ -89,6 +97,23 @@ class MainActivity : ComponentActivity() {
                     else -> Main(status, log, ui, onTutorial = { tutorial = true })
                 }
             }
+        }
+    }
+
+    /**
+     * The window and system bars in the app's background, light or dark as the app is (not the
+     * system): split screen and other multi-window modes show the window around and above the
+     * content, white by the manifest's theme otherwise.
+     */
+    @Composable
+    private fun WindowColors() {
+        val background = MaterialTheme.colorScheme.background
+        SideEffect {
+            val transparent = android.graphics.Color.TRANSPARENT
+            val bars = if (background.luminance() < 0.5f) SystemBarStyle.dark(transparent)
+            else SystemBarStyle.light(transparent, transparent)
+            enableEdgeToEdge(bars, bars)
+            window.setBackgroundDrawable(ColorDrawable(background.toArgb()))
         }
     }
 
