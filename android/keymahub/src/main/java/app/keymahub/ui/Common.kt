@@ -73,9 +73,13 @@ import androidx.compose.ui.semantics.semantics
 fun Page(content: @Composable ColumnScope.() -> Unit) {
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         // Android 15 draws apps edge to edge: keep clear of the status and navigation bars.
-        Box(Modifier.fillMaxSize().safeDrawingPadding(), contentAlignment = Alignment.TopCenter) {
+        // The whole width scrolls, not only the content column: on a wide screen the margins beside it too.
+        Box(
+            Modifier.fillMaxSize().safeDrawingPadding().verticalScroll(rememberScrollState()),
+            contentAlignment = Alignment.TopCenter,
+        ) {
             Column(
-                Modifier.widthIn(max = 640.dp).fillMaxWidth().verticalScroll(rememberScrollState())
+                Modifier.widthIn(max = 640.dp).fillMaxWidth()
                     .padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 content = content,
