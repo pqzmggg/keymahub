@@ -183,6 +183,8 @@
     <string name="notif_channel_hosts">Appareils</string>
     <string name="host_forgot_title">%1$s a oublié ce clavier</string>
     <string name="host_forgot_text">Supprimez cet appareil sur %1$s puis ajoutez-le à nouveau. Le mode d\'association est activé.</string>
+    <string name="host_refused_title">%1$s n\'a pas été ajouté : le mode d\'association est désactivé</string>
+    <string name="host_refused_text">Pour ajouter %1$s, supprimez cet appareil sur celui-ci, activez le mode d\'association dans KeymaHub, puis ajoutez-le à nouveau.</string>
     <string name="step_battery_title">Exclure de l\'optimisation de la batterie (recommandé)</string>
     <string name="step_battery_body">Facultatif. Si le système optimise la batterie pour KeymaHub, il peut l\'arrêter : les liaisons aux appareils peuvent tomber et l\'association s\'interrompre.</string>
     <string name="setup_skip">Passer</string>

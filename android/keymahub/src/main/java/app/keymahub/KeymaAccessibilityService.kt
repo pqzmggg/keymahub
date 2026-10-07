@@ -29,6 +29,9 @@ class KeymaAccessibilityService : AccessibilityService() {
         instance = this
         Hub.log("accessibility service connected")
         BleHid.onForgotten = { name -> hostForgot(name) }
+        BleHid.onRefusedNew = { name ->
+            hostNotice(name, getString(R.string.host_refused_title, name), getString(R.string.host_refused_text, name))
+        }
         // The first thing the app's process does (it restarts the service after an update): the GATT
         // server goes up at once, so hosts still linked see the HID service back soon (BleHid.refresh).
         Thread({ BleHid.openServer(applicationContext) }, "gatt-open").start()
@@ -111,25 +114,29 @@ class KeymaAccessibilityService : AccessibilityService() {
      * notification and turns pairing mode on (starting hosting), ready for it.
      */
     private fun hostForgot(name: String) {
+        hostNotice(name, getString(R.string.host_forgot_title, name), getString(R.string.host_forgot_text, name))
+        runCatching { HubService.pairing(applicationContext, true) }
+            .onFailure { Hub.log("pairing mode for a forgotten host failed: $it") }
+    }
+
+    /** A notification about the host [name] (one per host: a newer one replaces it); opens the app. */
+    private fun hostNotice(name: String, title: String, text: String) {
         val nm = getSystemService(NotificationManager::class.java) ?: return
         runCatching {
             nm.createNotificationChannel(NotificationChannel(HOSTS_CHANNEL, getString(R.string.notif_channel_hosts), NotificationManager.IMPORTANCE_DEFAULT))
-            val text = getString(R.string.host_forgot_text, name)
             val open = PendingIntent.getActivity(this, 2, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
             nm.notify(
                 name.hashCode(),
                 Notification.Builder(this, HOSTS_CHANNEL)
                     .setSmallIcon(android.R.drawable.stat_sys_data_bluetooth)
-                    .setContentTitle(getString(R.string.host_forgot_title, name))
+                    .setContentTitle(title)
                     .setContentText(text)
                     .setStyle(Notification.BigTextStyle().bigText(text))
                     .setContentIntent(open)
                     .setAutoCancel(true)
                     .build(),
             )
-        }.onFailure { Hub.log("forgotten host notice failed: $it") }
-        runCatching { HubService.pairing(applicationContext, true) }
-            .onFailure { Hub.log("pairing mode for a forgotten host failed: $it") }
+        }.onFailure { Hub.log("host notice failed: $it") }
     }
 
     /** Android 14+ fallback when pointer capture is refused: take mouse events from the phone. */

@@ -179,6 +179,8 @@
     <string name="notif_channel_hosts">设备</string>
     <string name="host_forgot_title">%1$s 已无法识别此键盘</string>
     <string name="host_forgot_text">请在 %1$s 上删除本设备后重新添加。已开启配对模式。</string>
+    <string name="host_refused_title">未添加 %1$s：配对模式已关闭</string>
+    <string name="host_refused_text">要添加 %1$s，请在其上删除本设备，在 KeymaHub 中开启配对模式后重新添加。</string>
     <string name="step_battery_title">不对电池进行优化（推荐）</string>
     <string name="step_battery_body">可选。如果 KeymaHub 受电池优化限制，系统可能会停止它，导致与设备的连接断开或配对中断。</string>
     <string name="setup_skip">跳过</string>
