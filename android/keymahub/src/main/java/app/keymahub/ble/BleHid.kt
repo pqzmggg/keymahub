@@ -118,6 +118,8 @@ object BleHid {
     private val holds = HashMap<String, Hold>()
     /** Links the GATT server joined itself (links up before it was opened, see [rejoinLinks]). */
     private val serverJoined = HashSet<String>()
+    /** When the GATT server last joined a link again after a notification was refused (see [rejoinServer]). */
+    private val rejoined = HashMap<String, Long>()
     /** Hosts that read the report map since the GATT server opened: they looked at the keyboard again. */
     private val refreshed = HashSet<String>()
     /**
@@ -554,7 +556,7 @@ object BleHid {
             refreshing.clear()
             offNoted.clear()
             holds.values.forEach { h -> runCatching { h.gatt?.close() } }
-            holds.clear(); serverJoined.clear(); devices.clear(); outboxes.clear()
+            holds.clear(); serverJoined.clear(); rejoined.clear(); devices.clear(); outboxes.clear()
             strangers.clear(); traced.clear()
             pairedWhileOff.clear(); refusedNew.clear()
             active = null
@@ -683,6 +685,13 @@ object BleHid {
             val code = notify(device, ch, item.data)
             if (code != 0) {
                 box.refusal = code
+                if (code == NOT_CONNECTED) {
+                    // None of it reaches the host until the server is back on the link: drop it rather
+                    // than replay it late (none of it got through: no key is left down on the host).
+                    while (q.poll() != null) Unit
+                    rejoinServer(device)
+                    break
+                }
                 q.unpoll(item) // stack busy: retry on the next confirmation or report
                 break
             }
@@ -718,6 +727,27 @@ object BleHid {
                     pump(address)
                 }
             }, if (full) t.confirmMs + t.busyRetryMs.toLong() else t.busyRetryMs.toLong())
+        }
+    }
+
+    /**
+     * The GATT server refused a notification as not connected ([NOT_CONNECTED]) though the host is
+     * linked and reading from it: requests reach the server on any link, notifications only go over
+     * links it is on. A link up before the server opened is one it has to join ([adopt]), and that
+     * join may not take (seen joining again right after letting go of the link, when hosting went
+     * off and on): the host then gets no input until its link drops. Joins it again, at most every
+     * [REJOIN_MS]. Holds [lock].
+     */
+    private fun rejoinServer(device: BluetoothDevice) {
+        val address = device.address
+        val now = SystemClock.uptimeMillis()
+        if (now - (rejoined[address] ?: 0L) < REJOIN_MS) return
+        rejoined[address] = now
+        timers.post {
+            if (!running || !isLinkUp(device)) return@post
+            log("${nameOf(address)} refused input as not connected, the GATT server joins its link again")
+            synchronized(lock) { serverJoined.add(address) }
+            runCatching { server?.connect(device, false) }
         }
     }
 
@@ -772,6 +802,7 @@ object BleHid {
                         devices.remove(address)
                         outboxes.remove(address)
                         serverJoined.remove(address)
+                        rejoined.remove(address)
                         strangers.remove(address)
                         traced.remove(address)
                         offNoted.remove(address)
@@ -1102,6 +1133,11 @@ object BleHid {
 
     /** Input waiting this long is logged while it still waits (see pump). */
     private const val STUCK_MS = 1_000L
+
+    /** BluetoothStatusCodes.ERROR_DEVICE_NOT_CONNECTED: the GATT server is not on the device's link (see [rejoinServer]). */
+    private const val NOT_CONNECTED = 4
+    /** How often the GATT server may join a link again for refused input (see [rejoinServer]). */
+    private const val REJOIN_MS = 2_000L
 
     private fun short(uuid: UUID) = "%04X".format((uuid.mostSignificantBits ushr 32).toInt() and 0xFFFF)
 
