@@ -179,6 +179,8 @@
     <string name="notif_channel_hosts">기기</string>
     <string name="host_forgot_title">%1$s: 키보드를 다시 등록해야 합니다</string>
     <string name="host_forgot_text">%1$s에서 이 기기를 제거한 뒤 다시 추가하세요. 페어링 모드를 켰습니다.</string>
+    <string name="host_refused_title">%1$s: 페어링 모드가 꺼져 있어 거절했습니다</string>
+    <string name="host_refused_text">%1$s에서 이 기기를 제거하고, KeymaHub에서 페어링 모드를 켠 뒤 다시 추가하세요.</string>
     <string name="step_battery_title">배터리 최적화 제외 (권장)</string>
     <string name="step_battery_body">선택 사항입니다. 배터리 최적화 대상이면 시스템이 KeymaHub를 멈출 수 있어, 기기 연결이 끊기거나 페어링이 중단될 수 있습니다.</string>
     <string name="setup_skip">건너뛰기</string>

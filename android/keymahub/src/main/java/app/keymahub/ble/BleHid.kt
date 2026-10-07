@@ -51,7 +51,9 @@ import java.util.concurrent.TimeUnit
  *
  * - Pairing: hosts pair from their own Bluetooth settings ("add device") while pairing mode is
  *   on. The phone advertises with a private address that changes over time; hosts got its
- *   identity key (IRK) when pairing and recognize it at any address.
+ *   identity key (IRK) when pairing and recognize it at any address. While pairing mode is off
+ *   the advertising is not discoverable (Android 14+), and a host that pairs anyway is refused
+ *   and its pairing removed ([admit]): apps cannot turn a pairing request down themselves.
  * - The GATT database never changes while Bluetooth is on: the same services, in the same order,
  *   made once. Hosts keep it with the bond. It is never taken apart: a host told that the HID
  *   service is gone (Service Changed) forgets the keyboard, and Windows then never reconnects.
@@ -90,6 +92,8 @@ object BleHid {
     private var advertiser: BluetoothLeAdvertiser? = null
     @Volatile private var advertisingSet: AdvertisingSet? = null
     @Volatile private var creatingSet = false
+    /** Whether [advertisingSet] (or the one being made) was made discoverable: fixed when it is made. */
+    @Volatile private var madeDiscoverable = true
     /** Hosting: advertising, accepting targets and sending input. */
     @Volatile private var running = false
     private val main = Handler(Looper.getMainLooper())
@@ -127,6 +131,10 @@ object BleHid {
     private var refreshService: BluetoothGattService? = null
     /** Addresses using the HID service without being recognized as a target (see admit). */
     private val strangers = HashSet<String>()
+    /** Devices that paired while pairing mode was off (onBondState): refused if they use the HID service (admit). */
+    private val pairedWhileOff = HashSet<String>()
+    /** Of [pairedWhileOff], those already refused: refused once, until their pairing is gone. */
+    private val refusedNew = HashSet<String>()
     /** GATT requests on each link so far (see trace). */
     private val traced = HashMap<String, Int>()
     @Volatile private var appContext: Context? = null
@@ -143,12 +151,20 @@ object BleHid {
      */
     @Volatile var onForgotten: ((name: String) -> Unit)? = null
 
+    /**
+     * A device paired while pairing mode was off and was refused (see [admit]): the phone removed
+     * the pairing, the device still lists the keyboard. Called with its name. Set by the
+     * accessibility service.
+     */
+    @Volatile var onRefusedNew: ((name: String) -> Unit)? = null
+
     /** Devices the user disconnected: refused when they reconnect. Set by the service. */
     @Volatile var isBlocked: (address: String) -> Boolean = { false }
 
     /**
-     * While on, new (unpaired) devices may pair, and the advertising carries the phone's name so
-     * it shows in "add device" lists. While off, only already paired devices are accepted.
+     * While on, new (unpaired) devices may pair, and the advertising is discoverable and carries
+     * the phone's name so it shows in "add device" lists. While off, only already paired devices
+     * are accepted.
      */
     @Volatile var pairing = false
         private set
@@ -157,8 +173,9 @@ object BleHid {
         if (pairing == on) return
         pairing = on
         log(if (on) "pairing mode on" else "pairing mode off")
-        // Only the scan response changes: the advertising goes on.
         advertisingSet?.setScanResponseData(scanResponse(withName = on))
+        // Discoverable or not is fixed when the set is made: advertise() makes it again.
+        advertise()
     }
 
     fun addListener(l: Listener) {
@@ -539,6 +556,7 @@ object BleHid {
             holds.values.forEach { h -> runCatching { h.gatt?.close() } }
             holds.clear(); serverJoined.clear(); devices.clear(); outboxes.clear()
             strangers.clear(); traced.clear()
+            pairedWhileOff.clear(); refusedNew.clear()
             active = null
         }
         hosts.dropLinks()
@@ -911,6 +929,11 @@ object BleHid {
             runCatching { server?.sendResponse(device, requestId, INSUFFICIENT_AUTHORIZATION, 0, null) }
             return false
         }
+        if (bonded && synchronized(lock) { address in pairedWhileOff }) {
+            refuseNew(device)
+            runCatching { server?.sendResponse(device, requestId, INSUFFICIENT_AUTHORIZATION, 0, null) }
+            return false
+        }
         if (hosts.useHid(address, bonded, pairing)) {
             synchronized(lock) { devices.putIfAbsent(address, device) }
             log("${nameOf(address)} connected${if (bonded) "" else " (pairing)"}")
@@ -928,7 +951,11 @@ object BleHid {
         return true
     }
 
-    /** Refuses a device that starts pairing through the HID service while pairing mode is off; forgets unpaired hosts. */
+    /**
+     * Refuses a device that starts pairing through the HID service while pairing mode is off;
+     * notes devices that paired while it was off (refused when they use the HID service, see
+     * [admit]: the phone's own new keyboard or mouse never does); forgets unpaired hosts.
+     */
     private fun onBondState(intent: Intent) {
         val device = if (Build.VERSION.SDK_INT >= 33) {
             intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE, BluetoothDevice::class.java)
@@ -936,11 +963,22 @@ object BleHid {
             @Suppress("DEPRECATION") intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
         } ?: return
         when (intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothDevice.BOND_NONE)) {
-            BluetoothDevice.BOND_NONE -> if (hosts.forget(device.address) == Change.GONE) gone(device.address)
+            BluetoothDevice.BOND_NONE -> {
+                synchronized(lock) {
+                    pairedWhileOff.remove(device.address)
+                    refusedNew.remove(device.address)
+                }
+                if (hosts.forget(device.address) == Change.GONE) gone(device.address)
+            }
             BluetoothDevice.BOND_BONDING -> {
                 // Only devices that used the HID service: not the phone's own new keyboard or mouse.
                 if (!pairing && synchronized(lock) { device.address in strangers }) refuse(device, "not paired, pairing mode off")
             }
+            // Pairing usually starts before the host's first HID request reaches the app (the HID
+            // service needs encryption, which the stack asks for on its own), so it is caught here.
+            // A known host pairing again (it lost its keys) is no new device.
+            BluetoothDevice.BOND_BONDED ->
+                if (!pairing && !hosts.knows(device.address)) synchronized(lock) { pairedWhileOff.add(device.address) }
         }
     }
 
@@ -950,6 +988,16 @@ object BleHid {
     private fun refuse(device: BluetoothDevice, why: String) {
         log("refused ${device.address} ($why)")
         endLink(device)
+    }
+
+    /** A device that paired while pairing mode was off uses the HID service: ends its link and removes the pairing. */
+    private fun refuseNew(device: BluetoothDevice) {
+        val address = device.address
+        if (!synchronized(lock) { refusedNew.add(address) }) return
+        val name = nameOf(address)
+        refuse(device, "$name paired while pairing mode was off, removing the pairing")
+        appContext?.let { unpair(it, address) }
+        onRefusedNew?.invoke(name)
     }
 
     private fun respond(device: BluetoothDevice, requestId: Int, offset: Int, value: ByteArray) {
@@ -971,17 +1019,24 @@ object BleHid {
         if (!running) return
         val set = advertisingSet
         if (set != null) {
-            set.enableAdvertising(true, 0, 0)
-            return
+            if (madeDiscoverable == discoverable()) {
+                set.enableAdvertising(true, 0, 0)
+                return
+            }
+            // Pairing mode changed: a set made the other way goes, the new one below.
+            runCatching { advertiser?.stopAdvertisingSet(advertisingCallback) }
+            advertisingSet = null
         }
         if (creatingSet) return
         creatingSet = true
+        madeDiscoverable = discoverable()
         val params = AdvertisingSetParameters.Builder()
             .setLegacyMode(true) // every host can see it
             .setConnectable(true)
             .setScannable(true)
             .setInterval(AdvertisingSetParameters.INTERVAL_LOW) // ~100 ms: hosts find the phone quickly
             .setTxPowerLevel(AdvertisingSetParameters.TX_POWER_MEDIUM)
+            .apply { if (Build.VERSION.SDK_INT >= 34) setDiscoverable(madeDiscoverable) }
             .build()
         val data = AdvertiseData.Builder().addServiceUuid(ParcelUuid(HID_SERVICE)).build()
         runCatching { advertiser?.startAdvertisingSet(params, data, scanResponse(pairing), null, null, advertisingCallback) }
@@ -992,6 +1047,13 @@ object BleHid {
     }
 
     private fun scanResponse(withName: Boolean) = AdvertiseData.Builder().setIncludeDeviceName(withName).build()
+
+    /**
+     * Whether the advertising should be discoverable: only in pairing mode, so the phone is not
+     * listed in hosts' "add device" while it is off. Paired hosts reconnect to it either way.
+     * Before Android 14 apps cannot choose: always discoverable (without the name).
+     */
+    private fun discoverable() = Build.VERSION.SDK_INT < 34 || pairing
 
     private val advertisingCallback = object : AdvertisingSetCallback() {
         override fun onAdvertisingSetStarted(set: AdvertisingSet?, txPower: Int, status: Int) {
@@ -1008,9 +1070,10 @@ object BleHid {
             advertisingSet = set
             log("advertising")
             // Pairing mode may have changed while the set was being made (setPairing had no set to
-            // update then): the name goes in or out now.
+            // update then): the name goes in or out now, and a set made the other way is made again.
             set.setScanResponseData(scanResponse(withName = pairing))
             if (!running) set.enableAdvertising(false, 0, 0) // hosting stopped meanwhile
+            else if (madeDiscoverable != discoverable()) advertise()
         }
 
         override fun onAdvertisingEnabled(set: AdvertisingSet?, enable: Boolean, status: Int) {

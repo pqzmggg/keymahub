@@ -183,6 +183,8 @@
     <string name="notif_channel_hosts">Dispositivos</string>
     <string name="host_forgot_title">%1$s olvidó este teclado</string>
     <string name="host_forgot_text">Quita este dispositivo en %1$s y vuelve a añadirlo. El modo de emparejamiento está activado.</string>
+    <string name="host_refused_title">No se añadió %1$s: el modo de emparejamiento está desactivado</string>
+    <string name="host_refused_text">Para añadir %1$s, quita este dispositivo en él, activa el modo de emparejamiento en KeymaHub y vuelve a añadirlo.</string>
     <string name="step_battery_title">Excluir de la optimización de batería (recomendado)</string>
     <string name="step_battery_body">Opcional. Si el sistema optimiza la batería de KeymaHub, puede detenerlo: las conexiones con los dispositivos pueden cortarse y el emparejamiento interrumpirse.</string>
     <string name="setup_skip">Omitir</string>
