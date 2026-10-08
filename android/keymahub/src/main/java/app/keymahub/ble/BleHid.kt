@@ -119,6 +119,8 @@ object BleHid {
     private val serverJoined = HashSet<String>()
     /** When the GATT server last joined a link again after a notification was refused (see [rejoinServer]). */
     private val rejoined = HashMap<String, Long>()
+    /** When a short connection interval was last asked for again because input was confirmed late (see [repace]). */
+    private val repaced = HashMap<String, Long>()
     /** Hosts that read the report map since the GATT server opened: they looked at the keyboard again. */
     private val refreshed = HashSet<String>()
     /**
@@ -553,7 +555,7 @@ object BleHid {
             refreshing.clear()
             offNoted.clear()
             holds.values.forEach { h -> runCatching { h.gatt?.close() } }
-            holds.clear(); serverJoined.clear(); rejoined.clear(); devices.clear(); outboxes.clear()
+            holds.clear(); serverJoined.clear(); rejoined.clear(); repaced.clear(); devices.clear(); outboxes.clear()
             strangers.clear(); traced.clear()
             pairedWhileOff.clear(); refusedNew.clear()
             active = null
@@ -665,7 +667,10 @@ object BleHid {
         if (box.inFlight > 0 && now - box.lastSent > t.confirmMs) {
             // A confirmation got lost (or is late; a late one only lowers the count, floored at 0): don't stall.
             // Logged only when input was held back by it (not when it went unnoticed while idle).
-            if (box.waiting != null) log("${box.inFlight} sent to ${nameOf(address)} unconfirmed after ${now - box.lastSent} ms, sending on")
+            if (box.waiting != null) {
+                log("${box.inFlight} sent to ${nameOf(address)} unconfirmed after ${now - box.lastSent} ms, sending on")
+                repace(device)
+            }
             box.inFlight = 0
         }
         // Keys may go past a window full of mouse reports by [Tuning.keyExtra]: typing does not wait for them.
@@ -748,6 +753,28 @@ object BleHid {
         }
     }
 
+    /**
+     * Input to [device] is confirmed late (see [pump]): its link may have a long connection interval
+     * (the host did not take the short one, or the link came back without the phone's hold on it),
+     * or the radio is busy (seen while Bluetooth earphones play). Asks for the short interval again,
+     * joining the link first if the phone has no hold on it, at most every [REPACE_MS]. Whether the
+     * interval changed shows in the log (onConnectionUpdated). Holds [lock].
+     */
+    private fun repace(device: BluetoothDevice) {
+        val address = device.address
+        val now = SystemClock.uptimeMillis()
+        if (now - (repaced[address] ?: -REPACE_MS) < REPACE_MS) return
+        repaced[address] = now
+        val hold = holds[address]
+        if (hold != null && hold.up && !hold.ending) {
+            logLater { "${nameOf(address)} confirms input late, asking for a short connection interval again" }
+            pace(address, hold)
+        } else if (hold == null) {
+            logLater { "${nameOf(address)} confirms input late and the phone has no hold on its link, joining it" }
+            timers.post { if (running && hosts.isLinked(address)) join(device, end = false) }
+        }
+    }
+
     /** Hands one notification to the Bluetooth stack: 0 when taken, else why not (BluetoothStatusCodes; -1 before API 33). */
     private fun notify(device: BluetoothDevice, ch: BluetoothGattCharacteristic, data: ByteArray): Int {
         val s = server ?: return -1
@@ -800,6 +827,7 @@ object BleHid {
                         outboxes.remove(address)
                         serverJoined.remove(address)
                         rejoined.remove(address)
+                        repaced.remove(address)
                         strangers.remove(address)
                         traced.remove(address)
                         offNoted.remove(address)
@@ -867,6 +895,18 @@ object BleHid {
             if (!admit(device, requestId, isHid(ch))) return
             // Protocol mode, control point (suspend/exit suspend) and keyboard LEDs: accepted, ignored.
             if (responseNeeded) server?.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, value)
+        }
+
+        /**
+         * Not in the SDK (hidden), but the stack calls it on every server callback when a link's
+         * connection parameters change: logged, so a slow link can be told apart from a busy radio.
+         */
+        @Suppress("unused")
+        fun onConnectionUpdated(device: BluetoothDevice, interval: Int, latency: Int, timeout: Int, status: Int) {
+            log(
+                "${nameOf(device.address)} connection interval %.2f ms, latency %d, timeout %d ms%s"
+                    .format(interval * 1.25, latency, timeout * 10, statusText(status)),
+            )
         }
 
         override fun onPhyUpdate(device: BluetoothDevice, txPhy: Int, rxPhy: Int, status: Int) {
@@ -1123,6 +1163,8 @@ object BleHid {
     private const val NOT_CONNECTED = 4
     /** How often the GATT server may join a link again for refused input (see [rejoinServer]). */
     private const val REJOIN_MS = 2_000L
+    /** How often a short connection interval may be asked for again for input confirmed late (see [repace]). */
+    private const val REPACE_MS = 10_000L
 
     private fun short(uuid: UUID) = "%04X".format((uuid.mostSignificantBits ushr 32).toInt() and 0xFFFF)
 
