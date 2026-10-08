@@ -52,8 +52,9 @@ import java.util.concurrent.TimeUnit
  * - Pairing: hosts pair from their own Bluetooth settings ("add device") while pairing mode is
  *   on. The phone advertises with a private address that changes over time; hosts got its
  *   identity key (IRK) when pairing and recognize it at any address. While pairing mode is off
- *   the advertising is not discoverable (Android 14+), and a host that pairs anyway is refused
- *   and its pairing removed ([admit]): apps cannot turn a pairing request down themselves.
+ *   the advertising carries no name, and a host that pairs anyway is refused and its pairing
+ *   removed ([admit]): apps cannot turn a pairing request down themselves. The advertising stays
+ *   discoverable: paired Android phones did not reconnect to a non-discoverable one.
  * - The GATT database never changes while Bluetooth is on: the same services, in the same order,
  *   made once. Hosts keep it with the bond. It is never taken apart: a host told that the HID
  *   service is gone (Service Changed) forgets the keyboard, and Windows then never reconnects.
@@ -92,8 +93,6 @@ object BleHid {
     private var advertiser: BluetoothLeAdvertiser? = null
     @Volatile private var advertisingSet: AdvertisingSet? = null
     @Volatile private var creatingSet = false
-    /** Whether [advertisingSet] (or the one being made) was made discoverable: fixed when it is made. */
-    @Volatile private var madeDiscoverable = true
     /** Hosting: advertising, accepting targets and sending input. */
     @Volatile private var running = false
     private val main = Handler(Looper.getMainLooper())
@@ -164,9 +163,8 @@ object BleHid {
     @Volatile var isBlocked: (address: String) -> Boolean = { false }
 
     /**
-     * While on, new (unpaired) devices may pair, and the advertising is discoverable and carries
-     * the phone's name so it shows in "add device" lists. While off, only already paired devices
-     * are accepted.
+     * While on, new (unpaired) devices may pair, and the advertising carries the phone's name so
+     * it shows in "add device" lists. While off, only already paired devices are accepted.
      */
     @Volatile var pairing = false
         private set
@@ -175,9 +173,8 @@ object BleHid {
         if (pairing == on) return
         pairing = on
         log(if (on) "pairing mode on" else "pairing mode off")
+        // Only the scan response changes: the advertising goes on.
         advertisingSet?.setScanResponseData(scanResponse(withName = on))
-        // Discoverable or not is fixed when the set is made: advertise() makes it again.
-        advertise()
     }
 
     fun addListener(l: Listener) {
@@ -1050,24 +1047,20 @@ object BleHid {
         if (!running) return
         val set = advertisingSet
         if (set != null) {
-            if (madeDiscoverable == discoverable()) {
-                set.enableAdvertising(true, 0, 0)
-                return
-            }
-            // Pairing mode changed: a set made the other way goes, the new one below.
-            runCatching { advertiser?.stopAdvertisingSet(advertisingCallback) }
-            advertisingSet = null
+            set.enableAdvertising(true, 0, 0)
+            return
         }
         if (creatingSet) return
         creatingSet = true
-        madeDiscoverable = discoverable()
         val params = AdvertisingSetParameters.Builder()
             .setLegacyMode(true) // every host can see it
             .setConnectable(true)
             .setScannable(true)
             .setInterval(AdvertisingSetParameters.INTERVAL_LOW) // ~100 ms: hosts find the phone quickly
             .setTxPowerLevel(AdvertisingSetParameters.TX_POWER_MEDIUM)
-            .apply { if (Build.VERSION.SDK_INT >= 34) setDiscoverable(madeDiscoverable) }
+            // Discoverable (the default) even while pairing mode is off: a paired Android phone did
+            // not reconnect to a non-discoverable set (Android 14+ setDiscoverable(false)) until
+            // pairing mode made it discoverable again. New hosts are refused instead (admit).
             .build()
         val data = AdvertiseData.Builder().addServiceUuid(ParcelUuid(HID_SERVICE)).build()
         runCatching { advertiser?.startAdvertisingSet(params, data, scanResponse(pairing), null, null, advertisingCallback) }
@@ -1078,13 +1071,6 @@ object BleHid {
     }
 
     private fun scanResponse(withName: Boolean) = AdvertiseData.Builder().setIncludeDeviceName(withName).build()
-
-    /**
-     * Whether the advertising should be discoverable: only in pairing mode, so the phone is not
-     * listed in hosts' "add device" while it is off. Paired hosts reconnect to it either way.
-     * Before Android 14 apps cannot choose: always discoverable (without the name).
-     */
-    private fun discoverable() = Build.VERSION.SDK_INT < 34 || pairing
 
     private val advertisingCallback = object : AdvertisingSetCallback() {
         override fun onAdvertisingSetStarted(set: AdvertisingSet?, txPower: Int, status: Int) {
@@ -1101,10 +1087,9 @@ object BleHid {
             advertisingSet = set
             log("advertising")
             // Pairing mode may have changed while the set was being made (setPairing had no set to
-            // update then): the name goes in or out now, and a set made the other way is made again.
+            // update then): the name goes in or out now.
             set.setScanResponseData(scanResponse(withName = pairing))
             if (!running) set.enableAdvertising(false, 0, 0) // hosting stopped meanwhile
-            else if (madeDiscoverable != discoverable()) advertise()
         }
 
         override fun onAdvertisingEnabled(set: AdvertisingSet?, enable: Boolean, status: Int) {
