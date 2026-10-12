@@ -191,7 +191,12 @@ fun HomeScreen(
     if (showLog) {
         AlertDialog(
             onDismissRequest = { showLog = false },
-            title = { Text(stringResource(R.string.diagnostics_title)) },
+            title = {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text(stringResource(R.string.diagnostics_title), Modifier.weight(1f))
+                    TextButton(onClick = { Hub.clearLog() }, enabled = log.isNotEmpty()) { Text(stringResource(R.string.log_clear)) }
+                }
+            },
             text = {
                 Column(Modifier.dialogKeys(onEnter = null, onEscape = { showLog = false })) {
                     Text(stringResource(R.string.report_message), style = MaterialTheme.typography.bodyMedium)
@@ -205,6 +210,7 @@ fun HomeScreen(
                             Text(log.ifEmpty { stringResource(R.string.log_empty) }, fontFamily = FontFamily.Monospace, fontSize = 11.sp)
                         }
                     }
+                    Spacer(Modifier.height(8.dp))
                     // A note lands in the log at this moment: what was tried, what happened.
                     var note by remember { mutableStateOf("") }
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -227,12 +233,7 @@ fun HomeScreen(
             confirmButton = {
                 Button(onClick = { onCopyLog(log) }) { Text(stringResource(R.string.report_copy)) }
             },
-            dismissButton = {
-                Row {
-                    TextButton(onClick = { Hub.clearLog() }, enabled = log.isNotEmpty()) { Text(stringResource(R.string.log_clear)) }
-                    TextButton(onClick = { showLog = false }) { Text(stringResource(R.string.action_close)) }
-                }
-            },
+            dismissButton = { TextButton(onClick = { showLog = false }) { Text(stringResource(R.string.action_close)) } },
         )
     }
 }
