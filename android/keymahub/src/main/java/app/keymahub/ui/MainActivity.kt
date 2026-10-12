@@ -150,12 +150,6 @@ class MainActivity : ComponentActivity() {
         if (on) Hub.update { if (it.problem == R.string.problem_bt_off) it.copy(problem = null) else it }
     }
 
-    override fun onDestroy() {
-        // Closed (swiped away from recents), not just rotated: start the next visit with a fresh log.
-        if (isFinishing && !isChangingConfigurations) Hub.clearLog()
-        super.onDestroy()
-    }
-
     @Composable
     private fun Main(status: HubStatus, log: String, ui: UiPrefs, onTutorial: () -> Unit) {
         // "home", "profile:<id>", "devices", "settings". With two panes, home and profiles share the

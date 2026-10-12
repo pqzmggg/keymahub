@@ -166,6 +166,7 @@
     <string name="device_connecting">%1$s に接続しています。デバイスの電源が入っていて近くにあれば接続されます。</string>
     <string name="log_note_hint">メモ: 何をして、どうなったか</string>
     <string name="log_note_add">追加</string>
+    <string name="log_clear">消去</string>
     <plurals name="ready_count">
         <item quantity="other">%1$d 台接続中</item>
     </plurals>
