@@ -227,7 +227,12 @@ fun HomeScreen(
             confirmButton = {
                 Button(onClick = { onCopyLog(log) }) { Text(stringResource(R.string.report_copy)) }
             },
-            dismissButton = { TextButton(onClick = { showLog = false }) { Text(stringResource(R.string.action_close)) } },
+            dismissButton = {
+                Row {
+                    TextButton(onClick = { Hub.clearLog() }, enabled = log.isNotEmpty()) { Text(stringResource(R.string.log_clear)) }
+                    TextButton(onClick = { showLog = false }) { Text(stringResource(R.string.action_close)) }
+                }
+            },
         )
     }
 }

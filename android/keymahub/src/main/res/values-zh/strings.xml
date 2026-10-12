@@ -166,6 +166,7 @@
     <string name="device_connecting">正在连接 %1$s。设备开启且在附近时会自动连接。</string>
     <string name="log_note_hint">备注：做了什么，结果如何</string>
     <string name="log_note_add">添加</string>
+    <string name="log_clear">清除</string>
     <plurals name="ready_count">
         <item quantity="other">已连接 %1$d 台设备</item>
     </plurals>

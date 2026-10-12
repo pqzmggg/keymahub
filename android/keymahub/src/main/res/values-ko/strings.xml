@@ -166,6 +166,7 @@
     <string name="device_connecting">%1$s에 연결하는 중이에요. 기기가 켜져 있고 가까이 있으면 연결돼요.</string>
     <string name="log_note_hint">메모: 무엇을 했고 어떻게 됐는지</string>
     <string name="log_note_add">추가</string>
+    <string name="log_clear">지우기</string>
     <plurals name="ready_count">
         <item quantity="other">연결된 기기 %1$d개</item>
     </plurals>

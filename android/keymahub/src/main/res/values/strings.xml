@@ -167,6 +167,7 @@
     <string name="device_connecting">Connecting to %1$s. It connects when the device is on and nearby.</string>
     <string name="log_note_hint">Note: what you tried, what happened</string>
     <string name="log_note_add">Add</string>
+    <string name="log_clear">Clear</string>
     <plurals name="ready_count">
         <item quantity="one">%1$d device connected</item>
         <item quantity="other">%1$d devices connected</item>

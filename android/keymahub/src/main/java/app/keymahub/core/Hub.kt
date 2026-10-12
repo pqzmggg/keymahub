@@ -217,7 +217,7 @@ object Hub {
         }
     }
 
-    /** The app was closed. The process lives on with the accessibility service, so the log would too. */
+    /** The diagnostics screen's Clear button. */
     fun clearLog() {
         synchronized(lines) {
             lines.clear()
