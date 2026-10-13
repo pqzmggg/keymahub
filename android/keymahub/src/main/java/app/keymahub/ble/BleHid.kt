@@ -88,11 +88,15 @@ object BleHid {
 
     /** An empty service added and removed only to send hosts a Service Changed (see [refresh]). */
     private val REFRESH_SERVICE = UUID.fromString("8a3f1c52-4d1e-4b8a-9f3e-2c7d5a6b1e90")
+    /** A service that only takes up handles, so the others land where hosts know them (see [open]). */
+    private val FILLER_SERVICE = UUID.fromString("8a3f1c52-4d1e-4b8a-9f3e-2c7d5a6b1e91")
 
     @Volatile private var server: BluetoothGattServer? = null
     private var advertiser: BluetoothLeAdvertiser? = null
     @Volatile private var advertisingSet: AdvertisingSet? = null
     @Volatile private var creatingSet = false
+    /** When the GATT server opened (see [admit]). */
+    @Volatile private var openedAt = 0L
     /** Hosting: advertising, accepting targets and sending input. */
     @Volatile private var running = false
     private val main = Handler(Looper.getMainLooper())
@@ -119,6 +123,8 @@ object BleHid {
     private val serverJoined = HashSet<String>()
     /** When the GATT server last joined a link again after a notification was refused (see [rejoinServer]). */
     private val rejoined = HashMap<String, Long>()
+    /** How many times input to a link was refused as not connected since it came up (see [rejoinServer]). */
+    private val rejoinTries = HashMap<String, Int>()
     /** When a short connection interval was last asked for again because input was confirmed late (see [repace]). */
     private val repaced = HashMap<String, Long>()
     /** Hosts that read the report map since the GATT server opened: they looked at the keyboard again. */
@@ -258,6 +264,8 @@ object BleHid {
         val manager = context.getSystemService(BluetoothManager::class.java) ?: return R.string.problem_bt_unsupported
         advertiser = manager.adapter?.bluetoothLeAdvertiser ?: return R.string.problem_ble_peripheral
         running = true
+        // Hosts noted using the keyboard while it was off: noted again if hosting goes off.
+        synchronized(lock) { offNoted.clear() }
         advertise()
         rejoinLinks(manager)
         log("hosting (${hosts.ready().size} ready)")
@@ -497,24 +505,38 @@ object BleHid {
 
     // ---------------------------------------------------------------- GATT server
 
-    /** Opens the GATT server with its services, once per Bluetooth-on period. */
+    /**
+     * Opens the GATT server with its services, once per Bluetooth-on period.
+     *
+     * The stack numbers the attributes of every app's services in the order they are added, so
+     * the same services can land at other handles after Bluetooth was turned off and on (seen:
+     * 33 lower, the server opening before some other service came back). Hosts keep the handles
+     * with the bond: at other handles the keyboard is not where they look (Windows then did not
+     * reconnect). So the handle hosts last learned the services at is kept ([learned]), and when
+     * the services land lower, the server opens again with filler services taking up the
+     * difference in front of them. When they land higher nothing can be done: hosts have to look
+     * at them again.
+     */
     private fun open(context: Context, manager: BluetoothManager): Int? {
         log("opening GATT server")
-        val s = manager.openGattServer(context.applicationContext, callback) ?: return R.string.problem_gatt
-        db = HidGattDatabase()
-        synchronized(lock) { refreshed.clear() }
-        refreshService = null
-        // One at a time, always in this order: a service is only in the database once
-        // onServiceAdded says so, and hosts expect the same database every time.
-        for (svc in db.services) {
-            serviceAdded = CountDownLatch(1)
-            if (!s.addService(svc) || !serviceAdded.await(3, TimeUnit.SECONDS)) {
-                s.close()
-                log("adding service ${svc.uuid} failed")
-                return R.string.problem_gatt
-            }
+        val prefs = context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val known = prefs.getInt(KEY_FIRST_HANDLE, 0)
+        var s = openWith(context, manager, filler = 0) ?: return R.string.problem_gatt
+        var first = db.services.first().instanceId
+        if (known > first && known - first <= MAX_FILLER) {
+            log("services at handle $first, before at $known: opening again with $first-${known - 1} filled")
+            s.close()
+            s = openWith(context, manager, filler = known - first) ?: return R.string.problem_gatt
+            first = db.services.first().instanceId
+            if (first != known) log("services at handle $first after filling, not at $known")
+        } else if (known != 0 && known != first) {
+            log("services at handle $first, before at $known: hosts have to look at them again")
+        } else {
+            log("services at handle $first")
         }
+        if (known == 0) prefs.edit().putInt(KEY_FIRST_HANDLE, first).apply()
         server = s
+        openedAt = SystemClock.uptimeMillis()
         val app = context.applicationContext
         if (Build.VERSION.SDK_INT >= 33) {
             app.registerReceiver(bluetoothReceiver, bluetoothEvents, Context.RECEIVER_EXPORTED)
@@ -555,7 +577,7 @@ object BleHid {
             refreshing.clear()
             offNoted.clear()
             holds.values.forEach { h -> runCatching { h.gatt?.close() } }
-            holds.clear(); serverJoined.clear(); rejoined.clear(); repaced.clear(); devices.clear(); outboxes.clear()
+            holds.clear(); serverJoined.clear(); rejoined.clear(); rejoinTries.clear(); repaced.clear(); devices.clear(); outboxes.clear()
             strangers.clear(); traced.clear()
             pairedWhileOff.clear(); refusedNew.clear()
             active = null
@@ -736,20 +758,48 @@ object BleHid {
      * The GATT server refused a notification as not connected ([NOT_CONNECTED]) though the host is
      * linked and reading from it: requests reach the server on any link, notifications only go over
      * links it is on. A link up before the server opened is one it has to join ([adopt]), and that
-     * join may not take (seen joining again right after letting go of the link, when hosting went
-     * off and on): the host then gets no input until its link drops. Joins it again, at most every
-     * [REJOIN_MS]. Holds [lock].
+     * join may not take: seen when hosting went off and on while the phone's own client connection
+     * ([Hold]) was still on the link, the stack then does not tell the server it is on it, and
+     * joining again does not help either. The host gets no input until its link drops. So the
+     * server joins once more, and if input is still refused after that ([REJOIN_MS] or more later),
+     * the link is ended at once: a paired host reconnects within a second or two (the phone keeps
+     * advertising), and a new link reaches the server as any link does. Holds [lock].
      */
     private fun rejoinServer(device: BluetoothDevice) {
         val address = device.address
         val now = SystemClock.uptimeMillis()
         if (now - (rejoined[address] ?: 0L) < REJOIN_MS) return
         rejoined[address] = now
+        val tries = (rejoinTries[address] ?: 0) + 1
+        rejoinTries[address] = tries
+        if (tries > 2) return // the link was ended and did not go down: nothing more to try
         timers.post {
             if (!running || !isLinkUp(device)) return@post
-            log("${nameOf(address)} refused input as not connected, the GATT server joins its link again")
-            synchronized(lock) { serverJoined.add(address) }
-            runCatching { server?.connect(device, false) }
+            if (tries == 1) {
+                log("${nameOf(address)} refused input as not connected, the GATT server joins its link again")
+                synchronized(lock) { serverJoined.add(address) }
+                runCatching { server?.connect(device, false) }
+            } else {
+                log("${nameOf(address)} still refuses input as not connected, ending its link so it reconnects")
+                relink(device)
+            }
+        }
+    }
+
+    /**
+     * Ends the link to [device] at once (no long interval first, unlike [endLink]), for the host to
+     * reconnect: the server and the phone's client connection both let go of it.
+     */
+    private fun relink(device: BluetoothDevice) {
+        val address = device.address
+        val hold = synchronized(lock) {
+            serverJoined.remove(address)
+            holds.remove(address)
+        }
+        runCatching { server?.cancelConnection(device) }
+        if (hold != null) {
+            hold.ending = true
+            runCatching { hold.gatt?.disconnect() }
         }
     }
 
@@ -827,6 +877,7 @@ object BleHid {
                         outboxes.remove(address)
                         serverJoined.remove(address)
                         rejoined.remove(address)
+                        rejoinTries.remove(address)
                         repaced.remove(address)
                         strangers.remove(address)
                         traced.remove(address)
@@ -847,9 +898,12 @@ object BleHid {
 
         override fun onCharacteristicReadRequest(device: BluetoothDevice, requestId: Int, offset: Int, ch: BluetoothGattCharacteristic) {
             trace(device, "read ${label(ch)}${if (offset > 0) " @$offset" else ""}")
-            if (ch.uuid == REPORT_MAP) synchronized(lock) {
-                refreshed.add(device.address)
-                refreshing.remove(device.address)
+            if (ch.uuid == REPORT_MAP) {
+                synchronized(lock) {
+                    refreshed.add(device.address)
+                    refreshing.remove(device.address)
+                }
+                learned()
             }
             if (!admit(device, requestId, isHid(ch))) return
             respond(device, requestId, offset, db.valueOf(ch))
@@ -879,7 +933,10 @@ object BleHid {
                 // Recorded for targets only (see HostTable.subscribe); others just get an answer.
                 val on = value != null && value.isNotEmpty() && (value[0].toInt() and 0x01) != 0
                 when (hosts.subscribe(device.address, report, on)) {
-                    Change.READY -> onReady(device, restored = false)
+                    Change.READY -> {
+                        learned()
+                        onReady(device, restored = false)
+                    }
                     Change.GONE -> gone(device.address)
                     Change.NONE -> {}
                 }
@@ -987,8 +1044,20 @@ object BleHid {
             if (!bonded) {
                 synchronized(lock) { strangers.add(address) } // pairing is refused (onBondState)
             } else if (synchronized(lock) { offNoted.add(address) }) {
-                log("${nameOf(address)} uses the keyboard while hosting is off, ending the link")
-                join(device, end = true)
+                val wait = OFF_GRACE_MS - (SystemClock.uptimeMillis() - openedAt)
+                if (wait > 0) {
+                    // The server just opened: after an update the app's process restarts and hosting
+                    // follows within seconds. Ending the link now only makes the host slower to come back.
+                    log("${nameOf(address)} uses the keyboard while hosting is off, ending the link unless hosting starts")
+                    timers.postDelayed({
+                        if (running || !isLinkUp(device)) return@postDelayed
+                        log("${nameOf(address)} uses the keyboard while hosting is off, ending the link")
+                        join(device, end = true)
+                    }, wait)
+                } else {
+                    log("${nameOf(address)} uses the keyboard while hosting is off, ending the link")
+                    join(device, end = true)
+                }
             }
             return true
         }
@@ -1110,6 +1179,67 @@ object BleHid {
             }
     }
 
+    /**
+     * Opens a GATT server and adds the services, after [FILLER_SERVICE]s of [filler] handles in all
+     * when not 0 (see [open]). Null when it failed.
+     */
+    private fun openWith(context: Context, manager: BluetoothManager, filler: Int): BluetoothGattServer? {
+        val s = manager.openGattServer(context.applicationContext, callback) ?: return null
+        db = HidGattDatabase()
+        synchronized(lock) { refreshed.clear() }
+        refreshService = null
+        // One at a time, always in this order: a service is only in the database once
+        // onServiceAdded says so, and hosts expect the same database every time.
+        val services = fillerServices(filler) + db.services
+        for (svc in services) {
+            serviceAdded = CountDownLatch(1)
+            if (!s.addService(svc) || !serviceAdded.await(3, TimeUnit.SECONDS)) {
+                s.close()
+                log("adding service ${svc.uuid} failed")
+                return null
+            }
+        }
+        return s
+    }
+
+    /**
+     * Services taking up exactly [handles] handles. A service is its declaration (one handle), then
+     * characteristics of two (declaration and value), one with a descriptor when an odd one is
+     * left: any count but 2, which takes two empty services. Nothing in them is readable without
+     * encryption, and nothing uses them.
+     */
+    private fun fillerServices(handles: Int): List<BluetoothGattService> {
+        fun empty() = BluetoothGattService(FILLER_SERVICE, BluetoothGattService.SERVICE_TYPE_PRIMARY)
+        return when {
+            handles <= 0 -> emptyList()
+            handles == 2 -> listOf(empty(), empty())
+            else -> listOf(empty().apply {
+                val left = handles - 1
+                repeat(left / 2) { i ->
+                    val ch = BluetoothGattCharacteristic(
+                        FILLER_SERVICE, BluetoothGattCharacteristic.PROPERTY_READ, BluetoothGattCharacteristic.PERMISSION_READ_ENCRYPTED,
+                    )
+                    if (i == 0 && left % 2 == 1) {
+                        ch.addDescriptor(BluetoothGattDescriptor(FILLER_SERVICE, BluetoothGattDescriptor.PERMISSION_READ_ENCRYPTED))
+                    }
+                    addCharacteristic(ch)
+                }
+            })
+        }
+    }
+
+    /**
+     * A host looked at the services (read the report map, or subscribed from scratch): it knows
+     * them at their handles now, kept for the next time the server opens (see [open]).
+     */
+    private fun learned() {
+        val first = db.services.first().instanceId
+        val prefs = appContext?.getSharedPreferences(PREFS, Context.MODE_PRIVATE) ?: return
+        if (prefs.getInt(KEY_FIRST_HANDLE, 0) == first) return
+        prefs.edit().putInt(KEY_FIRST_HANDLE, first).apply()
+        log("hosts know the services at handle $first now")
+    }
+
     private fun scanResponse(withName: Boolean) = AdvertiseData.Builder().setIncludeDeviceName(withName).build()
 
     private val advertisingCallback = object : AdvertisingSetCallback() {
@@ -1165,6 +1295,8 @@ object BleHid {
     private const val REJOIN_MS = 2_000L
     /** How often a short connection interval may be asked for again for input confirmed late (see [repace]). */
     private const val REPACE_MS = 10_000L
+    /** For this long after the GATT server opens, hosts are not cut off for hosting being off (see [admit]). */
+    private const val OFF_GRACE_MS = 5_000L
 
     private fun short(uuid: UUID) = "%04X".format((uuid.mostSignificantBits ushr 32).toInt() and 0xFFFF)
 
@@ -1178,6 +1310,10 @@ object BleHid {
 
     private const val PREFS = "keymahub_ble"
     private const val KEY_SUBSCRIPTIONS = "subscriptions"
+    /** Handle hosts last learned the first service at (see [open], [learned]). */
+    private const val KEY_FIRST_HANDLE = "first_handle"
+    /** The most handles a filler service takes up (see [open]); a bigger gap is not filled. */
+    private const val MAX_FILLER = 200
     /** How long joining a link may take before it is given up (see [join]). */
     private const val JOIN_TIMEOUT_MS = 5_000L
     /** How long a hold stays after asking for a long connection interval (see [letGo]). */
