@@ -88,6 +88,8 @@ object BleHid {
 
     /** An empty service added and removed only to send hosts a Service Changed (see [refresh]). */
     private val REFRESH_SERVICE = UUID.fromString("8a3f1c52-4d1e-4b8a-9f3e-2c7d5a6b1e90")
+    /** A service that only takes up handles, so the others land where hosts know them (see [open]). */
+    private val FILLER_SERVICE = UUID.fromString("8a3f1c52-4d1e-4b8a-9f3e-2c7d5a6b1e91")
 
     @Volatile private var server: BluetoothGattServer? = null
     private var advertiser: BluetoothLeAdvertiser? = null
@@ -503,23 +505,36 @@ object BleHid {
 
     // ---------------------------------------------------------------- GATT server
 
-    /** Opens the GATT server with its services, once per Bluetooth-on period. */
+    /**
+     * Opens the GATT server with its services, once per Bluetooth-on period.
+     *
+     * The stack numbers the attributes of every app's services in the order they are added, so
+     * the same services can land at other handles after Bluetooth was turned off and on (seen:
+     * 33 lower, the server opening before some other service came back). Hosts keep the handles
+     * with the bond: at other handles the keyboard is not where they look (Windows then did not
+     * reconnect). So the handle hosts last learned the services at is kept ([learned]), and when
+     * the services land lower, the server opens again with filler services taking up the
+     * difference in front of them. When they land higher nothing can be done: hosts have to look
+     * at them again.
+     */
     private fun open(context: Context, manager: BluetoothManager): Int? {
         log("opening GATT server")
-        val s = manager.openGattServer(context.applicationContext, callback) ?: return R.string.problem_gatt
-        db = HidGattDatabase()
-        synchronized(lock) { refreshed.clear() }
-        refreshService = null
-        // One at a time, always in this order: a service is only in the database once
-        // onServiceAdded says so, and hosts expect the same database every time.
-        for (svc in db.services) {
-            serviceAdded = CountDownLatch(1)
-            if (!s.addService(svc) || !serviceAdded.await(3, TimeUnit.SECONDS)) {
-                s.close()
-                log("adding service ${svc.uuid} failed")
-                return R.string.problem_gatt
-            }
+        val prefs = context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val known = prefs.getInt(KEY_FIRST_HANDLE, 0)
+        var s = openWith(context, manager, filler = 0) ?: return R.string.problem_gatt
+        var first = db.services.first().instanceId
+        if (known > first && known - first <= MAX_FILLER) {
+            log("services at handle $first, before at $known: opening again with $first-${known - 1} filled")
+            s.close()
+            s = openWith(context, manager, filler = known - first) ?: return R.string.problem_gatt
+            first = db.services.first().instanceId
+            if (first != known) log("services at handle $first after filling, not at $known")
+        } else if (known != 0 && known != first) {
+            log("services at handle $first, before at $known: hosts have to look at them again")
+        } else {
+            log("services at handle $first")
         }
+        if (known == 0) prefs.edit().putInt(KEY_FIRST_HANDLE, first).apply()
         server = s
         openedAt = SystemClock.uptimeMillis()
         val app = context.applicationContext
@@ -883,9 +898,12 @@ object BleHid {
 
         override fun onCharacteristicReadRequest(device: BluetoothDevice, requestId: Int, offset: Int, ch: BluetoothGattCharacteristic) {
             trace(device, "read ${label(ch)}${if (offset > 0) " @$offset" else ""}")
-            if (ch.uuid == REPORT_MAP) synchronized(lock) {
-                refreshed.add(device.address)
-                refreshing.remove(device.address)
+            if (ch.uuid == REPORT_MAP) {
+                synchronized(lock) {
+                    refreshed.add(device.address)
+                    refreshing.remove(device.address)
+                }
+                learned()
             }
             if (!admit(device, requestId, isHid(ch))) return
             respond(device, requestId, offset, db.valueOf(ch))
@@ -915,7 +933,10 @@ object BleHid {
                 // Recorded for targets only (see HostTable.subscribe); others just get an answer.
                 val on = value != null && value.isNotEmpty() && (value[0].toInt() and 0x01) != 0
                 when (hosts.subscribe(device.address, report, on)) {
-                    Change.READY -> onReady(device, restored = false)
+                    Change.READY -> {
+                        learned()
+                        onReady(device, restored = false)
+                    }
                     Change.GONE -> gone(device.address)
                     Change.NONE -> {}
                 }
@@ -1158,6 +1179,67 @@ object BleHid {
             }
     }
 
+    /**
+     * Opens a GATT server and adds the services, after [FILLER_SERVICE]s of [filler] handles in all
+     * when not 0 (see [open]). Null when it failed.
+     */
+    private fun openWith(context: Context, manager: BluetoothManager, filler: Int): BluetoothGattServer? {
+        val s = manager.openGattServer(context.applicationContext, callback) ?: return null
+        db = HidGattDatabase()
+        synchronized(lock) { refreshed.clear() }
+        refreshService = null
+        // One at a time, always in this order: a service is only in the database once
+        // onServiceAdded says so, and hosts expect the same database every time.
+        val services = fillerServices(filler) + db.services
+        for (svc in services) {
+            serviceAdded = CountDownLatch(1)
+            if (!s.addService(svc) || !serviceAdded.await(3, TimeUnit.SECONDS)) {
+                s.close()
+                log("adding service ${svc.uuid} failed")
+                return null
+            }
+        }
+        return s
+    }
+
+    /**
+     * Services taking up exactly [handles] handles. A service is its declaration (one handle), then
+     * characteristics of two (declaration and value), one with a descriptor when an odd one is
+     * left: any count but 2, which takes two empty services. Nothing in them is readable without
+     * encryption, and nothing uses them.
+     */
+    private fun fillerServices(handles: Int): List<BluetoothGattService> {
+        fun empty() = BluetoothGattService(FILLER_SERVICE, BluetoothGattService.SERVICE_TYPE_PRIMARY)
+        return when {
+            handles <= 0 -> emptyList()
+            handles == 2 -> listOf(empty(), empty())
+            else -> listOf(empty().apply {
+                val left = handles - 1
+                repeat(left / 2) { i ->
+                    val ch = BluetoothGattCharacteristic(
+                        FILLER_SERVICE, BluetoothGattCharacteristic.PROPERTY_READ, BluetoothGattCharacteristic.PERMISSION_READ_ENCRYPTED,
+                    )
+                    if (i == 0 && left % 2 == 1) {
+                        ch.addDescriptor(BluetoothGattDescriptor(FILLER_SERVICE, BluetoothGattDescriptor.PERMISSION_READ_ENCRYPTED))
+                    }
+                    addCharacteristic(ch)
+                }
+            })
+        }
+    }
+
+    /**
+     * A host looked at the services (read the report map, or subscribed from scratch): it knows
+     * them at their handles now, kept for the next time the server opens (see [open]).
+     */
+    private fun learned() {
+        val first = db.services.first().instanceId
+        val prefs = appContext?.getSharedPreferences(PREFS, Context.MODE_PRIVATE) ?: return
+        if (prefs.getInt(KEY_FIRST_HANDLE, 0) == first) return
+        prefs.edit().putInt(KEY_FIRST_HANDLE, first).apply()
+        log("hosts know the services at handle $first now")
+    }
+
     private fun scanResponse(withName: Boolean) = AdvertiseData.Builder().setIncludeDeviceName(withName).build()
 
     private val advertisingCallback = object : AdvertisingSetCallback() {
@@ -1228,6 +1310,10 @@ object BleHid {
 
     private const val PREFS = "keymahub_ble"
     private const val KEY_SUBSCRIPTIONS = "subscriptions"
+    /** Handle hosts last learned the first service at (see [open], [learned]). */
+    private const val KEY_FIRST_HANDLE = "first_handle"
+    /** The most handles a filler service takes up (see [open]); a bigger gap is not filled. */
+    private const val MAX_FILLER = 200
     /** How long joining a link may take before it is given up (see [join]). */
     private const val JOIN_TIMEOUT_MS = 5_000L
     /** How long a hold stays after asking for a long connection interval (see [letGo]). */
