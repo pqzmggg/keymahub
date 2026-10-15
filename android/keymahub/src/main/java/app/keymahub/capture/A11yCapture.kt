@@ -63,6 +63,9 @@ class A11yCapture(
     private var buttons = 0
     /** When 한/영 (Lang1) last went to a target from the key itself ([onKeyEvent]), uptime millis. */
     private var lastLang1 = 0L
+    /** When [late] last logged, uptime millis. */
+    @Volatile
+    private var lastLateLog = 0L
     private var lastX = Float.NaN
     private var lastY = Float.NaN
     private var subX = 0f
@@ -78,6 +81,7 @@ class A11yCapture(
 
     /** Returns true to consume the key (it went to a target or was a hotkey). */
     fun onKeyEvent(e: KeyEvent): Boolean {
+        late(e)
         val dev = e.device
         val mouse = dev != null && !dev.isVirtual && dev.supportsSource(InputDevice.SOURCE_MOUSE)
         // A mouse's back and forward buttons also come as BACK / FORWARD keys, which would act on
@@ -150,13 +154,30 @@ class A11yCapture(
 
     /**
      * A key left to this device while a target has control, for diagnosis (e.g. a 한/영 key the
-     * system hands over in an unexpected form). Not typing: printing keys are not logged.
+     * system hands over in an unexpected form, or typing that never reaches the target). Not what
+     * was typed: a printing key is logged without its name.
      */
     private fun unrouted(e: KeyEvent, why: String) {
-        if (e.action != KeyEvent.ACTION_DOWN || e.repeatCount > 0 || e.isPrintingKey) return
+        if (e.action != KeyEvent.ACTION_DOWN || e.repeatCount > 0) return
         if (synchronized(router) { router.isRemote }) {
-            Hub.log("key left to this device ($why): ${KeyEvent.keyCodeToString(e.keyCode)} scan ${e.scanCode}")
+            val key = if (e.isPrintingKey) "a printing key" else "${KeyEvent.keyCodeToString(e.keyCode)} scan ${e.scanCode}"
+            Hub.log("key left to this device ($why): $key")
         }
+    }
+
+    /**
+     * A key press that reached the service [LATE_MS] or more after it happened, while a target has
+     * control: the service's thread was busy, and the system may have passed the key on to this
+     * device meanwhile. Once per [LATE_LOG_MS], so a long stall is one line.
+     */
+    private fun late(e: KeyEvent) {
+        if (e.action != KeyEvent.ACTION_DOWN || e.repeatCount > 0) return
+        val now = SystemClock.uptimeMillis()
+        val delay = now - e.eventTime
+        if (delay < LATE_MS || now - lastLateLog < LATE_LOG_MS) return
+        if (!synchronized(router) { router.isRemote }) return
+        lastLateLog = now
+        Hub.log("key press reached the accessibility service $delay ms late")
     }
 
     /** Mouse events intercepted by the accessibility service while remote (Android 14+ fallback). */
@@ -227,6 +248,10 @@ class A11yCapture(
 
         /** A language change this soon after sending 한/영 is that key's own doing. */
         const val LANG1_ECHO_MS = 1000L
+
+        /** A key press this late (the system gives the service about 500 ms before passing it on) is logged. */
+        const val LATE_MS = 200L
+        const val LATE_LOG_MS = 5000L
 
         /** Keys a mouse sends for its side buttons, and those buttons. */
         val MOUSE_KEYS = mapOf(

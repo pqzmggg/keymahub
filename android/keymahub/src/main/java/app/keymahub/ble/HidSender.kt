@@ -8,6 +8,7 @@ import app.keymahub.core.Tuning
 import app.keymahub.hid.ConsumerKeys
 import app.keymahub.hid.ConsumerReport
 import app.keymahub.hid.HidDescriptors
+import app.keymahub.hid.HidKeycodes
 import app.keymahub.hid.KeyboardReport
 import app.keymahub.hid.MouseReport
 import java.util.concurrent.Executors
@@ -51,7 +52,13 @@ class HidSender : InputSink {
         if (usage and ConsumerKeys.FLAG != 0) {
             media.update(usage and 0xFFFF, down)?.let { BleHid.send(HidDescriptors.REPORT_ID_CONSUMER, it) }
         } else {
-            keyboard.update(usage, down)?.let { BleHid.send(HidDescriptors.REPORT_ID_KEYBOARD, it) }
+            val report = keyboard.update(usage, down)
+            if (report != null) {
+                BleHid.send(HidDescriptors.REPORT_ID_KEYBOARD, report)
+            } else if (down && !HidKeycodes.isModifier(usage)) {
+                // A press the report has no room for: say why (not which key, which is what was typed).
+                Hub.log(if (keyboard.isHeld(usage)) "key not sent: still held on the target" else "key not sent: six keys already held on the target")
+            }
         }
     }
 

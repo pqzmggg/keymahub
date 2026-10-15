@@ -88,13 +88,19 @@ class KeyboardReport {
             return report()
         }
         if (down) {
-            if (usage in keys || keys.size >= 6) return null
+            if (usage in keys || isFull) return null
             keys.add(usage)
         } else if (!keys.remove(usage)) {
             return null
         }
         return report()
     }
+
+    /** Whether [usage] (not a modifier) is held. */
+    fun isHeld(usage: Int) = usage in keys
+
+    /** Six keys besides the modifiers are held: another one does not fit. */
+    val isFull get() = keys.size >= 6
 
     fun clear(): ByteArray {
         modifiers = 0

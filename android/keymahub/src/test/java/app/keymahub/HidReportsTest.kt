@@ -6,7 +6,9 @@ import app.keymahub.hid.KeyboardReport
 import app.keymahub.hid.MouseReport
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class HidReportsTest {
@@ -36,8 +38,12 @@ class HidReportsTest {
         assertNull(r.update(0xE1, true)) // repeat
         for (k in 4..9) r.update(k, true) // a..f
         assertNull(r.update(10, true)) // a 7th key does not fit
+        assertTrue(r.isFull)
+        assertTrue(r.isHeld(4))
+        assertFalse(r.isHeld(10))
         assertArrayEquals(byteArrayOf(0x02, 0, 5, 6, 7, 8, 9, 0), r.update(4, false))
         assertNull(r.update(4, false)) // not held any more
+        assertFalse(r.isFull)
         assertArrayEquals(ByteArray(8), r.clear())
     }
 
