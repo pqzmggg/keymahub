@@ -58,7 +58,9 @@ class KeymaAccessibilityService : AccessibilityService() {
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
-        if (event != null) textEvents?.invoke(event)
+        if (event == null) return
+        if (event.eventType == AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED) notificationEvents?.invoke(event)
+        else textEvents?.invoke(event)
     }
 
     /**
@@ -70,13 +72,25 @@ class KeymaAccessibilityService : AccessibilityService() {
     var textEvents: ((AccessibilityEvent) -> Unit)? = null
         set(value) {
             field = value
-            editServiceInfo {
-                it.eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or (
-                    if (value == null) 0
-                    else AccessibilityEvent.TYPE_VIEW_FOCUSED or AccessibilityEvent.TYPE_VIEW_CLICKED or AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED
-                    )
-            }
+            subscribe()
         }
+
+    /**
+     * While set (the screen is covered for a target, see HubService.onSelect), gets the events of
+     * notifications posted (capture.ScreenCover uncovers for them). Only then are they subscribed to.
+     */
+    @Volatile
+    var notificationEvents: ((AccessibilityEvent) -> Unit)? = null
+        set(value) {
+            field = value
+            subscribe()
+        }
+
+    private fun subscribe() = editServiceInfo {
+        it.eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or
+            (if (textEvents == null) 0 else AccessibilityEvent.TYPE_VIEW_FOCUSED or AccessibilityEvent.TYPE_VIEW_CLICKED or AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED) or
+            (if (notificationEvents == null) 0 else AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED)
+    }
 
     /** Changes [serviceInfo]: one change at a time, so changes from different threads do not undo each other. */
     @Synchronized
@@ -91,6 +105,7 @@ class KeymaAccessibilityService : AccessibilityService() {
         interceptMouse(false)
         softKeyboardDespiteHardKeyboard(false)
         textEvents = null
+        notificationEvents = null
     }
 
     override fun onInterrupt() {}

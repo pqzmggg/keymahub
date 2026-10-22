@@ -132,8 +132,10 @@
     <string name="cover_screen">Cubrir la pantalla al controlar</string>
     <string name="cover_screen_hint">Pantalla negra mientras controlas otro dispositivo: los clics y teclas que encienden la pantalla no muestran nada. Toca la pantalla para descubrirla.</string>
     <string name="cover_hint">Pantalla desactivada para proteger la batería.\nToca la pantalla para volver a activarla.</string>
+    <string name="uncover_on_notification">Descubrir con notificaciones</string>
+    <string name="uncover_on_notification_hint">Al llegar una notificación, descubrir la pantalla como con un toque, para poder verla.</string>
     <string name="recover_screen">Volver a cubrir sin toques</string>
-    <string name="recover_screen_hint">Tras descubrir la pantalla con un toque, volver a cubrirla si el teléfono no se toca durante:</string>
+    <string name="recover_screen_hint">Tras descubrir la pantalla con un toque o una notificación, volver a cubrirla si el teléfono no se toca durante:</string>
     <string name="duration_seconds">%d s</string>
     <string name="duration_minutes">%d min</string>
     <string name="touch_keyboard">Teclado en pantalla al controlar otro dispositivo</string>

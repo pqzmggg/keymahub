@@ -15,6 +15,7 @@ import android.os.IBinder
 import android.os.Looper
 import android.os.SystemClock
 import android.provider.Settings
+import android.view.accessibility.AccessibilityEvent
 import app.keymahub.ble.BleHid
 import app.keymahub.ble.HidSender
 import app.keymahub.capture.A11yCapture
@@ -25,6 +26,7 @@ import app.keymahub.core.Hotkey
 import app.keymahub.core.Hotkeys
 import app.keymahub.core.Hub
 import app.keymahub.core.Mods
+import app.keymahub.core.UiPrefs
 import app.keymahub.ui.MainActivity
 import app.keymahub.ui.displayName
 import app.keymahub.core.appVersion
@@ -137,6 +139,7 @@ class HubService : Service(), BleHid.Listener {
             if (after.tuning.le2m != before.tuning.le2m) BleHid.setLe2m(after.tuning.le2m)
             if (after.tuning.unbufferedMouse != before.tuning.unbufferedMouse) pointerCapture?.refreshDispatch()
             if (after.tuning != before.tuning) Hub.log("advanced settings: ${after.tuning}")
+            if (Hub.status.value.slot != 0) watchNotifications(after)
         }
         BleHid.addListener(this)
         for (address in BleHid.readyTargets()) onReady(address, BleHid.nameOf(address))
@@ -240,12 +243,26 @@ class HubService : Service(), BleHid.Listener {
             a11y?.textEvents = if (ui.touchKeyboard) pointerCapture?.let { it::onAccessibilityEvent } else null
             // Clicks and keys turn the screen on whatever an app does: it shows black instead.
             if (ui.coverScreen) cover?.show()
+            watchNotifications(ui)
             showHud(getString(R.string.hud_target, receiverName(slot).orEmpty()))
         }
         Hub.update { it.copy(slot = slot) }
         updateNotification()
         // Last: the edit may change the active profile, which selects the phone again (onProfileChanged).
         if (slot != 0) profile.addressOf(slot)?.let { address -> Hub.edit(this) { it.touch(address, System.currentTimeMillis()) } }
+    }
+
+    /** While a target is controlled and the cover is on: notifications uncover the screen. */
+    private fun watchNotifications(ui: UiPrefs) {
+        KeymaAccessibilityService.instance?.notificationEvents =
+            if (ui.coverScreen && ui.uncoverOnNotification) ::onNotification else null
+    }
+
+    /** Called on the accessibility service's thread. */
+    private fun onNotification(event: AccessibilityEvent) {
+        // Toasts come as the same event, without a Notification; this app's own are its status.
+        if (event.parcelableData !is Notification || event.packageName == packageName) return
+        cover?.onNotification(event.packageName)
     }
 
     private fun onUnavailable(slot: Int) {
