@@ -26,7 +26,8 @@ import app.keymahub.core.Hub
  * screen that comes on shows black (next to nothing on an OLED screen) instead of the lock screen
  * or an app. A touch on the phone takes the cover away; with [idleMs] set, it comes back once the
  * phone has not been touched for that long, and otherwise when control moves to another device again.
- * A notification posted on the phone takes it away too ([onNotification]), so it can be seen, the same way.
+ * A notification posted on the phone, or the phone unlocked (fingerprint, face, PIN), takes it away
+ * the same way ([uncoverFor]).
  *
  * Not focusable, so pointer capture keeps its focus; above the lock screen, as accessibility
  * overlays are.
@@ -59,12 +60,12 @@ class ScreenCover(
     }
 
     /**
-     * A notification was posted: uncovered, as by a touch, so it shows (the system's own
-     * notifications are always below this cover). Covered again as after a touch.
+     * Uncovered as by a touch, and covered again as after one: a notification was posted (the
+     * system's own notifications are always below this cover), or the phone was unlocked.
      */
-    fun onNotification(app: CharSequence?) = main.post {
+    fun uncoverFor(why: String) = main.post {
         if (view == null) return@post
-        Hub.log("screen cover: notification from $app, uncovered")
+        Hub.log("screen cover: $why, uncovered")
         uncover()
         idleMs()?.let(::watch)
     }

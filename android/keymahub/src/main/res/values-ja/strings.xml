@@ -134,8 +134,10 @@
     <string name="cover_hint">バッテリー保護のため画面を無効にしています。\n画面をタッチすると再び有効になります。</string>
     <string name="uncover_on_notification">通知が来たら解除</string>
     <string name="uncover_on_notification_hint">通知が来たら、タッチしたときと同じように画面の覆いを解除して通知を表示します。</string>
+    <string name="uncover_on_unlock">ロック解除で覆いを解除</string>
+    <string name="uncover_on_unlock_hint">電源ボタンを押して指紋・顔・PINでロックを解除すると、画面の覆いを解除します。画面ロック(PIN、パターン、パスワード)を使用している場合のみ。</string>
     <string name="recover_screen">タッチがなければ再び隠す</string>
-    <string name="recover_screen_hint">タッチや通知で解除した後、この時間スマホに触れなければ再び画面を隠します。</string>
+    <string name="recover_screen_hint">タッチ、通知、ロック解除で解除した後、この時間スマホに触れなければ再び画面を隠します。</string>
     <string name="duration_seconds">%d秒</string>
     <string name="duration_minutes">%d分</string>
     <string name="touch_keyboard">他のデバイス操作中の画面キーボード</string>

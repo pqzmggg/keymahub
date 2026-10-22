@@ -1,12 +1,15 @@
 package app.keymahub
 
+import android.app.KeyguardManager
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.ServiceInfo
 import android.database.ContentObserver
 import android.os.Build
@@ -46,6 +49,7 @@ class HubService : Service(), BleHid.Listener {
     private var hud: HudOverlay? = null
     private var cover: ScreenCover? = null
     private var inputLanguage: ContentObserver? = null
+    private var unlock: BroadcastReceiver? = null
     private val main = Handler(Looper.getMainLooper())
     private var pendingPairing = false
 
@@ -127,6 +131,16 @@ class HubService : Service(), BleHid.Listener {
             )
             inputLanguage = languageObserver
         }.onFailure { Hub.log("input language not watched: $it") }
+        // The phone unlocked by a person at it (fingerprint, face, PIN), e.g. after the power button.
+        val unlockReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) = onUnlocked()
+        }
+        runCatching {
+            val filter = IntentFilter(Intent.ACTION_USER_PRESENT)
+            if (Build.VERSION.SDK_INT >= 33) registerReceiver(unlockReceiver, filter, Context.RECEIVER_EXPORTED)
+            else registerReceiver(unlockReceiver, filter)
+            unlock = unlockReceiver
+        }.onFailure { Hub.log("unlock not watched: $it") }
         // Another profile may put other receivers on the hotkeys: start again from the phone.
         Hub.onProfileChanged = {
             Hub.log("profile ${profileLabel()} (${profile.id}) active, connected: ${connectedNames()}")
@@ -156,6 +170,8 @@ class HubService : Service(), BleHid.Listener {
     override fun onDestroy() {
         inputLanguage?.let { runCatching { contentResolver.unregisterContentObserver(it) } }
         inputLanguage = null
+        unlock?.let { runCatching { unregisterReceiver(it) } }
+        unlock = null
         destroyed = true
         running = false
         ready = false
@@ -262,7 +278,16 @@ class HubService : Service(), BleHid.Listener {
     private fun onNotification(event: AccessibilityEvent) {
         // Toasts come as the same event, without a Notification; this app's own are its status.
         if (event.parcelableData !is Notification || event.packageName == packageName) return
-        cover?.onNotification(event.packageName)
+        cover?.uncoverFor("notification from ${event.packageName}")
+    }
+
+    private fun onUnlocked() {
+        val ui = Hub.ui.value
+        if (!ui.coverScreen || !ui.uncoverOnUnlock) return
+        // Without a secure lock, the phone counts as unlocked whenever the screen comes on, by a
+        // click of the controlled mouse too: that must not uncover it.
+        if (getSystemService(KeyguardManager::class.java)?.isDeviceSecure != true) return
+        cover?.uncoverFor("phone unlocked")
     }
 
     private fun onUnavailable(slot: Int) {
