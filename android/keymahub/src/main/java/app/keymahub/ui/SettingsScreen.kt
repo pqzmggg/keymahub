@@ -99,6 +99,10 @@ fun SettingsScreen(
             }
             if (ui.coverScreen) {
                 HorizontalDivider()
+                Toggle(stringResource(R.string.uncover_on_notification), stringResource(R.string.uncover_on_notification_hint), ui.uncoverOnNotification) { on ->
+                    onUi { it.copy(uncoverOnNotification = on) }
+                }
+                HorizontalDivider()
                 Toggle(stringResource(R.string.recover_screen), stringResource(R.string.recover_screen_hint), ui.recoverScreen) { on ->
                     onUi { it.copy(recoverScreen = on) }
                 }

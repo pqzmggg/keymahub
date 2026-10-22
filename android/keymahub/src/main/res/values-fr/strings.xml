@@ -132,8 +132,10 @@
     <string name="cover_screen">Masquer l\'écran pendant le contrôle</string>
     <string name="cover_screen_hint">Écran noir pendant qu\'un autre appareil est contrôlé : les clics et touches qui allument l\'écran n\'affichent rien. Touchez l\'écran pour le rétablir.</string>
     <string name="cover_hint">Écran désactivé pour préserver la batterie.\nTouchez l\'écran pour le réactiver.</string>
+    <string name="uncover_on_notification">Rétablir pour les notifications</string>
+    <string name="uncover_on_notification_hint">À l’arrivée d’une notification, rétablir l’écran comme avec un toucher, pour la voir.</string>
     <string name="recover_screen">Remasquer sans toucher</string>
-    <string name="recover_screen_hint">Après un toucher qui rétablit l\'écran, le masquer à nouveau si le téléphone n\'est pas touché pendant :</string>
+    <string name="recover_screen_hint">Après un toucher ou une notification qui rétablit l\'écran, le masquer à nouveau si le téléphone n\'est pas touché pendant :</string>
     <string name="duration_seconds">%d s</string>
     <string name="duration_minutes">%d min</string>
     <string name="touch_keyboard">Clavier à l\'écran pendant le contrôle</string>
