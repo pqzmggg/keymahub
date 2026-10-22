@@ -180,6 +180,12 @@
     <string name="shortcut_activate_short">Activate %1$s</string>
     <string name="shortcut_profile_activated">Profile activated: %1$s</string>
     <string name="shortcut_profile_missing">This profile no longer exists</string>
+    <string name="shortcut_hosting_on_short">Hosting on</string>
+    <string name="shortcut_hosting_on">Turn hosting on</string>
+    <string name="shortcut_hosting_off_short">Hosting off</string>
+    <string name="shortcut_hosting_off">Turn hosting off</string>
+    <string name="shortcut_hosting_started">Hosting turned on</string>
+    <string name="shortcut_hosting_stopped">Hosting turned off</string>
     <string name="notif_channel_hosts">Devices</string>
     <string name="host_forgot_title">%1$s forgot this keyboard</string>
     <string name="host_forgot_text">Remove this device on %1$s and add it again. Pairing mode is on.</string>

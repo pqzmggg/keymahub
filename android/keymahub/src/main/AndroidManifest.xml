@@ -45,6 +45,21 @@
             </intent-filter>
         </activity>
 
+        <!-- App shortcuts / Galaxy routines / automation apps: turn hosting on or off, no UI. -->
+        <activity
+            android:name=".ui.HostingShortcutActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Translucent.NoTitleBar">
+            <intent-filter>
+                <action android:name="app.keymahub.action.HOSTING_ON" />
+                <action android:name="app.keymahub.action.HOSTING_OFF" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
         <service
             android:name=".HubService"
             android:exported="false"

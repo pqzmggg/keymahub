@@ -177,6 +177,12 @@
     <string name="shortcut_activate_short">%1$sを有効化</string>
     <string name="shortcut_profile_activated">プロファイルを有効化しました: %1$s</string>
     <string name="shortcut_profile_missing">このプロファイルはもうありません</string>
+    <string name="shortcut_hosting_on_short">ホスティングをオン</string>
+    <string name="shortcut_hosting_on">ホスティングをオンにする</string>
+    <string name="shortcut_hosting_off_short">ホスティングをオフ</string>
+    <string name="shortcut_hosting_off">ホスティングをオフにする</string>
+    <string name="shortcut_hosting_started">ホスティングをオンにしました</string>
+    <string name="shortcut_hosting_stopped">ホスティングをオフにしました</string>
     <string name="notif_channel_hosts">デバイス</string>
     <string name="host_forgot_title">%1$s がキーボードを認識しなくなりました</string>
     <string name="host_forgot_text">%1$s でこのデバイスを削除してから、もう一度追加してください。ペアリングモードをオンにしました。</string>

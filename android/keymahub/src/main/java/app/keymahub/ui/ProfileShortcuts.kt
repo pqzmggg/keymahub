@@ -10,24 +10,29 @@ import app.keymahub.core.Hub
 import app.keymahub.core.Profile
 
 /**
- * One dynamic app shortcut per profile ("activate this profile"), in list order.
- * Galaxy Modes & Routines offers an app's shortcuts as routine actions, so a routine can
- * switch profiles; the same shortcuts show on a long-press of the launcher icon.
+ * Dynamic app shortcuts: "hosting on" and "hosting off" first, then one per profile ("activate
+ * this profile"), in list order. Galaxy Modes & Routines offers an app's shortcuts as routine
+ * actions, so a routine can turn hosting on and off and switch profiles; the same shortcuts show
+ * on a long-press of the launcher icon.
  */
 object ProfileShortcuts {
     private const val PREFIX = "profile:"
 
     fun sync(context: Context, profiles: List<Profile>) {
         runCatching {
-            val max = ShortcutManagerCompat.getMaxShortcutCountPerActivity(context).coerceAtLeast(1)
-            val shown = profiles.take(max)
-            val shortcuts = shown.mapIndexed { rank, p ->
+            val hosting = listOf(
+                hosting(context, "hosting:on", HostingShortcutActivity.ACTION_ON, R.string.shortcut_hosting_on_short, R.string.shortcut_hosting_on, 0),
+                hosting(context, "hosting:off", HostingShortcutActivity.ACTION_OFF, R.string.shortcut_hosting_off_short, R.string.shortcut_hosting_off, 1),
+            )
+            val max = ShortcutManagerCompat.getMaxShortcutCountPerActivity(context).coerceAtLeast(hosting.size)
+            val shown = profiles.take(max - hosting.size)
+            val shortcuts = hosting + shown.mapIndexed { i, p ->
                 val name = p.displayName(context)
                 ShortcutInfoCompat.Builder(context, PREFIX + p.id)
                     .setShortLabel(context.getString(R.string.shortcut_activate_short, name))
                     .setLongLabel(context.getString(R.string.shortcut_activate_profile, name))
                     .setIcon(IconCompat.createWithResource(context, R.mipmap.ic_launcher))
-                    .setRank(rank)
+                    .setRank(hosting.size + i)
                     .setIntent(
                         Intent(ActivateProfileActivity.ACTION)
                             .setClass(context, ActivateProfileActivity::class.java)
@@ -45,4 +50,13 @@ object ProfileShortcuts {
             }
         }.onFailure { Hub.log("Shortcuts: ${it.message}") }
     }
+
+    private fun hosting(context: Context, id: String, action: String, short: Int, long: Int, rank: Int) =
+        ShortcutInfoCompat.Builder(context, id)
+            .setShortLabel(context.getString(short))
+            .setLongLabel(context.getString(long))
+            .setIcon(IconCompat.createWithResource(context, R.mipmap.ic_launcher))
+            .setRank(rank)
+            .setIntent(Intent(action).setClass(context, HostingShortcutActivity::class.java))
+            .build()
 }

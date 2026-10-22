@@ -177,6 +177,12 @@
     <string name="shortcut_activate_short">启用%1$s</string>
     <string name="shortcut_profile_activated">已启用配置：%1$s</string>
     <string name="shortcut_profile_missing">此配置已不存在</string>
+    <string name="shortcut_hosting_on_short">开启主机</string>
+    <string name="shortcut_hosting_on">开启主机模式</string>
+    <string name="shortcut_hosting_off_short">关闭主机</string>
+    <string name="shortcut_hosting_off">关闭主机模式</string>
+    <string name="shortcut_hosting_started">已开启主机模式</string>
+    <string name="shortcut_hosting_stopped">已关闭主机模式</string>
     <string name="notif_channel_hosts">设备</string>
     <string name="host_forgot_title">%1$s 已无法识别此键盘</string>
     <string name="host_forgot_text">请在 %1$s 上删除本设备后重新添加。已开启配对模式。</string>

@@ -181,6 +181,12 @@
     <string name="shortcut_activate_short">Activar %1$s</string>
     <string name="shortcut_profile_activated">Perfil activado: %1$s</string>
     <string name="shortcut_profile_missing">Este perfil ya no existe</string>
+    <string name="shortcut_hosting_on_short">Activar anfitrión</string>
+    <string name="shortcut_hosting_on">Activar el modo anfitrión</string>
+    <string name="shortcut_hosting_off_short">Desactivar anfitrión</string>
+    <string name="shortcut_hosting_off">Desactivar el modo anfitrión</string>
+    <string name="shortcut_hosting_started">Modo anfitrión activado</string>
+    <string name="shortcut_hosting_stopped">Modo anfitrión desactivado</string>
     <string name="notif_channel_hosts">Dispositivos</string>
     <string name="host_forgot_title">%1$s olvidó este teclado</string>
     <string name="host_forgot_text">Quita este dispositivo en %1$s y vuelve a añadirlo. El modo de emparejamiento está activado.</string>

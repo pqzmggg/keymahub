@@ -169,7 +169,7 @@ class MainActivity : ComponentActivity() {
         BackHandler(enabled = fullScreen || (!twoPane && route != "home")) { back() }
         val onEdit: ((app.keymahub.core.Settings) -> app.keymahub.core.Settings) -> Unit = { change -> Hub.edit(this, change) }
         val exempt = remember(tick) { batteryExempt() }
-        // App shortcuts (and so Galaxy routines) follow the profile list: names and order.
+        // App shortcuts (and so Galaxy routines): hosting on/off, then the profile list (names and order).
         val shortcutKey = status.settings.profiles.map { it.id to it.name }
         LaunchedEffect(shortcutKey) { ProfileShortcuts.sync(this@MainActivity, status.settings.profiles) }
 
