@@ -177,6 +177,12 @@
     <string name="shortcut_activate_short">%1$s 활성화</string>
     <string name="shortcut_profile_activated">프로필 활성화됨: %1$s</string>
     <string name="shortcut_profile_missing">없는 프로필입니다</string>
+    <string name="shortcut_hosting_on_short">호스팅 켜기</string>
+    <string name="shortcut_hosting_on">호스팅 켜기</string>
+    <string name="shortcut_hosting_off_short">호스팅 끄기</string>
+    <string name="shortcut_hosting_off">호스팅 끄기</string>
+    <string name="shortcut_hosting_started">호스팅을 켰습니다</string>
+    <string name="shortcut_hosting_stopped">호스팅을 껐습니다</string>
     <string name="notif_channel_hosts">기기</string>
     <string name="host_forgot_title">%1$s: 키보드를 다시 등록해야 합니다</string>
     <string name="host_forgot_text">%1$s에서 이 기기를 제거한 뒤 다시 추가하세요. 페어링 모드를 켰습니다.</string>
