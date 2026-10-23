@@ -47,7 +47,11 @@ import app.keymahub.core.ThemeMode
 import app.keymahub.core.UiPrefs
 import app.keymahub.core.appVersion
 
-/** App-wide settings: hotkey modifiers, language, theme, switch popup, hosting by itself, advanced (sending over Bluetooth). */
+/**
+ * App-wide settings, in sections: language and theme, hotkey modifiers, hosting by itself, while
+ * controlling another device (switch popup, on-screen keyboard), the screen cover, running in the
+ * background (battery), and advanced (sending over Bluetooth, folded).
+ */
 @Composable
 fun SettingsScreen(
     ui: UiPrefs,
@@ -71,9 +75,6 @@ fun SettingsScreen(
     Page {
         TopBar(stringResource(R.string.settings_title), onBack)
 
-        SectionTitle(stringResource(R.string.settings_hotkeys))
-        HotkeyCard(mods, onMods)
-
         SectionTitle(stringResource(R.string.settings_appearance))
         Card(Modifier.fillMaxWidth()) {
             Item(stringResource(R.string.language), languageName) { pickingLanguage = true }
@@ -90,7 +91,12 @@ fun SettingsScreen(
             }
         }
 
-        SectionTitle(stringResource(R.string.settings_behavior))
+        SectionTitle(stringResource(R.string.settings_hotkeys))
+        HotkeyCard(mods, onMods)
+
+        AutoHostingSection(ui, onUi)
+
+        SectionTitle(stringResource(R.string.settings_controlling))
         Card(Modifier.fillMaxWidth()) {
             Toggle(stringResource(R.string.show_hud), stringResource(R.string.show_hud_hint), ui.showHud) { on ->
                 onUi { it.copy(showHud = on) }
@@ -101,7 +107,10 @@ fun SettingsScreen(
                     onUi { it.copy(touchKeyboard = on) }
                 }
             }
-            HorizontalDivider()
+        }
+
+        SectionTitle(stringResource(R.string.settings_cover))
+        Card(Modifier.fillMaxWidth()) {
             Toggle(stringResource(R.string.cover_screen), stringResource(R.string.cover_screen_hint), ui.coverScreen) { on ->
                 onUi { it.copy(coverScreen = on) }
             }
@@ -138,13 +147,14 @@ fun SettingsScreen(
                     }
                 }
             }
-            HorizontalDivider()
+        }
+
+        SectionTitle(stringResource(R.string.settings_background))
+        Card(Modifier.fillMaxWidth()) {
             BatteryItem(batteryExempt, onBattery)
         }
 
-        AutoHostingCard(ui, onUi)
-
-        AdvancedCard(ui.tuning) { change -> onUi { it.copy(tuning = change(it.tuning)) } }
+        AdvancedSection(ui.tuning) { change -> onUi { it.copy(tuning = change(it.tuning)) } }
 
         Text(
             stringResource(R.string.version, version),
@@ -211,13 +221,12 @@ private fun BatteryItem(exempt: Boolean, onBattery: () -> Unit) {
  * once they are gone (see AutoHostingWatcher).
  */
 @Composable
-private fun AutoHostingCard(ui: UiPrefs, onUi: ((UiPrefs) -> UiPrefs) -> Unit) {
+private fun AutoHostingSection(ui: UiPrefs, onUi: ((UiPrefs) -> UiPrefs) -> Unit) {
     val context = LocalContext.current
     val a11yOn = remember { KeymaAccessibilityService.isEnabled(context) }
+    SectionTitle(stringResource(R.string.auto_hosting), stringResource(R.string.auto_hosting_hint))
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp)) {
-            Text(stringResource(R.string.auto_hosting), style = MaterialTheme.typography.titleMedium)
-            Text(stringResource(R.string.auto_hosting_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             if (ui.autoHosting != AutoHostingMode.OFF && !a11yOn) {
                 Text(stringResource(R.string.auto_hosting_needs_a11y), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
             }
