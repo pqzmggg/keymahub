@@ -249,6 +249,10 @@
     <string name="tuning_slow_log_help">输入等待达到或超过此时间时写入应用日志（\'waited … ms\'）。仅用于诊断，不改变发送方式。</string>
     <string name="tuning_le2m">LE 2M PHY</string>
     <string name="tuning_le2m_help">向设备请求使用蓝牙 LE 2M。每个数据包占用的空中时间减半，减少与其他设备和 Wi-Fi 的竞争。是否使用由设备决定。距离较远或干扰严重时，关闭可能更稳定。更改后会立即向已连接的设备重新请求。</string>
+    <string name="tuning_adaptive_motion">连接变慢时自动放慢</string>
+    <string name="tuning_adaptive_motion_help">蓝牙连接出现跟不上的迹象（发送确认变慢或有输入等待发送）时，暂时降低鼠标移动的发送频率，连接恢复后回到设定的间隔。关闭时，发送快于连接承载的移动会积压，鼠标会慢慢重走经过的轨迹。</string>
+    <string name="tuning_adaptive_max">放慢时的最大间隔</string>
+    <string name="tuning_adaptive_max_help">因连接变慢而放慢时使用的最长鼠标发送间隔。越大积压消除得越快，但期间不够流畅。</string>
     <string name="tuning_unbuffered">即时接收鼠标</string>
     <string name="tuning_unbuffered_help">按到达顺序接收连接到本手机的鼠标移动，而不是按屏幕帧（8–16 毫秒）合并。开启时响应更快，关闭时处理的事件更少。需要 Android 11 及以上。</string>
     <string name="tuning_group_common">通用（键盘和鼠标）</string>

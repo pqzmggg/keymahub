@@ -252,6 +252,10 @@
     <string name="tuning_slow_log_help">Input that waits this long or longer is written to the app log (\'waited … ms\'). For diagnosis only: it does not change sending.</string>
     <string name="tuning_le2m">LE 2M PHY</string>
     <string name="tuning_le2m_help">Asks devices for Bluetooth LE 2M. Each packet takes half the air time, leaving more room for other devices and Wi-Fi. The device decides whether to use it. Far away or with heavy interference, off may be steadier. A change is requested from connected devices at once.</string>
+    <string name="tuning_adaptive_motion">Slow down on a slow link</string>
+    <string name="tuning_adaptive_motion_help">While the Bluetooth link shows it is not keeping up (input confirmed late or waiting to be sent), mouse movement goes out less often for a while and returns to the set interval once the link recovers. Without it, movement sent faster than the link carries piles up and the mouse replays its path slowly.</string>
+    <string name="tuning_adaptive_max">Slowest when slowed</string>
+    <string name="tuning_adaptive_max_help">The longest mouse report interval used while slowed for a slow link. Higher clears a pile-up sooner but moves less smoothly meanwhile.</string>
     <string name="tuning_unbuffered">Unbuffered mouse</string>
     <string name="tuning_unbuffered_help">Takes this phone\'s mouse movement as it comes, instead of once per screen frame (8–16 ms). On reacts faster; off handles fewer events. Android 11 and later.</string>
     <string name="tuning_group_common">Common (keyboard and mouse)</string>
