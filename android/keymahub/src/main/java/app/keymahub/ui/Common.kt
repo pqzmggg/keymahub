@@ -24,6 +24,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -212,7 +213,10 @@ fun NameDialog(
 /**
  * A one-line outlined text field less tall than Material's 56 dp (48 dp: less padding above and
  * below the text, still a full touch target), with the same frame, colors and [placeholder].
+ * OutlinedTextField's own padding is fixed, so it is built from its decoration (experimental in
+ * Material 3 1.3).
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CompactTextField(
     value: String,
