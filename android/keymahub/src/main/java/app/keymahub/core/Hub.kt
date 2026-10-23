@@ -122,6 +122,8 @@ object Hub {
                     busyRetryMs = p.getInt(K_BUSY_RETRY_MS, d.tuning.busyRetryMs),
                     slowLogMs = p.getInt(K_SLOW_LOG_MS, d.tuning.slowLogMs),
                     le2m = p.getBoolean(K_LE_2M, d.tuning.le2m),
+                    adaptiveMotion = p.getBoolean(K_ADAPTIVE_MOTION, d.tuning.adaptiveMotion),
+                    adaptiveMaxMs = p.getInt(K_ADAPTIVE_MAX_MS, d.tuning.adaptiveMaxMs),
                     unbufferedMouse = p.getBoolean(K_UNBUFFERED_MOUSE, d.tuning.unbufferedMouse),
                     keysFirst = p.getBoolean(K_KEYS_FIRST, d.tuning.keysFirst),
                     keyExtra = p.getInt(K_KEY_EXTRA, d.tuning.keyExtra),
@@ -173,6 +175,8 @@ object Hub {
         putOrDefault(K_BUSY_RETRY_MS, t.busyRetryMs, d.busyRetryMs)
         putOrDefault(K_SLOW_LOG_MS, t.slowLogMs, d.slowLogMs)
         putOrDefault(K_LE_2M, t.le2m, d.le2m)
+        putOrDefault(K_ADAPTIVE_MOTION, t.adaptiveMotion, d.adaptiveMotion)
+        putOrDefault(K_ADAPTIVE_MAX_MS, t.adaptiveMaxMs, d.adaptiveMaxMs)
         putOrDefault(K_UNBUFFERED_MOUSE, t.unbufferedMouse, d.unbufferedMouse)
         putOrDefault(K_KEYS_FIRST, t.keysFirst, d.keysFirst)
         putOrDefault(K_KEY_EXTRA, t.keyExtra, d.keyExtra)
@@ -202,6 +206,8 @@ object Hub {
     private const val K_BUSY_RETRY_MS = "tuning_busy_retry_ms"
     private const val K_SLOW_LOG_MS = "tuning_slow_log_ms"
     private const val K_LE_2M = "tuning_le_2m"
+    private const val K_ADAPTIVE_MOTION = "tuning_adaptive_motion"
+    private const val K_ADAPTIVE_MAX_MS = "tuning_adaptive_max_ms"
     private const val K_UNBUFFERED_MOUSE = "tuning_unbuffered_mouse"
     private const val K_KEYS_FIRST = "tuning_keys_first"
     private const val K_KEY_EXTRA = "tuning_key_extra"

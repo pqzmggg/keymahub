@@ -253,6 +253,10 @@
     <string name="tuning_slow_log_help">La entrada que espera este tiempo o más se anota en el registro de la app (\'waited … ms\'). Solo para diagnóstico: no cambia el envío.</string>
     <string name="tuning_le2m">PHY LE 2M</string>
     <string name="tuning_le2m_help">Pide a los dispositivos Bluetooth LE 2M. Cada paquete ocupa la mitad de tiempo en el aire y deja más sitio a otros dispositivos y al Wi-Fi. El dispositivo decide si lo usa. Lejos o con mucha interferencia, desactivado puede ser más estable. El cambio se pide al momento a los dispositivos conectados.</string>
+    <string name="tuning_adaptive_motion">Frenar con un enlace lento</string>
+    <string name="tuning_adaptive_motion_help">Cuando el enlace Bluetooth muestra que no da abasto (confirmaciones tardías o entrada esperando), el movimiento del ratón se envía con menos frecuencia durante un tiempo y vuelve al intervalo ajustado cuando el enlace se recupera. Sin esto, el movimiento enviado más rápido de lo que el enlace transporta se acumula y el ratón repite su trayectoria despacio.</string>
+    <string name="tuning_adaptive_max">Intervalo máximo al frenar</string>
+    <string name="tuning_adaptive_max_help">El intervalo de informes del ratón más largo usado al frenar por un enlace lento. Más alto despeja antes la acumulación, pero mientras tanto se mueve con menos fluidez.</string>
     <string name="tuning_unbuffered">Ratón sin búfer</string>
     <string name="tuning_unbuffered_help">Recibe el movimiento del ratón de este teléfono según llega, en lugar de una vez por fotograma de pantalla (8–16 ms). Activado responde antes; desactivado procesa menos eventos. Android 11 o posterior.</string>
     <string name="tuning_group_common">Común (teclado y ratón)</string>

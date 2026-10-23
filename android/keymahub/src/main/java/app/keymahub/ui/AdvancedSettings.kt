@@ -88,6 +88,16 @@ fun AdvancedCard(tuning: Tuning, onTuning: ((Tuning) -> Tuning) -> Unit) {
         NumberItem(R.string.tuning_motion, R.string.tuning_motion_help, ms, Tuning.MOTION, tuning.motionMs) { v ->
             onTuning { it.copy(motionMs = v) }
         }
+        HorizontalDivider()
+        SwitchItem(R.string.tuning_adaptive_motion, R.string.tuning_adaptive_motion_help, Tuning.ADAPTIVE_MOTION, tuning.adaptiveMotion) { on ->
+            onTuning { it.copy(adaptiveMotion = on) }
+        }
+        if (tuning.adaptiveMotion) {
+            HorizontalDivider()
+            NumberItem(R.string.tuning_adaptive_max, R.string.tuning_adaptive_max_help, ms, Tuning.ADAPTIVE_MAX, tuning.adaptiveMaxMs) { v ->
+                onTuning { it.copy(adaptiveMaxMs = v) }
+            }
+        }
         if (Build.VERSION.SDK_INT >= 30) {
             HorizontalDivider()
             SwitchItem(R.string.tuning_unbuffered, R.string.tuning_unbuffered_help, Tuning.UNBUFFERED_MOUSE, tuning.unbufferedMouse) { on ->

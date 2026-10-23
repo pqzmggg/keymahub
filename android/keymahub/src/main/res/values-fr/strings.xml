@@ -253,6 +253,10 @@
     <string name="tuning_slow_log_help">Une saisie qui attend au moins ce temps est notée dans le journal de l\'app (\'waited … ms\'). Pour le diagnostic uniquement : l\'envoi ne change pas.</string>
     <string name="tuning_le2m">PHY LE 2M</string>
     <string name="tuning_le2m_help">Demande le Bluetooth LE 2M aux appareils. Chaque paquet occupe deux fois moins de temps d\'antenne, ce qui laisse plus de place aux autres appareils et au Wi-Fi. L\'appareil décide de l\'utiliser ou non. De loin ou avec beaucoup d\'interférences, désactivé peut être plus stable. Le changement est demandé tout de suite aux appareils connectés.</string>
+    <string name="tuning_adaptive_motion">Ralentir sur une liaison lente</string>
+    <string name="tuning_adaptive_motion_help">Quand la liaison Bluetooth montre qu\'elle ne suit pas (confirmations tardives ou saisie en attente), les mouvements de souris sont envoyés moins souvent pendant un moment, puis reviennent à l\'intervalle réglé une fois la liaison rétablie. Sans cela, les mouvements envoyés plus vite que la liaison ne les transporte s\'accumulent et la souris rejoue lentement son trajet.</string>
+    <string name="tuning_adaptive_max">Intervalle maximal en ralentissant</string>
+    <string name="tuning_adaptive_max_help">L\'intervalle de rapports de souris le plus long utilisé en ralentissant pour une liaison lente. Plus haut résorbe l\'accumulation plus vite, mais la souris est moins fluide pendant ce temps.</string>
     <string name="tuning_unbuffered">Souris sans tampon</string>
     <string name="tuning_unbuffered_help">Reçoit les mouvements de la souris de ce téléphone au fur et à mesure, au lieu d\'une fois par image d\'écran (8–16 ms). Activé réagit plus vite ; désactivé traite moins d\'événements. Android 11 et versions ultérieures.</string>
     <string name="tuning_group_common">Commun (clavier et souris)</string>

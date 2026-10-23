@@ -117,6 +117,8 @@ object BleHid {
     private val devices = HashMap<String, BluetoothDevice>()
     /** Input on its way to each target (see [pump]). */
     private val outboxes = HashMap<String, Outbox>()
+    /** How often mouse motion may go over each link (see [motionMs]). */
+    private val paces = HashMap<String, MotionPace>()
     /** The phone's own client connection over each host's link (see the class note and [join]). */
     private val holds = HashMap<String, Hold>()
     /** Links the GATT server joined itself (links up before it was opened, see [rejoinLinks]). */
@@ -577,7 +579,7 @@ object BleHid {
             refreshing.clear()
             offNoted.clear()
             holds.values.forEach { h -> runCatching { h.gatt?.close() } }
-            holds.clear(); serverJoined.clear(); rejoined.clear(); rejoinTries.clear(); repaced.clear(); devices.clear(); outboxes.clear()
+            holds.clear(); serverJoined.clear(); rejoined.clear(); rejoinTries.clear(); repaced.clear(); devices.clear(); outboxes.clear(); paces.clear()
             strangers.clear(); traced.clear()
             pairedWhileOff.clear(); refusedNew.clear()
             active = null
@@ -655,12 +657,43 @@ object BleHid {
         return true
     }
 
+    /**
+     * How often mouse motion may go to the selected target now: [base] (the setting), or longer
+     * while its link is slow when the interval adapts (see [MotionPace]). Called for each motion.
+     */
+    fun motionMs(base: Int): Int {
+        val t = Hub.ui.value.tuning
+        if (!t.adaptiveMotion) return base
+        synchronized(lock) {
+            val address = active ?: return base
+            val pace = paces[address] ?: return base
+            return pace.interval(base, SystemClock.uptimeMillis()) {
+                logLater { "mouse motion to ${nameOf(address)} at the set interval again" }
+            }
+        }
+    }
+
+    /** A sign that the link to [address] is slow ([why]): motion to it goes out less often for a while. Holds [lock]. */
+    private fun slow(address: String, why: String) {
+        val t = Hub.ui.value.tuning
+        if (!t.adaptiveMotion) return
+        val pace = paces.getOrPut(address) { MotionPace() }
+        pace.slowDown(t.motionMs, t.adaptiveMaxMs, SystemClock.uptimeMillis())?.let { ms ->
+            logLater { "mouse motion to ${nameOf(address)} every $ms ms for now ($why)" }
+        }
+    }
+
+    /** Whether waiting [ms] is more than the link to [address] takes (see [MotionPace.isLate]). Holds [lock]. */
+    private fun isLate(address: String, ms: Long) = paces[address]?.isLate(ms) ?: (ms >= MotionPace.LATE_CONFIRM_MS)
+
     /** What waits to go to one target, and what is on its way. */
     private class Outbox {
         val queue = ReportQueue()
         /** Notifications sent but not yet confirmed by onNotificationSent, and when the last one went out. */
         var inFlight = 0
         var lastSent = 0L
+        /** When each notification in flight went out, oldest first (confirmations come in order). */
+        val sentAt = ArrayDeque<Long>()
         /** A [pump] retry is scheduled. */
         var retrying = false
         /** Since when reports have been waiting, and why (logged when the wait was long). */
@@ -692,8 +725,10 @@ object BleHid {
             if (box.waiting != null) {
                 log("${box.inFlight} sent to ${nameOf(address)} unconfirmed after ${now - box.lastSent} ms, sending on")
                 repace(device)
+                slow(address, "confirmations lost")
             }
             box.inFlight = 0
+            box.sentAt.clear()
         }
         // Keys may go past a window full of mouse reports by [Tuning.keyExtra]: typing does not wait for them.
         fun limit(next: ReportQueue.Item) = t.window + if (next.reportId == HidDescriptors.REPORT_ID_MOUSE) 0 else t.keyExtra
@@ -721,6 +756,7 @@ object BleHid {
             }
             box.inFlight++
             box.lastSent = now
+            box.sentAt.addLast(now)
         }
         if (q.size == 0) {
             box.waiting?.let { (since, why) ->
@@ -734,6 +770,8 @@ object BleHid {
         if (box.waiting == null) box.waiting = now to (if (full) "waiting for confirmations" else "Bluetooth stack busy")
         // A wait that does not end is logged while it lasts: the line above only comes once it ends.
         box.waiting?.let { (since, why) ->
+            // Input piling up in the app is the link not keeping up (signs this close count once, see MotionPace).
+            if (isLate(address, now - since)) slow(address, "input waited ${now - since} ms, $why")
             if (!box.stuckNoted && now - since >= STUCK_MS) {
                 box.stuckNoted = true
                 val detail = if (full) why else "$why, refused with ${box.refusal}"
@@ -875,6 +913,7 @@ object BleHid {
                     synchronized(lock) {
                         devices.remove(address)
                         outboxes.remove(address)
+                        paces.remove(address)
                         serverJoined.remove(address)
                         rejoined.remove(address)
                         rejoinTries.remove(address)
@@ -960,6 +999,10 @@ object BleHid {
          */
         @Suppress("unused")
         fun onConnectionUpdated(device: BluetoothDevice, interval: Int, latency: Int, timeout: Int, status: Int) {
+            // How late a confirmation is late depends on the interval (see MotionPace.isLate).
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                synchronized(lock) { paces.getOrPut(device.address) { MotionPace() }.linkMs = (interval * 5 + 3) / 4 }
+            }
             log(
                 "${nameOf(device.address)} connection interval %.2f ms, latency %d, timeout %d ms%s"
                     .format(interval * 1.25, latency, timeout * 10, statusText(status)),
@@ -972,7 +1015,13 @@ object BleHid {
 
         override fun onNotificationSent(device: BluetoothDevice, status: Int) {
             synchronized(lock) {
-                outboxes[device.address]?.let { it.inFlight = (it.inFlight - 1).coerceAtLeast(0) }
+                outboxes[device.address]?.let { box ->
+                    box.inFlight = (box.inFlight - 1).coerceAtLeast(0)
+                    box.sentAt.removeFirstOrNull()?.let { at ->
+                        val ms = SystemClock.uptimeMillis() - at
+                        if (isLate(device.address, ms)) slow(device.address, "input confirmed after $ms ms")
+                    }
+                }
                 pump(device.address)
             }
         }
