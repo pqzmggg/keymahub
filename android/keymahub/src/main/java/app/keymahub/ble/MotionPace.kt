@@ -8,7 +8,7 @@ package app.keymahub.ble
  * goes out less often and the rest merges in the app instead.
  *
  * - Each sign of a slow link ([slowDown]: a late confirmation, input waiting in the app,
- *   confirmations lost) doubles the interval, up to a most ([app.keymahub.core.Tuning.adaptiveMaxMs]);
+ *   confirmations lost) doubles the interval, up to at most ([app.keymahub.core.Tuning.adaptiveMaxMs]);
  *   signs closer together than [SIGN_GAP_MS] count once.
  * - After [RECOVER_MS] without a sign it halves again, step by step, back to the setting.
  * - The link's connection interval ([linkMs]), when the host told it, says how late is late
