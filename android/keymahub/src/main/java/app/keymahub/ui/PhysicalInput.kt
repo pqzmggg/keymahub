@@ -1,10 +1,8 @@
 package app.keymahub.ui
 
 import android.hardware.input.InputManager
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
-import android.view.InputDevice
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -15,6 +13,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import app.keymahub.R
+import app.keymahub.core.InputKey
+import app.keymahub.core.isMouse
+import app.keymahub.core.isTypingKeyboard
+import app.keymahub.core.keyboardsAndMice
+import app.keymahub.core.physicalDevices
 
 /** Whether a physical keyboard and a mouse are connected to this device. */
 data class PhysicalInput(val keyboard: Boolean, val mouse: Boolean)
@@ -25,15 +28,23 @@ data class PhysicalInput(val keyboard: Boolean, val mouse: Boolean)
  * (Android 10+ tells them apart) do not count.
  */
 @Composable
-fun rememberPhysicalInput(): PhysicalInput {
+fun rememberPhysicalInput(): PhysicalInput = rememberInputDevices(::physicalInput)
+
+/** The physical keyboards and mice connected right now, updated as they come and go. */
+@Composable
+fun rememberKeyboardsAndMice(): List<InputKey> = rememberInputDevices { it?.keyboardsAndMice().orEmpty() }
+
+/** [read] from the input devices now, and again whenever one comes, goes or changes. */
+@Composable
+private fun <T> rememberInputDevices(read: (InputManager?) -> T): T {
     val context = LocalContext.current
     val im = remember { context.getSystemService(InputManager::class.java) }
-    var state by remember { mutableStateOf(physicalInput(im)) }
+    var state by remember { mutableStateOf(read(im)) }
     DisposableEffect(im) {
         val listener = object : InputManager.InputDeviceListener {
-            override fun onInputDeviceAdded(deviceId: Int) { state = physicalInput(im) }
-            override fun onInputDeviceRemoved(deviceId: Int) { state = physicalInput(im) }
-            override fun onInputDeviceChanged(deviceId: Int) { state = physicalInput(im) }
+            override fun onInputDeviceAdded(deviceId: Int) { state = read(im) }
+            override fun onInputDeviceRemoved(deviceId: Int) { state = read(im) }
+            override fun onInputDeviceChanged(deviceId: Int) { state = read(im) }
         }
         im?.registerInputDeviceListener(listener, Handler(Looper.getMainLooper()))
         onDispose { im?.unregisterInputDeviceListener(listener) }
@@ -43,17 +54,8 @@ fun rememberPhysicalInput(): PhysicalInput {
 
 private fun physicalInput(im: InputManager?): PhysicalInput {
     if (im == null) return PhysicalInput(keyboard = false, mouse = false)
-    val ids: IntArray = im.inputDeviceIds
-    val devices: List<InputDevice> = ids.toList()
-        .mapNotNull { id -> im.getInputDevice(id) }
-        .filter { d -> !d.isVirtual && (Build.VERSION.SDK_INT < 29 || d.isExternal) }
-    return PhysicalInput(
-        keyboard = devices.any { d -> d.keyboardType == InputDevice.KEYBOARD_TYPE_ALPHABETIC },
-        // A captured mouse (another device has control) reports relative motion instead.
-        mouse = devices.any { d ->
-            d.supportsSource(InputDevice.SOURCE_MOUSE) || d.supportsSource(InputDevice.SOURCE_MOUSE_RELATIVE)
-        },
-    )
+    val devices = im.physicalDevices()
+    return PhysicalInput(keyboard = devices.any { it.isTypingKeyboard }, mouse = devices.any { it.isMouse })
 }
 
 /**

@@ -6,12 +6,16 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -29,17 +33,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import app.keymahub.KeyLabels
+import app.keymahub.KeymaAccessibilityService
 import app.keymahub.Locales
 import app.keymahub.R
+import app.keymahub.core.AutoHostingMode
 import app.keymahub.core.Hotkeys
+import app.keymahub.core.InputKey
 import app.keymahub.core.Mods
 import app.keymahub.core.ThemeMode
 import app.keymahub.core.UiPrefs
 import app.keymahub.core.appVersion
 
-/** App-wide settings: hotkey modifiers, language, theme, switch popup, advanced (sending over Bluetooth). */
+/** App-wide settings: hotkey modifiers, language, theme, switch popup, hosting by itself, advanced (sending over Bluetooth). */
 @Composable
 fun SettingsScreen(
     ui: UiPrefs,
@@ -130,6 +138,8 @@ fun SettingsScreen(
             BatteryItem(batteryExempt, onBattery)
         }
 
+        AutoHostingCard(ui, onUi)
+
         AdvancedCard(ui.tuning) { change -> onUi { it.copy(tuning = change(it.tuning)) } }
 
         Text(
@@ -188,6 +198,76 @@ private fun BatteryItem(exempt: Boolean, onBattery: () -> Unit) {
         }
         // Nothing to do once left out.
         FilledTonalButton(onClick = onBattery, enabled = !exempt) { Text(stringResource(R.string.action_battery)) }
+    }
+}
+
+/**
+ * Turning hosting on by itself when a keyboard or mouse connects: off, any of them, or the ones
+ * chosen here (those connected now and those chosen before), and whether to turn it off again
+ * once they are gone (see AutoHostingWatcher).
+ */
+@Composable
+private fun AutoHostingCard(ui: UiPrefs, onUi: ((UiPrefs) -> UiPrefs) -> Unit) {
+    val context = LocalContext.current
+    val a11yOn = remember { KeymaAccessibilityService.isEnabled(context) }
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp)) {
+            Text(stringResource(R.string.auto_hosting), style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.auto_hosting_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (ui.autoHosting != AutoHostingMode.OFF && !a11yOn) {
+                Text(stringResource(R.string.auto_hosting_needs_a11y), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+            }
+            for ((mode, label) in listOf(
+                AutoHostingMode.OFF to R.string.auto_hosting_off,
+                AutoHostingMode.ANY_INPUT to R.string.auto_hosting_any,
+                AutoHostingMode.CHOSEN to R.string.auto_hosting_chosen,
+            )) {
+                Choice(stringResource(label), selected = ui.autoHosting == mode) { onUi { it.copy(autoHosting = mode) } }
+            }
+            if (ui.autoHosting == AutoHostingMode.CHOSEN) AutoHostingDevices(ui.autoHostingDevices) { chosen ->
+                onUi { it.copy(autoHostingDevices = chosen) }
+            }
+        }
+        if (ui.autoHosting != AutoHostingMode.OFF) {
+            HorizontalDivider()
+            Toggle(stringResource(R.string.auto_hosting_stop), stringResource(R.string.auto_hosting_stop_hint), ui.autoHostingStop) { on ->
+                onUi { it.copy(autoHostingStop = on) }
+            }
+        }
+    }
+}
+
+/** The keyboards and mice to choose from: connected now, then chosen before and not connected. */
+@Composable
+private fun AutoHostingDevices(chosen: List<InputKey>, onChosen: (List<InputKey>) -> Unit) {
+    val connected = rememberKeyboardsAndMice()
+    val ids = chosen.map { it.id }.toSet()
+    val shown = connected + chosen.filter { c -> connected.none { it.id == c.id } }
+    Text(
+        stringResource(R.string.auto_hosting_devices_hint),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(top = 8.dp),
+    )
+    if (shown.isEmpty()) Text(stringResource(R.string.auto_hosting_no_devices), style = MaterialTheme.typography.bodyMedium)
+    for (d in shown) {
+        val on = d.id in ids
+        val here = connected.any { it.id == d.id }
+        Row(
+            Modifier.fillMaxWidth()
+                .toggleable(on, role = Role.Checkbox) { checked ->
+                    onChosen(if (checked) chosen + d else chosen.filter { it.id != d.id })
+                }
+                .padding(vertical = 2.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Checkbox(checked = on, onCheckedChange = null)
+            Spacer(Modifier.width(12.dp))
+            Column {
+                Text(d.name)
+                if (!here) Text(stringResource(R.string.auto_hosting_not_connected), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
     }
 }
 

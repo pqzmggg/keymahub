@@ -25,9 +25,14 @@ import app.keymahub.ui.MainActivity
  * [HubService] is running.
  */
 class KeymaAccessibilityService : AccessibilityService() {
+    /** Turns hosting on when a keyboard or mouse connects (Settings), for as long as the service is on. */
+    private var autoHosting: AutoHostingWatcher? = null
+
     override fun onServiceConnected() {
         instance = this
         Hub.log("accessibility service connected")
+        autoHosting?.stop()
+        autoHosting = AutoHostingWatcher(applicationContext).also { it.start() }
         BleHid.onForgotten = { name -> hostForgot(name) }
         BleHid.onRefusedNew = { name ->
             hostNotice(name, getString(R.string.host_refused_title, name), getString(R.string.host_refused_text, name))
@@ -48,6 +53,8 @@ class KeymaAccessibilityService : AccessibilityService() {
     }
 
     private fun detach() {
+        autoHosting?.stop()
+        autoHosting = null
         leaveTarget()
         if (instance === this) instance = null
         if (capture != null) {
