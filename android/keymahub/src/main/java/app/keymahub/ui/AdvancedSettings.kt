@@ -26,7 +26,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.offset
 import app.keymahub.R
 import app.keymahub.core.Tuning
 import androidx.compose.material.icons.Icons
@@ -45,8 +49,12 @@ import androidx.compose.material3.Icon
 fun AdvancedSection(tuning: Tuning, onTuning: ((Tuning) -> Tuning) -> Unit) {
     var open by rememberSaveable { mutableStateOf(false) }
     // The section title opens and closes it like a list group (a chevron, not a switch: nothing is turned on here).
+    // Its highlight (hover, press) has a margin all round with rounded corners; the text stays in line with the other titles.
     Row(
-        Modifier.fillMaxWidth().clickable { open = !open }.padding(top = 8.dp),
+        Modifier.fillMaxWidth().bleed(HEADER_MARGIN)
+            .clip(MaterialTheme.shapes.small)
+            .clickable { open = !open }
+            .padding(HEADER_MARGIN),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(Modifier.weight(1f).padding(end = 12.dp)) {
@@ -117,6 +125,22 @@ fun AdvancedSection(tuning: Tuning, onTuning: ((Tuning) -> Tuning) -> Unit) {
         TextButton(onClick = { onTuning { Tuning() } }, modifier = Modifier.padding(8.dp)) {
             Text(stringResource(R.string.tuning_reset))
         }
+    }
+}
+
+/** The margin of the section title's highlight (see [AdvancedSection]): as the other section titles' space above them. */
+private val HEADER_MARGIN = 8.dp
+
+/**
+ * Lets this element reach [by] past its place on the left, the right and below (not above), so a
+ * highlight can have a margin round content kept where it was: the content takes [by] of padding
+ * on those sides.
+ */
+private fun Modifier.bleed(by: Dp) = layout { measurable, constraints ->
+    val px = by.roundToPx()
+    val placeable = measurable.measure(constraints.offset(horizontal = 2 * px))
+    layout((placeable.width - 2 * px).coerceAtLeast(0), (placeable.height - px).coerceAtLeast(0)) {
+        placeable.place(-px, 0)
     }
 }
 
