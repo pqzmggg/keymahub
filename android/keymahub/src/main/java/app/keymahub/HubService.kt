@@ -6,6 +6,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.bluetooth.BluetoothManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -191,7 +192,7 @@ class HubService : Service(), BleHid.Listener {
         sender?.shutdown()
         // Off the main thread: it waits for a start still in progress. Hosts are let go (see BleHid.stop).
         Thread { BleHid.stop() }.start()
-        Hub.update { it.copy(running = false, slot = 0, ready = emptySet(), pairingUntil = 0) }
+        Hub.update { it.copy(running = false, slot = 0, ready = emptySet(), pairingUntil = 0, autoStartedBy = null) }
         Hub.log("stopped")
         super.onDestroy()
     }
@@ -387,8 +388,21 @@ class HubService : Service(), BleHid.Listener {
             private set
 
         fun start(context: Context) {
-            Hub.update { it.copy(problem = null) }
+            Hub.update { it.copy(problem = null, autoStartedBy = null) }
             context.startForegroundService(Intent(context, HubService::class.java))
+        }
+
+        /**
+         * What would make a start fail, known before starting (null: none, or already running): for
+         * starts with no screen to show the problem on later (shortcuts, routines, a keyboard connecting).
+         */
+        fun startProblem(context: Context): Int? {
+            if (running) return null
+            if (KeymaAccessibilityService.instance == null) return R.string.problem_a11y_off
+            if (!BleHid.hasPermission(context)) return R.string.problem_bt_permission
+            val adapter = context.getSystemService(BluetoothManager::class.java)?.adapter ?: return R.string.problem_bt_unsupported
+            if (!adapter.isEnabled) return R.string.problem_bt_off
+            return null
         }
 
         fun stop(context: Context, problem: Int? = null) {

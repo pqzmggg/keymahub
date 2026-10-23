@@ -263,6 +263,7 @@ private fun HostingCard(status: HubStatus, onHosting: (Boolean) -> Unit) {
                         pluralStringResource(R.plurals.ready_count, status.ready.size, status.ready.size),
                         style = MaterialTheme.typography.bodySmall,
                     )
+                    status.autoStartedBy?.let { Text(stringResource(R.string.auto_hosting_started_by, it), style = MaterialTheme.typography.bodySmall) }
                 }
             }
             Switch(checked = status.running, onCheckedChange = onHosting)

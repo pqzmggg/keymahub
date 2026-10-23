@@ -17,6 +17,10 @@ data class Tuning(
     val slowLogMs: Int = SLOW_LOG.recommended,
     /** Ask hosts for the LE 2M PHY. */
     val le2m: Boolean = LE_2M,
+    /** Send mouse motion less often while the link shows it is slow (see [app.keymahub.ble.MotionPace]). */
+    val adaptiveMotion: Boolean = ADAPTIVE_MOTION,
+    /** The longest the motion interval gets while slowed for a slow link (ms). */
+    val adaptiveMaxMs: Int = ADAPTIVE_MAX.recommended,
     /** Take captured mouse events one by one rather than once per display frame. */
     val unbufferedMouse: Boolean = UNBUFFERED_MOUSE,
     /** Keyboard reports go ahead of mouse motion waiting to be sent (not ahead of clicks). */
@@ -32,6 +36,7 @@ data class Tuning(
         busyRetryMs = BUSY_RETRY.clamp(busyRetryMs),
         slowLogMs = SLOW_LOG.clamp(slowLogMs),
         keyExtra = KEY_EXTRA.clamp(keyExtra),
+        adaptiveMaxMs = ADAPTIVE_MAX.clamp(adaptiveMaxMs),
     )
 
     /** A number's recommended value and the range it may take. */
@@ -57,6 +62,13 @@ data class Tuning(
         val BUSY_RETRY = Spec(recommended = 10, min = 1, max = 50)
         val SLOW_LOG = Spec(recommended = 70, min = 10, max = 1000)
         const val LE_2M = true
+        /**
+         * On: a link that slows down (a longer connection interval, a busy radio) otherwise gets
+         * motion faster than it carries, and the host replays the path slowly for a while.
+         */
+        const val ADAPTIVE_MOTION = true
+        /** 40 ms (25 reports a second): still a usable pointer while the link is slow. */
+        val ADAPTIVE_MAX = Spec(recommended = 40, min = 15, max = 100)
         /** Off: frame-batched mouse events were steadier in use than one by one. */
         const val UNBUFFERED_MOUSE = false
         /** On: a key waits for at most the reports already in flight, not for the mouse's queue too. */

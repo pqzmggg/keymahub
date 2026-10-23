@@ -18,7 +18,8 @@ import java.util.concurrent.TimeUnit
  * Turns routed input into HID reports for the selected BLE target. Everything, including
  * target switches, runs on one thread, so the releases queued for the old target are sent
  * before the switch. Motion is coalesced to at most one report per [Tuning.motionMs] (read each
- * time, so a change applies at once); the first motion after a pause goes out at once.
+ * time, so a change applies at once; longer while the link is slow, see [BleHid.motionMs]); the
+ * first motion after a pause goes out at once.
  */
 class HidSender : InputSink {
     private val keyboard = KeyboardReport()
@@ -66,7 +67,7 @@ class HidSender : InputSink {
         accX += dx
         accY += dy
         if (!motionScheduled) {
-            val wait = lastMotion + Hub.ui.value.tuning.motionMs - SystemClock.uptimeMillis()
+            val wait = lastMotion + BleHid.motionMs(Hub.ui.value.tuning.motionMs) - SystemClock.uptimeMillis()
             if (wait <= 0) {
                 flushMotion()
             } else {
