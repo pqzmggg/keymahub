@@ -39,7 +39,9 @@ data class UiPrefs(
     val coverScreen: Boolean = true,
     /** A notification uncovers it, as a touch does (then [recoverScreen] applies). */
     val uncoverOnNotification: Boolean = true,
-    /** Cover it again after the phone goes untouched for [recoverSeconds], once a touch or a notification uncovered it. */
+    /** Unlocking the phone (fingerprint, face, PIN) uncovers it, as a touch does. Only with a secure lock. */
+    val uncoverOnUnlock: Boolean = true,
+    /** Cover it again after the phone goes untouched for [recoverSeconds], once a touch, a notification or an unlock uncovered it. */
     val recoverScreen: Boolean = true,
     val recoverSeconds: Int = 10,
     /** The setup's optional battery step was skipped: setup no longer waits for it. */
@@ -119,6 +121,7 @@ object Hub {
                 touchKeyboard = p.getBoolean(K_TOUCH_KEYBOARD, d.touchKeyboard),
                 coverScreen = p.getBoolean(K_COVER_SCREEN, d.coverScreen),
                 uncoverOnNotification = p.getBoolean(K_UNCOVER_ON_NOTIFICATION, d.uncoverOnNotification),
+                uncoverOnUnlock = p.getBoolean(K_UNCOVER_ON_UNLOCK, d.uncoverOnUnlock),
                 recoverScreen = p.getBoolean(K_RECOVER_SCREEN, d.recoverScreen),
                 recoverSeconds = p.getInt(K_RECOVER_SECONDS, d.recoverSeconds),
                 batterySkipped = p.getBoolean(K_BATTERY_SKIPPED, d.batterySkipped),
@@ -167,6 +170,7 @@ object Hub {
             .putBoolean(K_TOUCH_KEYBOARD, u.touchKeyboard)
             .putBoolean(K_COVER_SCREEN, u.coverScreen)
             .putBoolean(K_UNCOVER_ON_NOTIFICATION, u.uncoverOnNotification)
+            .putBoolean(K_UNCOVER_ON_UNLOCK, u.uncoverOnUnlock)
             .putBoolean(K_RECOVER_SCREEN, u.recoverScreen)
             .putInt(K_RECOVER_SECONDS, u.recoverSeconds)
             .putBoolean(K_BATTERY_SKIPPED, u.batterySkipped)
@@ -210,6 +214,7 @@ object Hub {
     private const val K_TOUCH_KEYBOARD = "touch_keyboard"
     private const val K_COVER_SCREEN = "cover_screen"
     private const val K_UNCOVER_ON_NOTIFICATION = "uncover_on_notification"
+    private const val K_UNCOVER_ON_UNLOCK = "uncover_on_unlock"
     private const val K_RECOVER_SCREEN = "recover_screen"
     private const val K_RECOVER_SECONDS = "recover_seconds"
     private const val K_BATTERY_SKIPPED = "battery_skipped"

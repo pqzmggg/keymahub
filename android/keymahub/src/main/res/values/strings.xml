@@ -150,8 +150,10 @@
     <string name="cover_hint">Screen turned off to save battery.\nTouch the screen to turn it back on.</string>
     <string name="uncover_on_notification">Uncover for notifications</string>
     <string name="uncover_on_notification_hint">When a notification arrives, uncover the screen as a touch does, so it can be seen.</string>
+    <string name="uncover_on_unlock">Uncover when unlocked</string>
+    <string name="uncover_on_unlock_hint">Unlocking the phone (fingerprint, face, PIN) after the power button uncovers the screen. Only with a screen lock (PIN, pattern, password).</string>
     <string name="recover_screen">Cover again when untouched</string>
-    <string name="recover_screen_hint">Once a touch or a notification uncovers the screen, cover it again after the phone goes untouched for:</string>
+    <string name="recover_screen_hint">Once a touch, a notification or an unlock uncovers the screen, cover it again after the phone goes untouched for:</string>
     <string name="duration_seconds">%d s</string>
     <string name="duration_minutes">%d min</string>
     <string name="touch_keyboard">On-screen keyboard while controlling</string>
