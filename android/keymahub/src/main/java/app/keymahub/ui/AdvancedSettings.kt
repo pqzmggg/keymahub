@@ -37,35 +37,35 @@ import androidx.compose.material3.Icon
 /**
  * Advanced settings: the numbers and switches of sending over Bluetooth ([Tuning]), in groups
  * (shared by keyboard and mouse, mouse only, keyboard only), each with
- * its recommended value, its range and a "?" that says what it does. Folded until opened. A
- * value within range applies as soon as it is typed.
+ * its recommended value, its range and a "?" that says what it does. A section of the settings
+ * like the others, folded until its title is tapped. A value within range applies as soon as it
+ * is typed.
  */
 @Composable
-fun AdvancedCard(tuning: Tuning, onTuning: ((Tuning) -> Tuning) -> Unit) {
+fun AdvancedSection(tuning: Tuning, onTuning: ((Tuning) -> Tuning) -> Unit) {
     var open by rememberSaveable { mutableStateOf(false) }
-    Card(Modifier.fillMaxWidth()) {
-        // Opens and closes like a list group (a chevron, not a switch: nothing is turned on here).
-        Row(
-            Modifier.fillMaxWidth().clickable { open = !open }.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(Modifier.weight(1f).padding(end = 12.dp)) {
-                Text(stringResource(R.string.settings_advanced), style = MaterialTheme.typography.titleMedium)
-                Text(stringResource(R.string.settings_advanced_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            Icon(
-                if (open) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+    // The section title opens and closes it like a list group (a chevron, not a switch: nothing is turned on here).
+    Row(
+        Modifier.fillMaxWidth().clickable { open = !open }.padding(top = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f).padding(end = 12.dp)) {
+            Text(stringResource(R.string.settings_advanced), style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.settings_advanced_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        if (!open) return@Card
-
+        Icon(
+            if (open) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+    if (!open) return
+    Card(Modifier.fillMaxWidth()) {
         val ms = stringResource(R.string.unit_ms)
         val reports = stringResource(R.string.unit_reports)
 
         // Shared by keyboard and mouse: how reports go over the link.
-        GroupTitle(R.string.tuning_group_common)
+        GroupTitle(R.string.tuning_group_common, divider = false)
         NumberItem(R.string.tuning_window, R.string.tuning_window_help, reports, Tuning.WINDOW, tuning.window) { v ->
             onTuning { it.copy(window = v) }
         }
@@ -120,10 +120,10 @@ fun AdvancedCard(tuning: Tuning, onTuning: ((Tuning) -> Tuning) -> Unit) {
     }
 }
 
-/** The heading of a group of settings (common, mouse, keyboard). */
+/** The heading of a group of settings (common, mouse, keyboard), after a [divider] from the group before. */
 @Composable
-private fun GroupTitle(text: Int) {
-    HorizontalDivider()
+private fun GroupTitle(text: Int, divider: Boolean = true) {
+    if (divider) HorizontalDivider()
     Text(
         stringResource(text),
         style = MaterialTheme.typography.labelLarge,
