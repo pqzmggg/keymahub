@@ -5,7 +5,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -210,11 +209,10 @@ fun HomeScreen(
                     var note by remember { mutableStateOf("") }
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         val addNote = { if (note.isNotBlank()) { Hub.log("NOTE: ${note.trim()}"); note = "" } }
-                        OutlinedTextField(
+                        CompactTextField(
                             value = note,
                             onValueChange = { note = it },
-                            placeholder = { Text(stringResource(R.string.log_note_hint)) },
-                            singleLine = true,
+                            placeholder = stringResource(R.string.log_note_hint),
                             // Enter adds the note (Esc still closes, above).
                             modifier = Modifier.weight(1f).dialogKeys(onEnter = addNote, onEscape = { showLog = false }, textField = true, autoFocus = false),
                         )

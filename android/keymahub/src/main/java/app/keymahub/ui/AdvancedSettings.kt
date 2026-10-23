@@ -12,7 +12,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -174,14 +173,13 @@ private fun NumberItem(title: Int, help: Int, unit: String, spec: Tuning.Spec, v
                 Text(stringResource(R.string.tuning_out_of_range), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
             }
         }
-        OutlinedTextField(
+        CompactTextField(
             value = text,
             onValueChange = { typed: String ->
                 text = typed.filter(Char::isDigit).take(4)
                 text.toIntOrNull()?.takeIf { it in spec && it != value }?.let(onValue)
             },
             modifier = Modifier.width(96.dp),
-            singleLine = true,
             isError = !valid,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         )
