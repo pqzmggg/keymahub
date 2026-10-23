@@ -205,6 +205,7 @@ fun HomeScreen(
                             Text(log.ifEmpty { stringResource(R.string.log_empty) }, fontFamily = FontFamily.Monospace, fontSize = 11.sp)
                         }
                     }
+                    Spacer(Modifier.height(12.dp))
                     // A note lands in the log at this moment: what was tried, what happened.
                     var note by remember { mutableStateOf("") }
                     Row(verticalAlignment = Alignment.CenterVertically) {
